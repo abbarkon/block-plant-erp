@@ -1,0 +1,3 @@
+# SQL dumps contain employee, payroll and customer data. Never serve them.
+Require all denied
+Options -Indexes

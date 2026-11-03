@@ -1,0 +1,4 @@
+# The deployment kit contains database dumps with live company data.
+# Nothing in this folder may be served over the web.
+Require all denied
+Options -Indexes

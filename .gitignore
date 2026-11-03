@@ -1,0 +1,50 @@
+# Database files
+*.sql
+database.sql
+database_update_2fa.sql
+
+# Configuration files with sensitive data
+config/config.php
+config/database.php
+
+# Uploads directory
+uploads/*
+
+# Temporary files
+*.tmp
+*.log
+temp_*
+notification_log.txt
+
+# Cache
+*.cache
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# XAMPP/Server specific
+.phpcs.xml
+.phpunit.result.cache
+
+# Documentation files that are not needed in public repo
+ALL_FIXES_COMPLETE.txt
+COMPLETE_PACKAGE_SUMMARY.txt
+DATABASE_IMPORT_SUCCESS.txt
+FIXES_APPLIED.txt
+POST
+README_INSTALL.txt
+SYSTEM_OVERVIEW.txt
+DEPLOYMENT_CHECKLIST.md
+NETWORK_SETUP.md
+QUICK_START.md
+
+# Generated files
+temp_att_report.jpg

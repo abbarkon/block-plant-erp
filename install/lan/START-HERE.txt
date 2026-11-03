@@ -1,0 +1,59 @@
+BLOCK PLANT ERP - LAN DEPLOYMENT KIT
+====================================
+
+This folder makes your PC the server for the office, and prepares the package
+that goes on every other PC.
+
+READ THIS FIRST:  README-LAN.md   (full guide, troubleshooting, security)
+
+
+THE THREE STEPS
+---------------
+
+1. PREPARE THIS PC AS THE SERVER
+      Double-click  Setup-LAN.bat
+      Accept the Windows permission prompt.
+      It opens the firewall, keeps Apache and MySQL running, and protects MySQL
+      from network access. Nothing is deleted.
+
+2. CHOOSE THE STARTING DATA
+      Double-click  Install-Database.bat
+        1 = keep the current company data (employees, attendance, payroll, ...)
+        2 = start clean (empty system, default admin login)
+        3 = only make a backup
+      A safety backup is always written to backups\ before anything changes.
+
+3. BUILD THE CLIENT PACKAGE
+      Double-click  Create-Client-Package.bat
+      It creates  client\  and  Block-Plant-Client.zip  with your server address
+      already inside.
+
+
+ON EACH CLIENT PC
+-----------------
+
+      Copy Block-Plant-Client.zip there (USB stick or shared folder)
+      Extract it, then double-click  Install-Client.bat
+      A "Block Plant ERP" shortcut appears on the Desktop and Start Menu.
+
+      Nothing is installed on the client and no company data is copied to it.
+
+
+ADDRESS TO OPEN IN A BROWSER
+----------------------------
+
+      http://192.168.5.96/block_plant/
+
+      (by computer name:  http://DESKTOP-4C855ET/block_plant/ )
+
+
+IMPORTANT
+---------
+
+  * The server PC must stay switched on while people use the system.
+  * Change the default admin password after the first login (admin / password).
+  * Do not forward port 80 on the router - this system is for the office LAN.
+  * Keep this folder and backups\ off any shared folder other users can browse.
+    The SQL files contain employee, payroll and customer data.
+
+See README-LAN.md for the full explanation.

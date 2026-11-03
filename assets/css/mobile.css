@@ -1,0 +1,267 @@
+/* ==========================================================================
+   Block Plant ERP — phone / small-screen layout layer
+   --------------------------------------------------------------------------
+   Loaded after style.css, advanced.css and glass.css, so the rules here win.
+   Scope: viewports up to 768 CSS pixels — phones, small tablets, and desktop
+   windows zoomed to 125–200%.
+   Keep this file limited to layout fixes for narrow screens; colours, themes
+   and desktop styling belong in the existing stylesheets.
+   ========================================================================== */
+
+@media (max-width: 768px) {
+
+    /* ---------- Top bar: two tidy rows instead of one overflowing row ---- */
+    .theme-advanced .topbar {
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        gap: 8px 10px !important;
+        padding: 8px 12px !important;
+    }
+
+    .theme-advanced .topbar .logo {
+        flex: 1 1 0%;
+        min-width: 0;
+        font-size: .95rem;
+    }
+
+    /* glass.css hides the brand name below 900px; bring it back, truncated,
+       so the phone still shows which system this is */
+    .theme-advanced .topbar .logo span {
+        display: block !important;
+        min-width: 0;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .theme-advanced .topbar .user-info {
+        flex: 1 1 100% !important;
+        flex-wrap: wrap !important;
+        justify-content: flex-end;
+        gap: 4px 6px !important;
+        font-size: .8rem;
+    }
+
+    /* tighten the controls so the whole row fits on a 320px phone */
+    .theme-advanced .topbar .user-info > span {
+        margin-left: 0 !important;
+    }
+
+    .theme-advanced .topbar .notification-dropdown {
+        margin-right: 0 !important;
+    }
+
+    .theme-advanced .topbar .user-info button {
+        padding-left: 6px !important;
+        padding-right: 6px !important;
+        min-height: 36px;
+    }
+
+    .theme-advanced .topbar .user-info > span,
+    .theme-advanced .topbar .user-info > a {
+        white-space: nowrap;
+    }
+
+    /* the role in brackets is noise on a phone */
+    .theme-advanced .topbar .user-info small {
+        display: none !important;
+    }
+
+    /* command palette button becomes an icon-only tap target */
+    .theme-advanced .topbar #cmdkOpen {
+        padding: 6px 10px !important;
+        margin-right: 0 !important;
+    }
+
+    .theme-advanced .topbar #cmdkOpen > span:not(:first-child) {
+        display: none !important;
+    }
+
+    .theme-advanced .topbar #themeToggle {
+        padding: 6px 9px !important;
+    }
+
+    /* logout gets a real tap target */
+    .theme-advanced .topbar .user-info > a[href*="logout"] {
+        padding: 6px 10px;
+        border: 1px solid rgba(255, 255, 255, .35);
+        border-radius: 8px;
+    }
+
+    /* ---------- Notification panels: full width under the bar ----------- */
+    .theme-advanced .topbar .notification-dropdown {
+        position: static !important;
+    }
+
+    .theme-advanced .topbar .notification-dropdown > div[id] {
+        left: 12px !important;
+        right: 12px !important;
+        top: calc(100% + 6px) !important;
+        width: auto !important;
+        max-height: 65vh;
+        overflow-y: auto !important;
+    }
+
+    /* ---------- Content shell ------------------------------------------- */
+    .theme-advanced .container {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+        margin-top: 12px !important;
+    }
+
+    .container h1 {
+        font-size: 1.35rem;
+        line-height: 1.25;
+    }
+
+    .page-header {
+        gap: 8px;
+        padding-bottom: 12px;
+        margin-bottom: 16px;
+    }
+
+    .page-header h1 {
+        font-size: 1.3rem !important;
+    }
+
+    .page-header .header-actions {
+        width: 100%;
+    }
+
+    /* ---------- Inline grids: filter bars and stat rows stack ------------ */
+    .container [style*="grid-template-columns"] {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* grid items default to min-width:auto, so one wide table inside a panel
+       can stretch the whole column; let the panel shrink and scroll instead */
+    .container [style*="grid-template-columns"] > *,
+    .container .sale-layout > *,
+    .container .doc-layout > * {
+        min-width: 0;
+    }
+
+    .container .sale-layout,
+    .container .doc-layout {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* page-local grid wrappers such as .user-grid / .sale-grid */
+    .container [class$="-grid"] {
+        grid-template-columns: 1fr !important;
+    }
+
+    .container [class$="-grid"] > * {
+        min-width: 0;
+    }
+
+    .container [style*="display: flex"][style*="gap"] {
+        flex-wrap: wrap;
+    }
+
+    /* ---------- Forms ---------------------------------------------------- */
+    .container form {
+        max-width: 100%;
+    }
+
+    .container input,
+    .container select,
+    .container textarea {
+        max-width: 100%;
+        font-size: 16px !important; /* stops iOS zooming in when a field is focused */
+    }
+
+    /* ---------- Buttons: comfortable 40px tap targets -------------------- */
+    .container .btn,
+    .container button,
+    .container a.btn {
+        min-height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    /* ---------- Tables scroll sideways inside their own box -------------- */
+    /* advanced.css sets `overflow: hidden` on plain tables, which stops them
+       scrolling and lets a wide table push the whole page sideways. */
+    .container table {
+        display: block;
+        max-width: 100%;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        -webkit-overflow-scrolling: touch;
+        font-size: 13px;
+    }
+
+    /* a fieldset defaults to min-width: min-content, so a wide table inside it
+       widens the page instead of scrolling */
+    .container fieldset {
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .container th,
+    .container td {
+        padding: 8px 10px;
+    }
+
+    /* an action cell must keep its buttons on one line: once squeezed to the
+       narrow table width every button wraps onto its own line and the row
+       grows to 200–300px tall */
+    .container td:has(.btn),
+    .container td:has(.btn-sm),
+    .container td:has(button) {
+        white-space: nowrap;
+    }
+
+    /* ---------- Cards / panels ------------------------------------------ */
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .panel,
+    .filter-section,
+    .compact-form {
+        padding: 14px !important;
+    }
+
+    /* ---------- Sidebar drawer ------------------------------------------ */
+    .theme-advanced .navbar {
+        width: min(86vw, 300px) !important;
+    }
+
+    body.sidebar-open {
+        overflow: hidden;
+    }
+
+    /* ---------- Modals --------------------------------------------------- */
+    .late-modal-card,
+    .modal-card,
+    .modal-content {
+        max-width: calc(100vw - 20px) !important;
+    }
+}
+
+/* Narrow phones: the signed-in name is the first thing to go so the top bar
+   keeps a single row of controls. */
+@media (max-width: 480px) {
+    .theme-advanced .topbar .user-info > span:last-of-type {
+        display: none !important;
+    }
+}
+
+/* Very small phones (320px class): trim the gutters a little more so the
+   logout button stays on the same row as the other controls. */
+@media (max-width: 360px) {
+    .theme-advanced .topbar {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+    }
+
+    .theme-advanced .topbar .user-info {
+        gap: 4px !important;
+    }
+}
