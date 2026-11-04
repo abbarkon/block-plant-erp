@@ -7,9 +7,18 @@ ensure_manufacturing_costing_schema();
 
 $pageTitle = 'New Production Run';
 $blocks = $pdo->query("SELECT * FROM block_types WHERE status=1 ORDER BY name, size")->fetchAll();
-$laborByBlock = [];
+$blockYieldByBlock = [];
 foreach ($blocks as $b) {
+    $blockYieldByBlock[(int) $b['id']] = 1.0;
     $laborByBlock[(int) $b['id']] = (float) ($b['labor_cost_per_block'] ?? 0);
+}
+try {
+    $yieldRows = $pdo->query("SELECT id, yield_factor FROM block_types WHERE yield_factor IS NOT NULL")->fetchAll();
+    foreach ($yieldRows as $row) {
+        $blockYieldByBlock[(int) $row['id']] = (float) $row['yield_factor'];
+    }
+} catch (PDOException $e) {
+    // Older databases do not have the optional yield_factor column; keep the default fallback.
 }
 $materials = $pdo->query("SELECT * FROM raw_materials WHERE status=1 ORDER BY name")->fetchAll();
 
@@ -46,6 +55,22 @@ require_once "../partials/header.php";
     <a href="index.php" class="btn btn-secondary"><?= t('cancel') ?></a>
 </div>
 
+<div id="cementPopup" style="position:fixed; inset:0; background:rgba(15,23,42,.5); display:flex; align-items:center; justify-content:center; z-index:2000; display:none;">
+    <div style="background:#fff; width:min(420px, calc(100% - 24px)); border-radius:18px; padding:22px 20px; box-shadow:0 18px 46px rgba(15,23,42,.35);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <h3 style="margin:0;">Enter cement qty</h3>
+            <button type="button" id="cementPopupClose" class="btn btn-secondary btn-sm" aria-label="Close">Close</button>
+        </div>
+        <p style="margin:0 0 14px; color:#64748b;">Select the cement quantity for this block type. The produced quantity and BOM will update automatically.</p>
+        <label for="cementPopupInput">Cement qty</label>
+        <input type="number" id="cementPopupInput" min="0" step="0.01" placeholder="e.g. 100" style="width:100%; margin-bottom:16px;">
+        <div style="display:flex; justify-content:flex-end; gap:10px;">
+            <button type="button" id="cementPopupCancel" class="btn btn-secondary">Cancel</button>
+            <button type="button" id="cementPopupApply" class="btn btn-accent">Apply</button>
+        </div>
+    </div>
+</div>
+
 <div class="panel" style="max-width:900px;">
     <form method="post" action="save.php" id="prodForm">
         <label>Date</label>
@@ -61,7 +86,7 @@ require_once "../partials/header.php";
         </select>
 
         <div class="grid-2">
-            <div><label>Planned quantity</label><input type="number" name="planned_quantity" id="plannedQty" value="<?= $plannedQty ?>" min="0"></div>
+            <div><label>Cement qty</label><input type="number" name="planned_quantity" id="plannedQty" value="<?= $plannedQty ?>" min="0" step="0.01" placeholder="Cement bags"></div>
             <div><label>Produced quantity *</label><input type="number" name="produced_quantity" id="producedQty" required min="1"></div>
         </div>
         <label>Rejected quantity</label>
@@ -90,8 +115,12 @@ require_once "../partials/header.php";
 const bom = <?= json_encode($bomByBlock) ?>;
 const materials = <?= json_encode($matJson) ?>;
 const laborPerBlock = <?= json_encode($laborByBlock) ?>;
+const blockYieldByBlock = <?= json_encode($blockYieldByBlock) ?>;
 let laborTouched = false;
+let producedManualOverride = false;
 const laborInput = document.getElementById('laborCost');
+const producedInput = document.getElementById('producedQty');
+const cementInput = document.getElementById('plannedQty');
 laborInput.addEventListener('input', () => { laborTouched = true; });
 
 function suggestLabor() {
@@ -120,16 +149,62 @@ function addRow(mid = '', qty = '', cost = '') {
     document.getElementById('materialRows').appendChild(div);
 }
 
+function getCementQuantity() {
+    let total = 0;
+    const rows = document.querySelectorAll('#materialRows .filter-form');
+    rows.forEach(row => {
+        const materialSelect = row.querySelector('select[name="material_id[]"]');
+        const quantityInput = row.querySelector('input[name="material_quantity[]"]');
+        if (!materialSelect || !quantityInput) {
+            return;
+        }
+        const materialId = Number(materialSelect.value);
+        const material = materials.find(m => m.id === materialId);
+        const name = (material && material.name ? material.name.toLowerCase() : '');
+        if (name.includes('cement')) {
+            total += parseFloat(quantityInput.value) || 0;
+        }
+    });
+    return total;
+}
+
+function suggestProducedFromCement() {
+    if (producedManualOverride) {
+        return;
+    }
+    const blockId = document.getElementById('blockType').value;
+    const yieldFactor = parseFloat(blockYieldByBlock[blockId] || 1);
+    const cementQty = parseFloat(cementInput.value) || 0;
+    if (!cementQty || !yieldFactor || !Number.isFinite(yieldFactor)) {
+        return;
+    }
+    const suggested = Number((cementQty * yieldFactor).toFixed(4));
+    producedInput.value = suggested;
+    applyBom();
+    updateGood();
+}
+
 function applyBom() {
     const blockId = document.getElementById('blockType').value;
+    const cementQty = parseFloat(cementInput.value) || 0;
     const produced = parseFloat(document.getElementById('producedQty').value) || 0;
     document.getElementById('materialRows').innerHTML = '';
     const lines = bom[blockId] || [];
-    if (lines.length && produced > 0) {
+    if (lines.length) {
+        const cementLine = lines.find(line => {
+            const mat = materials.find(m => m.id == line.material_id);
+            const name = (mat && mat.name ? mat.name.toLowerCase() : '');
+            return name.includes('cement');
+        });
         lines.forEach(line => {
             const mat = materials.find(m => m.id == line.material_id);
-            const qty = (line.qty_per_block * produced).toFixed(4);
-            addRow(line.material_id, qty, mat ? mat.unit_cost : '');
+            let qty = 0;
+            if (cementLine && line.material_id === cementLine.material_id && cementQty > 0) {
+                qty = cementQty;
+            } else if (produced > 0) {
+                qty = line.qty_per_block * produced;
+            }
+            addRow(line.material_id, qty ? qty.toFixed(4) : '', mat ? mat.unit_cost : '');
         });
     } else if (materials.length) {
         addRow(materials[0].id, '', materials[0].unit_cost);
@@ -143,10 +218,56 @@ function updateGood() {
     document.getElementById('goodPreview').textContent = p ? `Good quantity: ${Math.max(0, p - r)}` : '';
 }
 
-document.getElementById('blockType').addEventListener('change', applyBom);
-document.getElementById('producedQty').addEventListener('input', () => { updateGood(); applyBom(); });
+const cementPopup = document.getElementById('cementPopup');
+const cementPopupInput = document.getElementById('cementPopupInput');
+const openCementPopup = () => {
+    cementPopupInput.value = cementInput.value || '';
+    cementPopup.style.display = 'flex';
+    setTimeout(() => cementPopupInput.focus(), 50);
+};
+const closeCementPopup = () => {
+    cementPopup.style.display = 'none';
+};
+
+document.getElementById('blockType').addEventListener('change', () => {
+    producedManualOverride = false;
+    cementInput.value = '';
+    producedInput.value = '';
+    applyBom();
+    openCementPopup();
+});
+cementInput.addEventListener('input', () => {
+    producedManualOverride = false;
+    suggestProducedFromCement();
+});
+
+document.getElementById('cementPopupApply').addEventListener('click', () => {
+    cementInput.value = cementPopupInput.value;
+    closeCementPopup();
+    if (parseFloat(cementInput.value) > 0) {
+        suggestProducedFromCement();
+    }
+});
+document.getElementById('cementPopupCancel').addEventListener('click', closeCementPopup);
+document.getElementById('cementPopupClose').addEventListener('click', closeCementPopup);
+cementPopup.addEventListener('click', (event) => {
+    if (event.target === cementPopup) {
+        closeCementPopup();
+    }
+});
+document.getElementById('producedQty').addEventListener('focus', () => { producedManualOverride = true; });
+document.getElementById('producedQty').addEventListener('input', () => {
+    producedManualOverride = true;
+    updateGood();
+});
 document.getElementById('rejectedQty').addEventListener('input', updateGood);
 document.getElementById('addRow').addEventListener('click', () => addRow());
+document.getElementById('materialRows').addEventListener('input', (event) => {
+    if (event.target.matches('input[name="material_quantity[]"]')) {
+        producedManualOverride = false;
+        suggestProducedFromCement();
+    }
+});
 
 applyBom();
 updateGood();
