@@ -1,0 +1,14 @@
+<?php
+// Launcher so AletCloud's entrypoint starts PHP with our router.
+$cmd = $argv[1] ?? '';
+if ($cmd !== 'serve') { exit(0); }
+$host = '0.0.0.0';
+$port = getenv('PORT') ?: '8000';
+foreach ($argv as $a) {
+    if (strpos($a, '--host=') === 0) $host = substr($a, 7);
+    if (strpos($a, '--port=') === 0) $port = substr($a, 7);
+}
+putenv('PHP_CLI_SERVER_WORKERS=2');
+pcntl_exec(PHP_BINARY, ['-S', "$host:$port", '-t', __DIR__, __DIR__ . '/router.php']);
+fwrite(STDERR, "pcntl_exec failed\n");
+exit(1);
