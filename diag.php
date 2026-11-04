@@ -1,3 +1,6 @@
 <?php
 header('Content-Type: text/plain');
-echo shell_exec("cd /app && grep -rn --include=*.php -E \"block_plant|BASE_URL|base_url|APP_URL\" . 2>&1 | grep -v '^./diag.php' | head -60");
+echo "=== Dockerfile ===\n" . @file_get_contents('/app/Dockerfile');
+echo "\n=== laravel-entrypoint.sh ===\n" . @file_get_contents('/app/laravel-entrypoint.sh');
+echo "\n=== php sapi ===\n" . php_sapi_name() . "\n";
+echo "=== SERVER_SOFTWARE ===\n" . ($_SERVER['SERVER_SOFTWARE'] ?? '') . "\n";
