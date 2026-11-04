@@ -1,11 +1,11 @@
 # Database files
-*.sql
-database.sql
-database_update_2fa.sql
+
+
+
 
 # Configuration files with sensitive data
 config/config.php
-config/database.php
+
 
 # Uploads directory
 uploads/*
