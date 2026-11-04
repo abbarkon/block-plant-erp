@@ -2,10 +2,9 @@
 
 
 *.sql
-config/database.php
 
 # Configuration files with sensitive data
-config/config.php
+
 
 
 # Uploads directory
