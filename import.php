@@ -9,15 +9,25 @@ $sql = preg_replace('/^\s*(CREATE\s+DATABASE|USE)\b[^;]*;/mi', '', $sql);
 $sql = preg_replace('/^\s*--.*$/m', '', $sql);
 
 $pdo->exec('SET FOREIGN_KEY_CHECKS=0');
-$n = 0;
-foreach (preg_split('/;\s*[\r\n]+/', $sql) as $s) {
-    $s = trim($s);
-    if (!preg_match('/^(?:\\\\n)+/', $s)) continue;
-    $s = trim(preg_replace('/^(?:\\\\n)+\s*/', '', $s));
-    $s = preg_replace('/^CREATE TABLE\s+(?!IF NOT EXISTS)/i', 'CREATE TABLE IF NOT EXISTS ', $s);
-    try { $pdo->exec($s); $n++; echo "OK: " . substr($s, 0, 80) . "\n"; }
-    catch (Throwable $x) { echo "ERROR: " . $x->getMessage() . "\n  in: " . substr($s, 0, 120) . "\n"; }
+$made = 0;
+foreach (preg_split('/;\s*[\r\n]+/', $sql) as $chunk) {
+    if (!preg_match('/;\s*(?:\\\\n)+\s*\S/', $chunk)) continue;
+    $parts = preg_split('/;\s*(?:\\\\n)+\s*/', $chunk);
+    array_shift($parts); // first piece already ran during the first import
+    foreach ($parts as $p) {
+        $p = trim($p);
+        if ($p === '') continue;
+        if (preg_match('/^CREATE TABLE/i', $p)) {
+            $p = preg_replace('/^CREATE TABLE\s+(?!IF NOT EXISTS)/i', 'CREATE TABLE IF NOT EXISTS ', $p);
+            try { $pdo->exec($p); $made++; echo "OK: " . substr($p, 0, 90) . "\n"; }
+            catch (Throwable $x) { echo "ERROR: " . $x->getMessage() . "\n  in: " . substr($p, 0, 120) . "\n"; }
+        } else {
+            echo "SKIPPED (check manually): " . substr($p, 0, 120) . "\n";
+        }
+    }
 }
 $pdo->exec('SET FOREIGN_KEY_CHECKS=1');
-echo "Repaired statements: $n\n";
+echo "Tables created: $made\n";
 echo "Tables now: " . count($pdo->query('SHOW TABLES')->fetchAll()) . "\n";
+echo "attendance_warning_revocation_files exists: " .
+    (count($pdo->query("SHOW TABLES LIKE 'attendance_warning_revocation_files'")->fetchAll()) ? 'yes' : 'no') . "\n";
