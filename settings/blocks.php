@@ -3,6 +3,7 @@ session_start();
 require_once "../config/database.php";
 require_once "../config/helpers.php";
 require_permission('settings', 'edit');
+ensure_manufacturing_costing_schema();
 
 $pageTitle = "Block Types";
 
