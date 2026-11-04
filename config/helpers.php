@@ -1,6 +1,25 @@
 <?php
 // Helper functions for the Block Plant ERP system
 
+if (!function_exists('mb_strlen')) {
+    function mb_strlen($string, $encoding = null) {
+        return strlen((string) $string);
+    }
+}
+
+if (!function_exists('mb_substr')) {
+    function mb_substr($string, $start, $length = null, $encoding = null) {
+        $string = (string) $string;
+        return $length === null ? substr($string, $start) : substr($string, $start, $length);
+    }
+}
+
+if (!function_exists('mb_strtoupper')) {
+    function mb_strtoupper($string, $encoding = null) {
+        return strtoupper((string) $string);
+    }
+}
+
 /**
  * Set beautiful modal popup variables
  * @param string $type - success, error, warning, info
@@ -1195,7 +1214,10 @@ function ensure_manufacturing_costing_schema() {
     global $pdo;
     $columns = [
         'production' => ['labor_cost' => 'DECIMAL(14,2) NOT NULL DEFAULT 0', 'overhead_cost' => 'DECIMAL(14,2) NOT NULL DEFAULT 0'],
-        'block_types' => ['labor_cost_per_block' => 'DECIMAL(12,4) NOT NULL DEFAULT 0'],
+        'block_types' => [
+            'labor_cost_per_block' => 'DECIMAL(12,4) NOT NULL DEFAULT 0',
+            'yield_factor' => 'DECIMAL(10,4) NOT NULL DEFAULT 1',
+        ],
         'finished_stock' => ['average_unit_cost' => 'DECIMAL(14,4) NOT NULL DEFAULT 0'],
         'sales' => ['cogs_amount' => 'DECIMAL(14,2) NOT NULL DEFAULT 0'],
     ];
