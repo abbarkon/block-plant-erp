@@ -168,26 +168,8 @@ function getCementQuantity() {
     return total;
 }
 
-function suggestProducedFromCement() {
-    if (producedManualOverride) {
-        return;
-    }
+function renderBomForProduced(producedQty, cementQty) {
     const blockId = document.getElementById('blockType').value;
-    const yieldFactor = parseFloat(blockYieldByBlock[blockId] || 1);
-    const cementQty = parseFloat(cementInput.value) || 0;
-    if (!cementQty || !yieldFactor || !Number.isFinite(yieldFactor)) {
-        return;
-    }
-    const suggested = Number((cementQty * yieldFactor).toFixed(4));
-    producedInput.value = suggested;
-    applyBom();
-    updateGood();
-}
-
-function applyBom() {
-    const blockId = document.getElementById('blockType').value;
-    const cementQty = parseFloat(cementInput.value) || 0;
-    const produced = parseFloat(document.getElementById('producedQty').value) || 0;
     document.getElementById('materialRows').innerHTML = '';
     const lines = bom[blockId] || [];
     if (lines.length) {
@@ -201,8 +183,8 @@ function applyBom() {
             let qty = 0;
             if (cementLine && line.material_id === cementLine.material_id && cementQty > 0) {
                 qty = cementQty;
-            } else if (produced > 0) {
-                qty = line.qty_per_block * produced;
+            } else if (producedQty > 0) {
+                qty = line.qty_per_block * producedQty;
             }
             addRow(line.material_id, qty ? qty.toFixed(4) : '', mat ? mat.unit_cost : '');
         });
@@ -210,6 +192,31 @@ function applyBom() {
         addRow(materials[0].id, '', materials[0].unit_cost);
     }
     suggestLabor();
+}
+
+function suggestProducedFromCement() {
+    if (producedManualOverride) {
+        return;
+    }
+    const blockId = document.getElementById('blockType').value;
+    const yieldFactor = parseFloat(blockYieldByBlock[blockId] || 1);
+    const cementQty = parseFloat(cementInput.value) || 0;
+    if (!cementQty || !yieldFactor || !Number.isFinite(yieldFactor)) {
+        producedInput.value = '';
+        renderBomForProduced(0, 0);
+        updateGood();
+        return;
+    }
+    const suggested = Number((cementQty * yieldFactor).toFixed(4));
+    producedInput.value = suggested;
+    renderBomForProduced(suggested, cementQty);
+    updateGood();
+}
+
+function applyBom() {
+    const produced = parseFloat(document.getElementById('producedQty').value) || 0;
+    const cementQty = parseFloat(cementInput.value) || 0;
+    renderBomForProduced(produced, cementQty);
 }
 
 function updateGood() {
