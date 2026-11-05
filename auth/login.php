@@ -187,7 +187,7 @@ $lang = app_lang();
             <?php if ($error): ?><div class="err"><?= htmlspecialchars($error) ?></div><?php endif; ?>
             <form method="post">
                 <label><?= t('username') ?></label>
-                <input name="username" value="admin" required autocomplete="username">
+                <input name="username" required autocomplete="username" placeholder="Username">
                 <label><?= t('password') ?></label>
                 <input type="password" name="password" required autocomplete="current-password">
                 <button type="submit"><?= t('sign_in') ?></button>
