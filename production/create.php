@@ -11,6 +11,7 @@ $blockYieldByBlock = [];
 foreach ($blocks as $b) {
     $blockYieldByBlock[(int) $b['id']] = 1.0;
     $laborByBlock[(int) $b['id']] = (float) ($b['labor_cost_per_block'] ?? 0);
+    $overheadByBlock[(int) $b['id']] = (float) ($b['overhead_cost_per_block'] ?? 0);
 }
 try {
     $yieldRows = $pdo->query("SELECT id, yield_factor FROM block_types WHERE yield_factor IS NOT NULL")->fetchAll();
@@ -94,7 +95,7 @@ require_once "../partials/header.php";
 
         <div class="grid-2">
             <div><label>Direct labor cost (<?= e(currency_symbol()) ?>)</label><input type="number" name="labor_cost" id="laborCost" min="0" step="0.01" value="0" required></div>
-            <div><label>Factory overhead (<?= e(currency_symbol()) ?>)</label><input type="number" name="overhead_cost" min="0" step="0.01" value="0" required></div>
+            <div><label>Factory overhead (<?= e(currency_symbol()) ?>)</label><input type="number" name="overhead_cost" id="overheadCost" min="0" step="0.01" value="0" required></div>
         </div>
         <p style="color:#667a80;font-size:.82rem;">Material cost is calculated from current raw-material weighted-average cost. Labor and overhead are allocated across good blocks. Direct labor starts at the BOM labor cost per block × produced quantity; you can override it.</p>
 
@@ -115,22 +116,45 @@ require_once "../partials/header.php";
 const bom = <?= json_encode($bomByBlock) ?>;
 const materials = <?= json_encode($matJson) ?>;
 const laborPerBlock = <?= json_encode($laborByBlock) ?>;
+const overheadPerBlock = <?= json_encode($overheadByBlock) ?>;
 const blockYieldByBlock = <?= json_encode($blockYieldByBlock) ?>;
 let laborTouched = false;
 let producedManualOverride = false;
+let overheadTouched = false;
 const laborInput = document.getElementById('laborCost');
 const producedInput = document.getElementById('producedQty');
 const cementInput = document.getElementById('plannedQty');
-laborInput.addEventListener('input', () => { laborTouched = true; });
+const overheadInput = document.getElementById('overheadCost');
+const blockTypeInput = document.getElementById('blockType');
+if (laborInput) {
+    laborInput.addEventListener('input', () => { laborTouched = true; });
+}
+if (overheadInput) {
+    overheadInput.addEventListener('input', () => { overheadTouched = true; });
+}
 
 function suggestLabor() {
-    if (laborTouched) {
+    if (!laborInput || laborTouched) {
         return;
     }
-    const blockId = document.getElementById('blockType').value;
-    const produced = parseFloat(document.getElementById('producedQty').value) || 0;
+    const blockId = blockTypeInput ? blockTypeInput.value : '';
+    const produced = parseFloat(producedInput ? producedInput.value : 0) || 0;
     const perBlock = parseFloat(laborPerBlock[blockId] || 0);
     laborInput.value = (perBlock * produced).toFixed(2);
+}
+
+function suggestOverhead() {
+    if (!overheadInput || overheadTouched) {
+        return;
+    }
+    const blockId = blockTypeInput ? blockTypeInput.value : '';
+    const produced = parseFloat(producedInput ? producedInput.value : 0) || 0;
+    const perBlock = parseFloat(overheadPerBlock[blockId] || 0);
+    if (!Number.isFinite(perBlock)) {
+        overheadInput.value = '0.00';
+        return;
+    }
+    overheadInput.value = (perBlock * produced).toFixed(2);
 }
 
 function materialOptions(selected) {
@@ -169,8 +193,12 @@ function getCementQuantity() {
 }
 
 function renderBomForProduced(producedQty, cementQty) {
-    const blockId = document.getElementById('blockType').value;
-    document.getElementById('materialRows').innerHTML = '';
+    const blockId = blockTypeInput ? blockTypeInput.value : '';
+    const materialRows = document.getElementById('materialRows');
+    if (!materialRows) {
+        return;
+    }
+    materialRows.innerHTML = '';
     const lines = bom[blockId] || [];
     if (lines.length) {
         const cementLine = lines.find(line => {
@@ -198,19 +226,24 @@ function suggestProducedFromCement() {
     if (producedManualOverride) {
         return;
     }
-    const blockId = document.getElementById('blockType').value;
+    const blockId = blockTypeInput ? blockTypeInput.value : '';
     const yieldFactor = parseFloat(blockYieldByBlock[blockId] || 1);
     const cementQty = parseFloat(cementInput.value) || 0;
     if (!cementQty || !yieldFactor || !Number.isFinite(yieldFactor)) {
-        producedInput.value = '';
+        if (producedInput) {
+            producedInput.value = '';
+        }
         renderBomForProduced(0, 0);
         updateGood();
         return;
     }
     const suggested = Number((cementQty * yieldFactor).toFixed(4));
-    producedInput.value = suggested;
+    if (producedInput) {
+        producedInput.value = suggested;
+    }
     renderBomForProduced(suggested, cementQty);
     updateGood();
+    suggestOverhead();
 }
 
 function applyBom() {
@@ -236,47 +269,77 @@ const closeCementPopup = () => {
     cementPopup.style.display = 'none';
 };
 
-document.getElementById('blockType').addEventListener('change', () => {
+blockTypeInput.addEventListener('change', () => {
     producedManualOverride = false;
-    cementInput.value = '';
-    producedInput.value = '';
+    overheadTouched = false;
+    if (cementInput) {
+        cementInput.value = '';
+    }
+    if (producedInput) {
+        producedInput.value = '';
+    }
     applyBom();
+    suggestOverhead();
     openCementPopup();
 });
-cementInput.addEventListener('input', () => {
-    producedManualOverride = false;
-    suggestProducedFromCement();
-});
-
-document.getElementById('cementPopupApply').addEventListener('click', () => {
-    cementInput.value = cementPopupInput.value;
-    closeCementPopup();
-    if (parseFloat(cementInput.value) > 0) {
-        suggestProducedFromCement();
-    }
-});
-document.getElementById('cementPopupCancel').addEventListener('click', closeCementPopup);
-document.getElementById('cementPopupClose').addEventListener('click', closeCementPopup);
-cementPopup.addEventListener('click', (event) => {
-    if (event.target === cementPopup) {
-        closeCementPopup();
-    }
-});
-document.getElementById('producedQty').addEventListener('focus', () => { producedManualOverride = true; });
-document.getElementById('producedQty').addEventListener('input', () => {
-    producedManualOverride = true;
-    updateGood();
-});
-document.getElementById('rejectedQty').addEventListener('input', updateGood);
-document.getElementById('addRow').addEventListener('click', () => addRow());
-document.getElementById('materialRows').addEventListener('input', (event) => {
-    if (event.target.matches('input[name="material_quantity[]"]')) {
+if (cementInput) {
+    cementInput.addEventListener('input', () => {
         producedManualOverride = false;
         suggestProducedFromCement();
-    }
-});
+    });
+}
+
+if (document.getElementById('cementPopupApply')) {
+    document.getElementById('cementPopupApply').addEventListener('click', () => {
+        cementInput.value = cementPopupInput.value;
+        closeCementPopup();
+        if (parseFloat(cementInput.value) > 0) {
+            suggestProducedFromCement();
+        }
+        suggestOverhead();
+    });
+}
+if (document.getElementById('cementPopupCancel')) {
+    document.getElementById('cementPopupCancel').addEventListener('click', closeCementPopup);
+}
+if (document.getElementById('cementPopupClose')) {
+    document.getElementById('cementPopupClose').addEventListener('click', closeCementPopup);
+}
+if (cementPopup) {
+    cementPopup.addEventListener('click', (event) => {
+        if (event.target === cementPopup) {
+            closeCementPopup();
+        }
+    });
+}
+if (producedInput) {
+    producedInput.addEventListener('focus', () => { producedManualOverride = true; });
+    producedInput.addEventListener('input', () => {
+        producedManualOverride = true;
+        updateGood();
+        suggestOverhead();
+    });
+}
+const rejectedInput = document.getElementById('rejectedQty');
+if (rejectedInput) {
+    rejectedInput.addEventListener('input', updateGood);
+}
+const addRowButton = document.getElementById('addRow');
+if (addRowButton) {
+    addRowButton.addEventListener('click', () => addRow());
+}
+const materialRowsContainer = document.getElementById('materialRows');
+if (materialRowsContainer) {
+    materialRowsContainer.addEventListener('input', (event) => {
+        if (event.target.matches('input[name="material_quantity[]"]')) {
+            producedManualOverride = false;
+            suggestProducedFromCement();
+        }
+    });
+}
 
 applyBom();
+suggestOverhead();
 updateGood();
 </script>
 

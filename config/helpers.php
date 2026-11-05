@@ -1216,6 +1216,7 @@ function ensure_manufacturing_costing_schema() {
         'production' => ['labor_cost' => 'DECIMAL(14,2) NOT NULL DEFAULT 0', 'overhead_cost' => 'DECIMAL(14,2) NOT NULL DEFAULT 0'],
         'block_types' => [
             'labor_cost_per_block' => 'DECIMAL(12,4) NOT NULL DEFAULT 0',
+            'overhead_cost_per_block' => 'DECIMAL(12,4) NOT NULL DEFAULT 0',
             'yield_factor' => 'DECIMAL(10,4) NOT NULL DEFAULT 1',
         ],
         'finished_stock' => ['average_unit_cost' => 'DECIMAL(14,4) NOT NULL DEFAULT 0'],
