@@ -41,7 +41,7 @@ if (substr($file, -4) === '.php') {
               . '<meta name="theme-color" content="#0f4c5c">'
               . '<meta name="mobile-web-app-capable" content="yes">'
               . '<meta name="apple-mobile-web-app-capable" content="yes">'
-              . '<meta name="apple-mobile-web-app-title" content="Block Plant">'
+              . '<meta name="apple-mobile-web-app-title" content="Mariamawit">'
               . '<link rel="apple-touch-icon" href="' . $prefix . '/assets/pwa/apple-touch-icon.png">'
               . '<script>if("serviceWorker"in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("' . $prefix . '/sw.js",{scope:"' . $prefix . '/"});});}</script>';
         return preg_replace('#</head>#i', $tags . '</head>', $html, 1);
