@@ -193,7 +193,21 @@ require_once "../partials/header.php";
                 <td style="color:#00897b;font-weight:600;"><?= number_format($r['good_quantity']) ?></td>
                 <td style="color:#c0392b;"><?= number_format($r['rejected_quantity']) ?></td>
                 <td><?= currency_symbol() . money($r['production_cost']) ?></td>
-                <td class="no-print"><a class="btn-sm" href="view.php?id=<?= (int) $r['id'] ?>">View</a></td>
+                <td class="no-print">
+                    <div class="actions-inline">
+                        <a class="btn-sm" href="view.php?id=<?= (int) $r['id'] ?>">View</a>
+                        <?php if (has_permission('production', 'edit')): ?>
+                        <a class="btn-sm btn-secondary" href="edit.php?id=<?= (int) $r['id'] ?>">Edit</a>
+                        <?php endif; ?>
+                        <?php if (has_permission('production', 'delete')): ?>
+                        <form method="post" action="save.php" style="display:inline;" onsubmit="return confirm('Delete this production record? This cannot be undone.');">
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="production_id" value="<?= (int) $r['id'] ?>">
+                            <button type="submit" class="btn-sm" style="background:#c0392b;border:0;color:#fff;cursor:pointer;">Delete</button>
+                        </form>
+                        <?php endif; ?>
+                    </div>
+                </td>
             </tr>
             <?php endforeach; ?>
         </tbody>

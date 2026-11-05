@@ -43,6 +43,16 @@ require_once "../partials/header.php";
 <div class="page-header no-print">
     <h1><?= e($p['production_no']) ?></h1>
     <div class="header-actions">
+        <?php if (has_permission('production', 'edit')): ?>
+        <a href="edit.php?id=<?= (int) $p['id'] ?>" class="btn btn-accent">Edit run</a>
+        <?php endif; ?>
+        <?php if (has_permission('production', 'delete')): ?>
+        <form method="post" action="save.php" style="display:inline;" onsubmit="return confirm('Delete this production record? This cannot be undone.');">
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="production_id" value="<?= (int) $p['id'] ?>">
+            <button type="submit" class="btn btn-secondary" style="background:#c0392b;border:0;color:#fff;cursor:pointer;">Delete</button>
+        </form>
+        <?php endif; ?>
         <button type="button" class="btn btn-secondary" onclick="window.print()">Print</button>
         <a href="index.php" class="btn btn-secondary">← All runs</a>
     </div>
