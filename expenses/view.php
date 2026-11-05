@@ -65,6 +65,16 @@ require_once "../partials/header.php";
         <p style="color:#64748b;margin:6px 0 0;"><?= e($expense['voucher_no']) ?> · <?= e(format_date($expense['expense_date'])) ?></p>
     </div>
     <div class="header-actions">
+        <?php if (has_permission('expenses', 'edit')): ?>
+        <a href="edit.php?id=<?= (int) $expense['id'] ?>" class="btn btn-accent">Edit voucher</a>
+        <?php endif; ?>
+        <?php if (has_permission('expenses', 'delete')): ?>
+        <form method="post" action="save.php" style="display:inline;" onsubmit="return confirm('Delete this expense voucher? This also removes the matching cashbook posting.');">
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="expense_id" value="<?= (int) $expense['id'] ?>">
+            <button type="submit" class="btn btn-secondary" style="background:#c0392b;border:0;color:#fff;cursor:pointer;">Delete</button>
+        </form>
+        <?php endif; ?>
         <a href="index.php" class="btn btn-secondary">Back to expenses</a>
         <button type="button" class="btn btn-secondary" onclick="window.print()">Print voucher</button>
     </div>

@@ -201,7 +201,21 @@ require_once "../partials/header.php";
                 <td><span class="badge badge-<?= $appr === 'approved' ? 'success' : ($appr === 'rejected' ? 'danger' : 'warning') ?>"><?= e(ucfirst($appr)) ?></span></td>
                 <td><?= e($r['created_by_name'] ?? '—') ?></td>
                 <td><?= e($r['reference_no'] ?? '') ?></td>
-                <td class="no-print"><a class="btn btn-sm btn-secondary" href="view.php?id=<?= (int) $r['id'] ?>">Open</a></td>
+                <td class="no-print">
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                        <a class="btn btn-sm btn-secondary" href="view.php?id=<?= (int) $r['id'] ?>">Open</a>
+                        <?php if (has_permission('expenses', 'edit')): ?>
+                        <a class="btn btn-sm btn-secondary" href="edit.php?id=<?= (int) $r['id'] ?>">Edit</a>
+                        <?php endif; ?>
+                        <?php if (has_permission('expenses', 'delete')): ?>
+                        <form method="post" action="save.php" style="display:inline;" onsubmit="return confirm('Delete this expense voucher?');">
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="expense_id" value="<?= (int) $r['id'] ?>">
+                            <button type="submit" class="btn btn-sm" style="background:#c0392b;border:0;color:#fff;cursor:pointer;">Delete</button>
+                        </form>
+                        <?php endif; ?>
+                    </div>
+                </td>
             </tr>
             <?php endforeach; ?>
         </tbody>
