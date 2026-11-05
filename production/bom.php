@@ -35,6 +35,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && has_permission('production', 'edit'
         header('Location: bom.php?block_type_id=' . $blockTypeId);
         exit;
     }
+    if (isset($_POST['save_overhead'])) {
+        $blockTypeId = (int) ($_POST['overhead_block_type_id'] ?? 0);
+        $overheadPerBlock = round((float) ($_POST['overhead_cost_per_block'] ?? 0), 4);
+        if ($blockTypeId <= 0 || $overheadPerBlock < 0 || $overheadPerBlock > 99999999) {
+            set_flash('danger', 'Enter a valid factory overhead cost per block (0 or greater).');
+            header('Location: bom.php' . ($blockTypeId > 0 ? '?block_type_id=' . $blockTypeId : ''));
+            exit;
+        }
+        $pdo->prepare("UPDATE block_types SET overhead_cost_per_block = ? WHERE id = ?")
+            ->execute([$overheadPerBlock, $blockTypeId]);
+        log_activity('update', 'production', $blockTypeId, 'BOM factory overhead cost per block set to ' . number_format($overheadPerBlock, 4));
+        set_flash('success', 'Factory overhead cost per block saved.');
+        header('Location: bom.php?block_type_id=' . $blockTypeId);
+        exit;
+    }
     if (isset($_POST['delete_id'])) {
         $pdo->prepare("DELETE FROM block_bom WHERE id=?")->execute([(int) $_POST['delete_id']]);
         header('Location: bom.php');
@@ -43,11 +58,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && has_permission('production', 'edit'
 }
 
 $blockFilter = (int) ($_GET['block_type_id'] ?? 0);
-$blocks = $pdo->query("SELECT id, name, size, selling_price, labor_cost_per_block FROM block_types WHERE status=1 ORDER BY name, size")->fetchAll();
+$blocks = $pdo->query("SELECT id, name, size, selling_price, labor_cost_per_block, overhead_cost_per_block FROM block_types WHERE status=1 ORDER BY name, size")->fetchAll();
 $materials = $pdo->query("SELECT id, name, unit, unit_cost FROM raw_materials WHERE status=1 ORDER BY name")->fetchAll();
 $laborByBlock = [];
+$overheadByBlock = [];
 foreach ($blocks as $b) {
-    $laborByBlock[(int) $b['id']] = (float) $b['labor_cost_per_block'];
+    $laborByBlock[(int) $b['id']] = (float) ($b['labor_cost_per_block'] ?? 0);
+    $overheadByBlock[(int) $b['id']] = (float) ($b['overhead_cost_per_block'] ?? 0);
 }
 
 $sql = "SELECT bb.*, bt.name AS block_name, bt.size, rm.name AS material_name, rm.unit, rm.unit_cost
@@ -60,7 +77,7 @@ if ($blockFilter) {
 $sql .= " ORDER BY bt.name, rm.name";
 $lines = $pdo->query($sql)->fetchAll();
 
-$summarySql = "SELECT bt.id, bt.name, bt.size, bt.selling_price, bt.labor_cost_per_block,
+$summarySql = "SELECT bt.id, bt.name, bt.size, bt.selling_price, bt.labor_cost_per_block, bt.overhead_cost_per_block,
                       COALESCE(SUM(bb.quantity_per_block * rm.unit_cost), 0) AS material_cost,
                       COUNT(bb.id) AS material_lines
                FROM block_types bt
@@ -70,7 +87,7 @@ $summarySql = "SELECT bt.id, bt.name, bt.size, bt.selling_price, bt.labor_cost_p
 if ($blockFilter) {
     $summarySql .= " AND bt.id = " . $blockFilter;
 }
-$summarySql .= " GROUP BY bt.id, bt.name, bt.size, bt.selling_price, bt.labor_cost_per_block
+$summarySql .= " GROUP BY bt.id, bt.name, bt.size, bt.selling_price, bt.labor_cost_per_block, bt.overhead_cost_per_block
                  ORDER BY bt.name, bt.size";
 $costSummary = $pdo->query($summarySql)->fetchAll();
 
@@ -140,6 +157,22 @@ require_once "../partials/header.php";
         </form>
         <p style="color:#64748b;font-size:.8rem;margin:8px 0 0;">Amount in <?= e(currency_symbol()) ?> per block. Set it to 0 if labor is not tracked per block.</p>
     </div>
+
+    <div class="panel">
+        <h3>Factory overhead cost per block</h3>
+        <p style="color:#64748b;font-size:.85rem;margin:0 0 10px;">Set the factory overhead amount once per block type. Production runs use it to populate the overhead field.</p>
+        <form method="post" class="filter-form">
+            <input type="hidden" name="save_overhead" value="1">
+            <select name="overhead_block_type_id" id="overheadBlockType" required>
+                <?php foreach ($blocks as $b): ?>
+                <option value="<?= (int) $b['id'] ?>" <?= $blockFilter === (int) $b['id'] ? 'selected' : '' ?>><?= e($b['name'] . ' ' . $b['size']) ?></option>
+                <?php endforeach; ?>
+            </select>
+            <input type="number" step="0.0001" min="0" max="99999999" name="overhead_cost_per_block" id="overheadCostInput" placeholder="Overhead cost / block" required value="<?= e($overheadByBlock[$blockFilter] ?? 0) ?>">
+            <button type="submit" class="btn btn-accent"><?= t('save') ?></button>
+        </form>
+        <p style="color:#64748b;font-size:.8rem;margin:8px 0 0;">Amount in <?= e(currency_symbol()) ?> per block. This is different from total monthly overhead and is applied per produced block.</p>
+    </div>
 </div>
 <?php endif; ?>
 
@@ -152,6 +185,7 @@ require_once "../partials/header.php";
                     <th>Block type</th>
                     <th style="text-align:right;">Materials / block</th>
                     <th style="text-align:right;">Direct labor / block</th>
+                    <th style="text-align:right;">Factory overhead / block</th>
                     <th style="text-align:right;">Total cost / block</th>
                     <th style="text-align:right;">Selling price</th>
                     <th style="text-align:right;">Margin / block</th>
@@ -165,13 +199,15 @@ require_once "../partials/header.php";
                 <?php
                     $materialCost = (float) $row['material_cost'];
                     $laborCost = (float) $row['labor_cost_per_block'];
-                    $totalCost = $materialCost + $laborCost;
+                    $overheadCost = (float) $row['overhead_cost_per_block'];
+                    $totalCost = $materialCost + $laborCost + $overheadCost;
                     $margin = (float) $row['selling_price'] - $totalCost;
                 ?>
                 <tr>
                     <td><strong><?= e($row['name'] . ' ' . $row['size']) ?></strong></td>
                     <td style="text-align:right;"><?= e(currency_symbol()) ?><?= money($materialCost) ?></td>
                     <td style="text-align:right;"><?= e(currency_symbol()) ?><?= money($laborCost) ?></td>
+                    <td style="text-align:right;"><?= e(currency_symbol()) ?><?= money($overheadCost) ?></td>
                     <td style="text-align:right;"><strong><?= e(currency_symbol()) ?><?= money($totalCost) ?></strong></td>
                     <td style="text-align:right;"><?= e(currency_symbol()) ?><?= money($row['selling_price']) ?></td>
                     <td style="text-align:right;color:<?= $margin < 0 ? '#c0392b' : '#0f766e' ?>;"><?= e(currency_symbol()) ?><?= money($margin) ?></td>
@@ -180,7 +216,7 @@ require_once "../partials/header.php";
             </tbody>
         </table>
     </div>
-    <p style="color:#64748b;font-size:.82rem;margin-top:12px;">Material cost uses the current weighted-average cost of each raw material. Total cost per block = materials + direct labor.</p>
+    <p style="color:#64748b;font-size:.82rem;margin-top:12px;">Material cost uses the current weighted-average cost of each raw material. Total cost per block = materials + direct labor + factory overhead.</p>
 </div>
 
 <div class="table-container">
