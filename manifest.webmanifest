@@ -1,0 +1,14 @@
+{
+  "name": "Block Plant ERP",
+  "short_name": "Block Plant",
+  "start_url": "/block_plant/",
+  "scope": "/block_plant/",
+  "display": "standalone",
+  "background_color": "#0f4c5c",
+  "theme_color": "#0f4c5c",
+  "icons": [
+    { "src": "/block_plant/assets/pwa/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/block_plant/assets/pwa/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/block_plant/assets/pwa/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
