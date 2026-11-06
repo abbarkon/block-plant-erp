@@ -73,6 +73,7 @@ if ($hasSysNotifTable) {
     <link rel="stylesheet" href="/block_plant/assets/css/glass.css?v=<?= filemtime(__DIR__ . '/../assets/css/glass.css') ?>">
     <link rel="stylesheet" href="/block_plant/assets/css/mobile.css?v=<?= filemtime(__DIR__ . '/../assets/css/mobile.css') ?>">
     <link rel="stylesheet" href="/block_plant/assets/css/sidebar.css?v=<?= filemtime(__DIR__ . '/../assets/css/sidebar.css') ?>">
+    <link rel="stylesheet" href="/block_plant/assets/css/theme-clean.css?v=<?= filemtime(__DIR__ . '/../assets/css/theme-clean.css') ?>">
     <style>
         :root {
             --bp-primary: <?= htmlspecialchars($brand['primary']) ?>;
