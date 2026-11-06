@@ -1,0 +1,132 @@
+/* Modern sidebar - loaded after glass.css / mobile.css. Markup is unchanged. */
+.theme-advanced { --sidebar-w: 268px; }
+
+.theme-advanced .navbar {
+    background: linear-gradient(180deg, #0f3340 0%, #0a252e 100%) !important;
+    border-right: 1px solid rgba(255,255,255,.06) !important;
+    box-shadow: 10px 0 40px rgba(6, 22, 28, .22);
+    padding: 18px 14px 48px !important;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,.18) transparent;
+}
+
+/* ---- Brand ---- */
+.theme-advanced .sidebar-brand {
+    gap: 12px;
+    margin: 0 0 18px;
+    padding: 12px;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 16px;
+    background: rgba(255,255,255,.05);
+    font-size: .98rem;
+    letter-spacing: .01em;
+}
+.theme-advanced .sidebar-brand img { height: 36px; width: 36px; object-fit: cover; border-radius: 10px; background: #fff; }
+.theme-advanced .sidebar-brand span { overflow: hidden; text-overflow: ellipsis; line-height: 1.25; }
+
+/* ---- Top-level rows ---- */
+.theme-advanced .navbar li { margin: 2px 0 !important; }
+.theme-advanced .navbar > ul > li > a {
+    position: relative;
+    gap: 12px;
+    padding: 9px 12px !important;
+    border-radius: 12px !important;
+    font-size: .92rem;
+    font-weight: 600;
+    color: rgba(255,255,255,.78) !important;
+    transform: none !important;
+}
+.theme-advanced .navbar > ul > li > a:hover {
+    background: rgba(255,255,255,.07) !important;
+    color: #fff !important;
+    transform: none !important;
+}
+.theme-advanced .navbar > ul > li > a.active,
+.theme-advanced .navbar .dropdown.has-active > a {
+    background: rgba(255,255,255,.10) !important;
+    color: #fff !important;
+    box-shadow: none !important;
+}
+.theme-advanced .navbar > ul > li > a.active::after {
+    content: ""; position: absolute; left: -14px; top: 9px; bottom: 9px; width: 4px;
+    border-radius: 0 4px 4px 0; background: #f2c14e;
+}
+.theme-advanced .navbar .dropdown.has-active > a::before { box-shadow: 0 0 0 2px #f2c14e; }
+
+/* icon chip (added with :has so no markup edits are needed) */
+.theme-advanced .navbar > ul > li > a::before {
+    content: "•";
+    flex: none;
+    display: grid; place-items: center;
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    background: rgba(255,255,255,.08);
+    font-size: 1rem; line-height: 1;
+    transition: background .2s ease, transform .2s ease;
+}
+.theme-advanced .navbar > ul > li > a:hover::before { background: rgba(255,255,255,.16); transform: scale(1.06); }
+.theme-advanced .navbar > ul > li > a[href*="/dashboard/index.php"]::before { content: "🏠"; }
+.theme-advanced .navbar > ul > li > a[href*="/gate/"]::before { content: "🚧"; }
+.theme-advanced .navbar .dropdown:has(.dropdown-menu a[href*="/quotations/"]) > a::before { content: "💼"; }
+.theme-advanced .navbar .dropdown:has(.dropdown-menu a[href*="/purchases/index.php"]) > a::before { content: "🛒"; }
+.theme-advanced .navbar .dropdown:has(.dropdown-menu a[href*="/production/index.php"]) > a::before { content: "🏭"; }
+.theme-advanced .navbar .dropdown:has(.dropdown-menu a[href*="/inventory/overview.php"]) > a::before { content: "📦"; }
+.theme-advanced .navbar .dropdown:has(.dropdown-menu a[href$="/hr/index.php"]) > a::before { content: "👥"; }
+.theme-advanced .navbar .dropdown:has(.dropdown-menu a[href*="/assets/categories.php"]) > a::before { content: "🏗️"; }
+.theme-advanced .navbar .dropdown:has(.dropdown-menu a[href*="/finance/cashbook.php"]) > a::before { content: "💰"; }
+.theme-advanced .navbar .dropdown:has(.dropdown-menu a[href*="/reports/sales.php"]) > a::before { content: "📊"; }
+.theme-advanced .navbar .dropdown:has(.dropdown-menu a[href*="/settings/profile.php"]) > a::before { content: "⚙️"; }
+.theme-advanced .navbar .dropdown:has(.dropdown-menu a[href*="/dashboard/widgets.php"]) > a::before { content: "✨"; }
+
+/* chevron */
+.theme-advanced .navbar .dropdown > a::after {
+    content: "";
+    margin-left: auto;
+    width: 7px; height: 7px;
+    border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+    opacity: .55;
+    transform: rotate(45deg) translateY(-2px);
+    transition: transform .25s ease, opacity .2s ease;
+}
+.theme-advanced .navbar .dropdown.open > a::after { transform: rotate(-135deg) translateY(-2px); opacity: .9; }
+.theme-advanced .navbar .dropdown.open > a { background: rgba(255,255,255,.07) !important; }
+
+/* ---- Submenu ---- */
+.theme-advanced .navbar .dropdown-menu {
+    border-left: 0 !important;
+    margin: 2px 0 8px 27px !important;
+    padding: 2px 0 2px 14px !important;
+    position: relative !important;
+}
+.theme-advanced .navbar .dropdown-menu::before {
+    content: ""; position: absolute; left: 0; top: 4px; bottom: 4px; width: 2px;
+    border-radius: 2px; background: rgba(255,255,255,.12);
+}
+.theme-advanced .navbar .dropdown-menu a {
+    position: relative;
+    padding: 7px 12px !important;
+    font-size: .85rem;
+    border-radius: 9px !important;
+    color: rgba(255,255,255,.66) !important;
+}
+.theme-advanced .navbar .dropdown-menu a:hover {
+    background: rgba(255,255,255,.07) !important;
+    color: #fff !important;
+    padding-left: 12px !important;
+}
+.theme-advanced .navbar .dropdown-menu a.active {
+    background: rgba(242,193,78,.16) !important;
+    color: #ffe4a0 !important;
+    font-weight: 700;
+}
+.theme-advanced .navbar .dropdown-menu a.active::before {
+    content: ""; position: absolute; left: -15px; top: 50%; width: 8px; height: 8px;
+    transform: translateY(-50%); border-radius: 50%; background: #f2c14e;
+}
+
+/* ---- Top bar to match ---- */
+.theme-advanced .topbar { backdrop-filter: blur(10px); }
+
+@media (max-width: 900px) {
+    .theme-advanced .navbar { width: min(300px, 86vw); }
+}
