@@ -1,0 +1,120 @@
+/* Clean theme: flat, light and simple. Loads last; light mode only (dark mode keeps its own look). */
+body.theme-advanced:not(.dark-theme) {
+    background: #f4f7f8 !important;
+    background-attachment: scroll !important;
+    color: #1b2e35;
+    font-family: "Segoe UI", system-ui, -apple-system, "Noto Sans Ethiopic", sans-serif;
+}
+body.theme-advanced:not(.dark-theme)::before,
+body.theme-advanced:not(.dark-theme)::after { display: none !important; }
+
+/* ---- Top bar: flat, matches the sidebar ---- */
+.theme-advanced:not(.dark-theme) .topbar {
+    background: #0f3340 !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+    border-bottom: 1px solid rgba(255,255,255,.08) !important;
+}
+
+/* ---- Cards and panels: white, thin border, almost no shadow ---- */
+.theme-advanced:not(.dark-theme) :is(.panel, .filter-section, .table-container, .compact-form,
+    .dashboard-data-panel, .dashboard-cards .card, .stat-card, .pipeline-column, .pipeline-card) {
+    background: #fff !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    border: 1px solid #e3eaec !important;
+    border-radius: 14px !important;
+    box-shadow: 0 1px 3px rgba(16, 42, 51, .06) !important;
+    transform: none !important;
+}
+.theme-advanced:not(.dark-theme) :is(.panel, .stat-card, .dashboard-data-panel):hover {
+    transform: none !important;
+    background: #fff !important;
+    box-shadow: 0 1px 3px rgba(16, 42, 51, .06) !important;
+}
+.theme-advanced:not(.dark-theme) .dashboard-cards .card:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(16, 42, 51, .10) !important;
+}
+.theme-advanced:not(.dark-theme) .stat-card::after,
+.theme-advanced:not(.dark-theme) .dashboard-cards .card::before { display: none !important; }
+.theme-advanced:not(.dark-theme) .stat-icon { box-shadow: none !important; border-radius: 12px !important; }
+.theme-advanced:not(.dark-theme) .pending-approvals { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+
+/* ---- Headings: plain dark text instead of gradient ---- */
+.theme-advanced:not(.dark-theme) h1,
+.theme-advanced:not(.dark-theme) .page-header h1 {
+    background: none !important;
+    -webkit-text-fill-color: currentColor !important;
+    color: #14262e !important;
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -.01em;
+}
+.theme-advanced:not(.dark-theme) .dash-hero h1,
+.theme-advanced:not(.dark-theme) .dashboard-hero h1 { color: #fff !important; }
+.theme-advanced:not(.dark-theme) h2, .theme-advanced:not(.dark-theme) h3 { color: #1b2e35; }
+.theme-advanced:not(.dark-theme) .page-header {
+    border-bottom: 0 !important;
+    margin-bottom: 18px;
+    padding-bottom: 0;
+}
+
+/* ---- Buttons: flat, one main colour ---- */
+.theme-advanced:not(.dark-theme) :is(.btn, a.btn, .btn-sm) {
+    box-shadow: none !important;
+    border-radius: 10px !important;
+    font-weight: 600;
+    transition: background .15s ease, border-color .15s ease;
+}
+.theme-advanced:not(.dark-theme) :is(.btn, a.btn, .btn-sm):hover {
+    transform: none !important;
+    filter: brightness(.94);
+    box-shadow: none !important;
+}
+.theme-advanced:not(.dark-theme) :is(.btn-accent, .btn-primary, .btn-compact-save) {
+    background: #0e6a78 !important;
+    color: #fff !important;
+    border: 0 !important;
+}
+.theme-advanced:not(.dark-theme) .btn-secondary {
+    background: #fff !important;
+    color: #1b2e35 !important;
+    border: 1px solid #d3dee1 !important;
+}
+.theme-advanced:not(.dark-theme) .dash-hero .dh-btn { border: 1px solid rgba(255,255,255,.25) !important; }
+.theme-advanced:not(.dark-theme) .dash-hero .dh-btn.solid { background: #fff !important; color: var(--d-p, #0e6a78) !important; }
+
+/* ---- Forms ---- */
+.theme-advanced:not(.dark-theme) :is(input, select, textarea) {
+    background: #fff !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    border: 1px solid #d3dee1 !important;
+    border-radius: 10px !important;
+}
+.theme-advanced:not(.dark-theme) :is(input, select, textarea):focus {
+    outline: none;
+    border-color: #0e6a78 !important;
+    box-shadow: 0 0 0 3px rgba(14, 106, 120, .15) !important;
+}
+.theme-advanced:not(.dark-theme) label { color: #3d545c; font-weight: 600; }
+
+/* ---- Tables ---- */
+.theme-advanced:not(.dark-theme) .data-table { border-collapse: collapse; }
+.theme-advanced:not(.dark-theme) .data-table th {
+    background: #f3f7f8 !important;
+    color: #4a6068 !important;
+    font-size: .74rem;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    border-bottom: 1px solid #e3eaec !important;
+}
+.theme-advanced:not(.dark-theme) .data-table td { border-bottom: 1px solid #eef3f4 !important; }
+.theme-advanced:not(.dark-theme) .data-table tr:hover td { background: #f8fbfb !important; }
+
+/* ---- Calm motion ---- */
+@media (prefers-reduced-motion: no-preference) {
+    .theme-advanced:not(.dark-theme) .container { animation: none !important; }
+}
