@@ -46,29 +46,39 @@ if (substr($file, -4) === '.php') {
               . '<link rel="apple-touch-icon" href="' . $prefix . '/assets/pwa/apple-touch-icon.png">'
               . '<script>if("serviceWorker"in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("' . $prefix . '/sw.js",{scope:"' . $prefix . '/"});});}</script>'
               . '<style>'
-              . '#mbSplash{position:fixed;inset:0;z-index:99999;background:#0f4c5c;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .6s ease}'
+              . '#mbSplash{position:fixed;inset:0;z-index:99999;background:#0f4c5c;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;transition:opacity .6s ease}'
               . '#mbSplash.mb-out{opacity:0;pointer-events:none}'
-              . '#mbSplash .mb-row{display:flex;gap:6px;flex-wrap:nowrap}'
-              . '#mbSplash .mb-b{width:clamp(26px,8.5vw,44px);height:clamp(30px,9.5vw,50px);display:flex;align-items:center;justify-content:center;'
-              . 'background:#f2c14e;color:#0f4c5c;font:800 clamp(16px,5vw,26px)/1 system-ui,sans-serif;border-radius:6px;box-shadow:0 4px 0 #c99a2e;'
-              . 'transform:translateY(-120vh) rotate(-8deg);opacity:0;animation:mbDrop .7s cubic-bezier(.3,1.4,.5,1) forwards;animation-delay:calc(var(--i)*90ms)}'
-              . '#mbSplash .mb-row.mb-2 .mb-b{background:#fff;box-shadow:0 4px 0 #c9d6d9;animation-delay:calc(var(--i)*90ms + 900ms)}'
-              . '@keyframes mbDrop{0%{transform:translateY(-120vh) rotate(-8deg);opacity:0}60%{opacity:1}100%{transform:translateY(0) rotate(0);opacity:1}}'
+              . '#mbSplash .mb-wall{display:flex;flex-direction:column;gap:5px}'
+              . '#mbSplash .mb-course{display:flex;gap:5px}'
+              . '#mbSplash .mb-course.mb-off{margin-left:calc(clamp(34px,11vw,56px)/2 + 2.5px)}'
+              . '#mbSplash .mb-brick{width:clamp(34px,11vw,56px);height:clamp(20px,6vw,30px);border-radius:4px;background:#d9a441;box-shadow:inset 0 -4px 0 rgba(0,0,0,.18);'
+              . 'opacity:0;transform:translateY(-110vh);animation:mbLay .55s cubic-bezier(.3,1.35,.5,1) forwards;animation-delay:calc(var(--i)*70ms)}'
+              . '#mbSplash .mb-brick:nth-child(3n){background:#c98f2c}#mbSplash .mb-brick:nth-child(3n+1){background:#e6b85a}'
+              . '#mbSplash .mb-name{display:flex;flex-direction:column;align-items:center;gap:6px;opacity:0;animation:mbFade .6s ease forwards;animation-delay:2.1s}'
+              . '#mbSplash .mb-l1{font:800 clamp(22px,7vw,36px)/1 system-ui,sans-serif;letter-spacing:.14em;color:#f2c14e}'
+              . '#mbSplash .mb-l2{font:700 clamp(13px,4vw,18px)/1 system-ui,sans-serif;letter-spacing:.5em;color:#fff}'
+              . '@keyframes mbLay{0%{opacity:0;transform:translateY(-110vh)}50%{opacity:1}100%{opacity:1;transform:translateY(0)}}'
+              . '@keyframes mbFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}'
               . '@media (prefers-reduced-motion:reduce){#mbSplash{display:none}}'
               . '</style>';
         $html = preg_replace('#</head>#i', $tags . '</head>', $html, 1);
 
-        $row = function ($text, $cls) {
-            $out = '<div class="mb-row ' . $cls . '">';
-            foreach (str_split(strtoupper($text)) as $i => $ch) {
-                $out .= '<span class="mb-b" style="--i:' . $i . '">' . htmlspecialchars($ch) . '</span>';
+        $wall = '';
+        $n = 0;
+        // 4 courses of bricks, laid bottom-to-top like a real block wall.
+        for ($course = 3; $course >= 0; $course--) {
+            $count = ($course % 2) ? 4 : 5;
+            $wall .= '<div class="mb-course' . ($course % 2 ? ' mb-off' : '') . '">';
+            for ($k = 0; $k < $count; $k++) {
+                $wall .= '<span class="mb-brick" style="--i:' . $n++ . '"></span>';
             }
-            return $out . '</div>';
-        };
-        $splash = '<div id="mbSplash" aria-hidden="true">' . $row('Mariamawit', 'mb-1') . $row('Blocks', 'mb-2') . '</div>'
+            $wall .= '</div>';
+        }
+        $splash = '<div id="mbSplash" aria-hidden="true"><div class="mb-wall">' . $wall . '</div>'
+                . '<div class="mb-name"><div class="mb-l1">MARIAMAWIT</div><div class="mb-l2">BLOCKS</div></div></div>'
                 . '<script>(function(){var s=document.getElementById("mbSplash");if(!s)return;'
                 . 'try{if(sessionStorage.getItem("mbSplash")){s.remove();return;}sessionStorage.setItem("mbSplash","1");}catch(e){}'
-                . 'setTimeout(function(){s.classList.add("mb-out");},2600);setTimeout(function(){s.remove();},3300);})();</script>';
+                . 'setTimeout(function(){s.classList.add("mb-out");},3400);setTimeout(function(){s.remove();},4100);})();</script>';
         if (stripos($html, '<body') !== false) {
             $html = preg_replace('#(<body[^>]*>)#i', '$1' . $splash, $html, 1);
         }
