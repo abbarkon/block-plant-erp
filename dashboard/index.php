@@ -179,125 +179,119 @@ if ($canApprove) {
 $pendingTotal = array_sum($pendingApprovals);
 $canReports = has_permission('reports', 'view');
 ?>
-
-<div class="dashboard-hero">
-    <div>
-        <h1 style="margin:0;"><?= t('dashboard') ?></h1>
-        <p style="color: #64748b; margin: 6px 0 0;"><?= e(format_app_date('now', true)) ?></p>
-    </div>
-    <div class="header-actions">
-        <?php if ($isSystemAdmin): ?>
-        <a class="btn btn-accent" href="widgets.php"><?= t('advanced_analytics') ?></a>
-        <a class="btn btn-secondary" href="insights.php"><?= t('operational_insights') ?></a>
-        <a class="btn btn-secondary" href="operations.php"><?= t('operations_overview') ?></a>
-        <a class="btn btn-secondary" href="forecast.php"><?= t('budget_forecast') ?></a>
-        <?php endif; ?>
-        <a class="btn btn-secondary" href="tasks.php"><?= t('tasks_reminders') ?></a>
-        <?php if (has_permission('expenses', 'view')): ?>
-        <a class="btn btn-secondary" href="../expenses/recurring.php"><?= t('recurring_costs') ?></a>
-        <?php endif; ?>
-        <?php if (has_permission('purchases', 'view')): ?>
-        <a class="btn btn-secondary" href="../purchases/approvals.php"><?= t('purchase_approvals') ?></a>
-        <?php endif; ?>
-        <?php if (has_permission('suppliers', 'view')): ?>
-        <a class="btn btn-secondary" href="../suppliers/scorecards.php"><?= t('supplier_scorecards') ?></a>
-        <?php endif; ?>
-        <?php if (has_permission('crm', 'view')): ?>
-        <a class="btn btn-secondary" href="../crm/pipeline.php"><?= t('sales_pipeline') ?></a>
-        <?php endif; ?>
-    </div>
-</div>
-
-<?php if ($low_stock > 0 || $low_production || $task_reminders): ?>
-<div role="alert" style="margin:18px 0;padding:16px 20px;border:1px solid #f1b0b7;border-left:5px solid #dc3545;border-radius:8px;background:#fff5f5;color:#842029;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;">
-    <div>
-        <strong style="font-size:16px;">🔔 <?= t('notifications') ?></strong>
-        <div style="margin-top:6px;">
-            <?php if ($low_stock > 0): ?>
-                <span><?= number_format($low_stock) ?> <?= t($low_stock === 1 ? 'material_below_reorder_one' : 'materials_below_reorder_many') ?></span>
-            <?php endif; ?>
-            <?php if ($low_stock > 0 && $low_production): ?><span> </span><?php endif; ?>
-            <?php if ($low_production): ?>
-                <span><?= number_format(count($low_production)) ?> <?= t(count($low_production) === 1 ? 'block_type_below_target_one' : 'block_types_below_target_many') ?></span>
-                <?php foreach ($low_production as $alertIndex => $productionAlert): ?>
-                    <strong><?= e($productionAlert['name'] . ' ' . $productionAlert['size']) ?> (<?= t('shortfall') ?> <?= number_format((int) $productionAlert['shortfall']) ?>)</strong><?= $alertIndex === count($low_production) - 1 ? '.' : ',' ?>
-                <?php endforeach; ?>
-            <?php endif; ?>
-            <?php if ($task_reminders): ?>
-                <span><?= count($task_reminders) ?> <?= t('tasks_overdue_due_soon') ?></span>
-            <?php endif; ?>
-        </div>
-    </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <?php if ($low_stock > 0): ?><a class="btn btn-secondary" href="../inventory/low_stock_alert.php"><?= t('view_stock_alerts') ?></a><?php endif; ?>
-        <?php if ($low_production): ?><a class="btn btn-secondary" href="../production/schedule.php"><?= t('view_production') ?></a><?php endif; ?>
-        <?php if ($task_reminders): ?><a class="btn btn-secondary" href="tasks.php"><?= t('view_tasks') ?></a><?php endif; ?>
-    </div>
-</div>
-<div id="dashboardAlertToast" role="alert" aria-live="assertive" style="position:fixed;right:24px;top:24px;z-index:1000;width:min(420px,calc(100vw - 32px));padding:18px 20px;background:#fff;border:1px solid #f1b0b7;border-left:5px solid #dc3545;border-radius:10px;box-shadow:0 12px 35px rgba(127,29,29,.22);color:#842029;">
-    <button type="button" aria-label="<?= e(t('close_notification')) ?>" onclick="document.getElementById('dashboardAlertToast').remove()" style="float:right;border:0;background:transparent;color:#842029;font-size:20px;line-height:1;cursor:pointer;">&times;</button>
-    <strong style="display:block;margin-bottom:7px;">🔔 <?= t('attention_required') ?></strong>
-    <?php if ($low_stock > 0): ?><div><?= number_format($low_stock) ?> <?= t($low_stock === 1 ? 'material_below_reorder_one' : 'materials_below_reorder_many') ?></div><?php endif; ?>
-    <?php if ($low_production): ?>
-        <div><?= number_format(count($low_production)) ?> <?= t(count($low_production) === 1 ? 'block_type_below_target_one' : 'block_types_below_target_many') ?></div>
-        <ul style="margin:8px 0 0;padding-left:20px;">
-            <?php foreach ($low_production as $productionAlert): ?>
-                <li><?= e($productionAlert['name'] . ' ' . $productionAlert['size']) ?>: <?= t('shortfall') ?> <?= number_format((int) $productionAlert['shortfall']) ?></li>
-            <?php endforeach; ?>
-        </ul>
-    <?php endif; ?>
-    <?php if ($task_reminders): ?>
-        <div style="margin-top:10px;"><?= count($task_reminders) ?> <?= t('tasks_need_attention') ?></div>
-        <ul style="margin:8px 0 0;padding-left:20px;">
-            <?php foreach ($task_reminders as $task): ?>
-                <li><?= e($task['title']) ?><?= $task['due_date'] < date('Y-m-d') ? ' (overdue)' : ' (due ' . format_date($task['due_date']) . ')' ?></li>
-            <?php endforeach; ?>
-        </ul>
-    <?php endif; ?>
-</div>
-<script>
-    window.setTimeout(function () {
-        const toast = document.getElementById('dashboardAlertToast');
-        if (toast) toast.remove();
-    }, 12000);
-</script>
-<?php endif; ?>
-
+<?php
+$brandDash = brand_colors();
+$dashHour = (int) date('G');
+$greet = (function_exists('app_lang') && app_lang() === 'am')
+    ? ($dashHour < 12 ? 'ደህና ጠዋት' : ($dashHour < 18 ? 'ደህና ከሰዓት' : 'ደህና ማታ'))
+    : ($dashHour < 12 ? 'Good morning' : ($dashHour < 18 ? 'Good afternoon' : 'Good evening'));
+$moreLabel = (function_exists('app_lang') && app_lang() === 'am') ? 'ተጨማሪ' : 'More';
+$alertCount = ($low_stock > 0 ? 1 : 0) + ($low_production ? 1 : 0) + ($task_reminders ? 1 : 0);
+?>
 <style>
-.dashboard-hero{position:relative;overflow:hidden;display:flex;justify-content:space-between;align-items:flex-end;gap:22px;margin:0 0 24px;padding:30px 32px;border-radius:18px;background:linear-gradient(120deg,#183b56 0%,#246a73 62%,#2a9d8f 100%);color:#fff;box-shadow:0 14px 34px rgba(24,59,86,.18)}
-.dashboard-hero:after{content:"";position:absolute;width:220px;height:220px;right:-70px;top:-100px;border:30px solid rgba(255,255,255,.09);border-radius:50%}
-.dashboard-hero h1{position:relative;z-index:1;color:#fff;font-size:2.2rem;letter-spacing:-.02em}
-.dashboard-hero p{position:relative;z-index:1;color:rgba(255,255,255,.75)!important}
-.dashboard-hero .header-actions{position:relative;z-index:1;justify-content:flex-end}
-.dashboard-hero .header-actions .btn{background:rgba(255,255,255,.14)!important;border:1px solid rgba(255,255,255,.22);box-shadow:none}
-.dashboard-hero .header-actions .btn-accent{background:#e76f51!important;border-color:#e76f51}
-.dashboard-hero .header-actions .btn:hover{background:rgba(255,255,255,.24)!important}
-.dashboard-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin-bottom:24px}
-.dashboard-cards .card{position:relative;overflow:hidden;padding:20px 20px 18px;background:rgba(255,255,255,.94);border:1px solid #dce7e5;border-radius:14px;box-shadow:0 8px 22px rgba(24,59,86,.07);transition:transform .2s ease,box-shadow .2s ease}
-.dashboard-cards .card:before{content:"";position:absolute;left:0;top:0;width:100%;height:4px;background:linear-gradient(90deg,#246a73,#2a9d8f)}
-.dashboard-cards .card:hover{transform:translateY(-4px);box-shadow:0 14px 30px rgba(24,59,86,.13)}
-.dashboard-cards .card h3{margin:0 0 12px;font-size:.82rem;color:#667a80;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
-.dashboard-cards .card .value{font-size:1.8rem;font-weight:800;line-height:1.1;margin-bottom:7px;color:#183b56}
-.dashboard-cards .card .label{font-size:.78rem;color:#839499}
-.dashboard-section-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:30px 0 14px}
-.dashboard-section-title h2{margin:0}
-.dashboard-data-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin-top:28px}
-.dashboard-data-panel{background:rgba(255,255,255,.94);padding:20px;border:1px solid #dce7e5;border-radius:14px;box-shadow:0 8px 22px rgba(24,59,86,.07);overflow:auto}
-.dashboard-data-panel h3{margin:0 0 14px;color:#183b56}
-.dashboard-actions{display:flex;flex-wrap:wrap;gap:10px;padding:20px;background:rgba(255,255,255,.55);border:1px solid #dce7e5;border-radius:14px}
-@media(max-width:900px){.dashboard-hero{align-items:flex-start;flex-direction:column}.dashboard-hero .header-actions{justify-content:flex-start}.dashboard-data-grid{grid-template-columns:1fr}}
-@media(max-width:600px){.dashboard-hero{padding:24px 20px}.dashboard-hero h1{font-size:1.8rem}.dashboard-hero .header-actions .btn{font-size:.78rem}.dashboard-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.dashboard-cards .card{padding:16px}.dashboard-cards .card .value{font-size:1.4rem}}
-@media(max-width:400px){.dashboard-cards{grid-template-columns:1fr}}
-.pending-approvals{margin:0 0 26px;padding:20px 22px;border:1px solid #dce7e5;border-left:5px solid #f59e0b;border-radius:14px;background:#fffdf5;box-shadow:0 8px 22px rgba(24,59,86,.06)}
-.pending-approvals .pa-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
-.pending-approvals h2{margin:0;font-size:1.15rem;color:#183b56}
-.pending-approvals .pa-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
-.pending-approvals .pa-item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 16px;background:#fff;border:1px solid #e6ecf0;border-radius:10px}
-.pending-approvals .pa-item .pa-count{font-size:1.6rem;font-weight:800;color:#b45309;line-height:1}
-.pending-approvals .pa-item .pa-meta{font-size:.82rem;color:#64748b;margin-top:4px}
+:root{--d-p:<?= htmlspecialchars($brandDash['primary']) ?>;--d-s:<?= htmlspecialchars($brandDash['secondary']) ?>;--d-ink:#14262e;--d-muted:#62767e;--d-line:#e3eaec;--d-bg:#fff}
+.dash-hero{display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap;margin:0 0 22px;padding:26px 28px;border-radius:20px;color:#fff;background:linear-gradient(125deg,var(--d-p),var(--d-s));position:relative;overflow:hidden}
+.dash-hero:after{content:"";position:absolute;right:-50px;top:-70px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.08)}
+.dash-hero h1{margin:0;font-size:1.7rem;letter-spacing:-.01em;position:relative;z-index:1}
+.dash-hero p{margin:5px 0 0;opacity:.85;position:relative;z-index:1}
+.dash-hero .dh-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;position:relative;z-index:2}
+.dh-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:12px;background:rgba(255,255,255,.16);color:#fff;text-decoration:none;font-weight:600;font-size:.9rem;border:1px solid rgba(255,255,255,.25);cursor:pointer;transition:background .15s,transform .15s}
+.dh-btn:hover{background:rgba(255,255,255,.28);transform:translateY(-1px)}
+.dh-btn.solid{background:#fff;color:var(--d-p);border-color:#fff}
+.dh-more{position:relative}
+.dh-more summary{list-style:none}.dh-more summary::-webkit-details-marker{display:none}
+.dh-menu{position:absolute;right:0;top:calc(100% + 8px);min-width:230px;background:#fff;border-radius:14px;box-shadow:0 18px 44px rgba(15,45,55,.25);padding:8px;display:grid;gap:2px;z-index:50}
+.dh-menu a{color:var(--d-ink);text-decoration:none;padding:9px 12px;border-radius:9px;font-size:.9rem}
+.dh-menu a:hover{background:#eef4f5}
+.dash-alert{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:0 0 22px;padding:13px 18px;border-radius:14px;background:#fff7ed;border:1px solid #fed7aa;color:#7c2d12}
+.dash-alert .da-text{flex:1;min-width:220px;font-size:.92rem;line-height:1.5}
+.dash-alert .da-links{display:flex;gap:8px;flex-wrap:wrap}
+.dash-alert a{font-size:.82rem;font-weight:600;color:#9a3412;background:#ffedd5;padding:6px 12px;border-radius:999px;text-decoration:none}
+.dash-alert a:hover{background:#fed7aa}
+.dash-label{margin:26px 0 12px;font-size:.78rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--d-muted)}
+.dashboard-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:0 0 6px}
+.dashboard-cards.five{grid-template-columns:repeat(5,minmax(0,1fr))}
+.dashboard-cards .card{position:relative;background:var(--d-bg);border:1px solid var(--d-line);border-radius:18px;padding:18px 18px 16px;box-shadow:0 2px 10px rgba(20,38,46,.05);transition:transform .18s,box-shadow .18s}
+.dashboard-cards .card[data-link]{cursor:pointer}
+.dashboard-cards .card:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(20,38,46,.12)}
+.dashboard-cards .card:before{display:none}
+.dashboard-cards .card h3{display:flex;align-items:center;gap:10px;margin:0 0 14px;font-size:.78rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--d-muted)}
+.dashboard-cards .card h3 .ic{flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:11px;background:color-mix(in srgb,var(--d-p) 12%,#fff);font-size:1rem}
+.dashboard-cards .card .value{font-size:1.75rem;font-weight:800;line-height:1.1;margin-bottom:6px;color:var(--d-ink);letter-spacing:-.01em;word-break:break-word}
+.dashboard-cards .card .label{font-size:.78rem;color:var(--d-muted)}
+.dashboard-chart-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:0 0 18px}
+.dashboard-chart-grid .panel{background:#fff;border:1px solid var(--d-line);border-radius:18px;padding:18px 20px;box-shadow:0 2px 10px rgba(20,38,46,.05)}
+.dashboard-chart-grid .panel h3{margin:0 0 12px;font-size:.98rem;color:var(--d-ink)}
+.dashboard-chart-grid canvas{max-height:260px}
+.dash-lowprod{margin:0 0 22px;background:#fff;border:1px solid #f3c9c9;border-left:5px solid #dc3545;border-radius:16px;padding:18px 20px}
+.dash-lists{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:26px}
+.dash-card{background:#fff;border:1px solid var(--d-line);border-radius:18px;padding:18px 20px;box-shadow:0 2px 10px rgba(20,38,46,.05);overflow:auto}
+.dash-card h3{margin:0 0 10px;font-size:1rem;color:var(--d-ink)}
+.dash-card table{width:100%;border-collapse:collapse;font-size:.9rem}
+.dash-card th{text-align:left;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--d-muted);padding:6px 8px;border-bottom:1px solid var(--d-line)}
+.dash-card td{padding:10px 8px;border-bottom:1px solid #f0f4f5}
+.dash-card tr:last-child td{border-bottom:0}
+.dash-empty{color:var(--d-muted);padding:14px 0;font-size:.9rem}
+.dash-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+.dash-actions a{display:inline-flex;align-items:center;gap:8px;padding:11px 16px;border-radius:12px;background:#fff;border:1px solid var(--d-line);color:var(--d-ink);text-decoration:none;font-weight:600;font-size:.9rem;box-shadow:0 1px 4px rgba(20,38,46,.05);transition:border-color .15s,transform .15s}
+.dash-actions a:hover{border-color:var(--d-p);transform:translateY(-1px)}
+.pending-approvals{margin:0 0 22px;padding:18px 20px;border:1px solid #fde68a;border-left:5px solid #f59e0b;border-radius:16px;background:#fffdf5}
+.pending-approvals .pa-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.pending-approvals h2{margin:0;font-size:1.05rem;color:var(--d-ink)}
+.pending-approvals .pa-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.pending-approvals .pa-item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;background:#fff;border:1px solid #eef0f2;border-radius:12px}
+.pending-approvals .pa-item .pa-count{font-size:1.5rem;font-weight:800;color:#b45309;line-height:1}
+.pending-approvals .pa-item .pa-meta{font-size:.8rem;color:var(--d-muted);margin-top:3px}
 .pending-approvals .pa-item.zero .pa-count{color:#16a34a}
-.pending-approvals .pa-clear{margin-top:12px;color:#16a34a;font-weight:600}
+.pending-approvals .pa-clear{color:#16a34a;font-weight:600}
+@media(max-width:1100px){.dashboard-cards,.dashboard-cards.five{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:800px){.dashboard-chart-grid,.dash-lists{grid-template-columns:1fr}.dash-hero{padding:22px 20px}.dash-hero h1{font-size:1.4rem}}
+@media(max-width:460px){.dashboard-cards,.dashboard-cards.five{grid-template-columns:1fr 1fr;gap:10px}.dashboard-cards .card{padding:14px}.dashboard-cards .card .value{font-size:1.3rem}.dashboard-cards .card h3 .ic{width:28px;height:28px}.dh-btn{padding:9px 12px;font-size:.82rem}}
 </style>
+
+<div class="dash-hero">
+    <div>
+        <h1><?= e($greet) ?><?= !empty($dashboardUser['name']) ? ', ' . e(explode(' ', trim($dashboardUser['name']))[0]) : '' ?></h1>
+        <p><?= e(format_app_date('now', true)) ?></p>
+    </div>
+    <div class="dh-actions">
+        <a class="dh-btn solid" href="../sales/create.php">💰 <?= t('new_sale') ?></a>
+        <a class="dh-btn" href="../production/create.php">📦 <?= t('new_production') ?></a>
+        <a class="dh-btn" href="../expenses/create.php">💳 <?= t('new_expense') ?></a>
+        <details class="dh-more">
+            <summary class="dh-btn">⋯ <?= e($moreLabel) ?></summary>
+            <div class="dh-menu">
+                <?php if ($isSystemAdmin): ?>
+                <a href="widgets.php"><?= t('advanced_analytics') ?></a>
+                <a href="insights.php"><?= t('operational_insights') ?></a>
+                <a href="operations.php"><?= t('operations_overview') ?></a>
+                <a href="forecast.php"><?= t('budget_forecast') ?></a>
+                <?php endif; ?>
+                <a href="tasks.php"><?= t('tasks_reminders') ?></a>
+                <?php if (has_permission('expenses', 'view')): ?><a href="../expenses/recurring.php"><?= t('recurring_costs') ?></a><?php endif; ?>
+                <?php if (has_permission('purchases', 'view')): ?><a href="../purchases/approvals.php"><?= t('purchase_approvals') ?></a><?php endif; ?>
+                <?php if (has_permission('suppliers', 'view')): ?><a href="../suppliers/scorecards.php"><?= t('supplier_scorecards') ?></a><?php endif; ?>
+                <?php if (has_permission('crm', 'view')): ?><a href="../crm/pipeline.php"><?= t('sales_pipeline') ?></a><?php endif; ?>
+            </div>
+        </details>
+    </div>
+</div>
+
+<?php if ($alertCount > 0): ?>
+<div class="dash-alert" role="alert">
+    <strong>🔔</strong>
+    <div class="da-text">
+        <?php if ($low_stock > 0): ?><span><?= number_format($low_stock) ?> <?= t($low_stock === 1 ? 'material_below_reorder_one' : 'materials_below_reorder_many') ?>. </span><?php endif; ?>
+        <?php if ($low_production): ?><span><?= number_format(count($low_production)) ?> <?= t(count($low_production) === 1 ? 'block_type_below_target_one' : 'block_types_below_target_many') ?>. </span><?php endif; ?>
+        <?php if ($task_reminders): ?><span><?= count($task_reminders) ?> <?= t('tasks_overdue_due_soon') ?>.</span><?php endif; ?>
+    </div>
+    <div class="da-links">
+        <?php if ($low_stock > 0): ?><a href="../inventory/low_stock_alert.php"><?= t('view_stock_alerts') ?></a><?php endif; ?>
+        <?php if ($low_production): ?><a href="../production/schedule.php"><?= t('view_production') ?></a><?php endif; ?>
+        <?php if ($task_reminders): ?><a href="tasks.php"><?= t('view_tasks') ?></a><?php endif; ?>
+    </div>
+</div>
+<?php endif; ?>
 
 <?php if ($canApprove && $pendingTotal > 0): ?>
 <div class="pending-approvals">
@@ -366,37 +360,85 @@ $canReports = has_permission('reports', 'view');
 </div>
 <?php endif; ?>
 
-<h2><?= t('today_overview') ?></h2>
-<div class="dashboard-cards">
-    <div class="card" data-link="../production/index.php" title="<?= e(t('view_production')) ?>">
-        <h3>📦 <?= t('production_today') ?></h3>
-        <div class="value"><?=number_format($prod)?></div>
-        <div class="label"><?= t('blocks_produced') ?></div>
-    </div>
+<div class="dash-label"><?= t('today_overview') ?></div>
+<div class="dashboard-cards five">
     <div class="card" data-link="../sales/index.php" title="<?= e(t('view_sales_invoices')) ?>">
-        <h3>💰 <?= t('sales_today') ?></h3>
-        <div class="value" style="color:#28a745"><?=number_format($sales,2)?></div>
+        <h3><span class="ic">💰</span><?= t('sales_today') ?></h3>
+        <div class="value" style="color:#15803d"><?= number_format($sales, 2) ?></div>
         <div class="label"><?= t('total_sales') ?></div>
     </div>
     <div class="card">
-        <h3>💵 <?= t('cash_received') ?></h3>
-        <div class="value" style="color:#007bff"><?=number_format($paid,2)?></div>
+        <h3><span class="ic">💵</span><?= t('cash_received') ?></h3>
+        <div class="value" style="color:#1d4ed8"><?= number_format($paid, 2) ?></div>
         <div class="label"><?= t('payments_received') ?></div>
     </div>
+    <div class="card" data-link="../production/index.php" title="<?= e(t('view_production')) ?>">
+        <h3><span class="ic">📦</span><?= t('production_today') ?></h3>
+        <div class="value"><?= number_format($prod) ?></div>
+        <div class="label"><?= t('blocks_produced') ?></div>
+    </div>
     <div class="card" data-link="../expenses/index.php" title="<?= e(t('expenses')) ?>">
-        <h3>📉 <?= t('expenses_today') ?></h3>
-        <div class="value" style="color:#dc3545"><?=number_format($exp,2)?></div>
+        <h3><span class="ic">📉</span><?= t('expenses_today') ?></h3>
+        <div class="value" style="color:#b91c1c"><?= number_format($exp, 2) ?></div>
         <div class="label"><?= t('total_expenses') ?></div>
     </div>
     <div class="card">
-        <h3>👷 <?= t('daily_labor_cost') ?></h3>
-        <div class="value" style="color:#e76f51"><?=currency_symbol() . number_format($daily_labor_cost,2)?></div>
+        <h3><span class="ic">👷</span><?= t('daily_labor_cost') ?></h3>
+        <div class="value" style="color:#c2410c"><?= currency_symbol() . number_format($daily_labor_cost, 2) ?></div>
         <div class="label"><?= t('estimated_monthly_payroll') ?></div>
     </div>
 </div>
 
+<div class="dash-label"><?= t('month_to_date') ?></div>
+<div class="dashboard-cards">
+    <div class="card" data-link="../reports/financial.php" title="View financial report">
+        <h3><span class="ic">📊</span><?= t('sales_mtd') ?></h3>
+        <div class="value" style="color:#15803d"><?= number_format($month_sales, 2) ?></div>
+        <div class="label"><?= t('since_month_start') ?> <?= e(format_app_date(date('Y-m-01'))) ?></div>
+    </div>
+    <div class="card" data-link="../reports/profit_loss.php" title="<?= e(t('view_profit_loss')) ?>">
+        <h3><span class="ic">💼</span><?= t('profit_mtd') ?></h3>
+        <div class="value" style="color:<?= $month_profit >= 0 ? '#15803d' : '#b91c1c' ?>"><?= number_format($month_profit, 2) ?></div>
+        <div class="label"><?= t('net_profit_loss') ?></div>
+    </div>
+    <div class="card" data-link="../inventory/index.php" title="<?= e(t('view_finished_stock')) ?>">
+        <h3><span class="ic">🧱</span><?= t('finished_stock') ?></h3>
+        <div class="value"><?= number_format($stock) ?></div>
+        <div class="label"><?= t('blocks_in_stock') ?></div>
+    </div>
+    <div class="card" data-link="../hr/index.php" title="<?= e(t('view_employees')) ?>">
+        <h3><span class="ic">👥</span><?= t('active_employees') ?></h3>
+        <div class="value"><?= number_format($total_employees) ?></div>
+        <div class="label"><?= t('employees_label') ?></div>
+    </div>
+</div>
+
+<div class="dash-label"><?= t('accounts_overview') ?></div>
+<div class="dashboard-cards">
+    <div class="card" data-link="../payments/customer.php" title="<?= e(t('view_customer_payments')) ?>">
+        <h3><span class="ic">💳</span><?= t('receivables') ?></h3>
+        <div class="value" style="color:#a16207"><?= number_format($recv, 2) ?></div>
+        <div class="label"><?= t('from_customers') ?> <?= $total_customers ?> <?= t('customers') ?></div>
+    </div>
+    <div class="card" data-link="../payments/supplier.php" title="<?= e(t('view_supplier_payments')) ?>">
+        <h3><span class="ic">📮</span><?= t('payables') ?></h3>
+        <div class="value" style="color:#b91c1c"><?= number_format($pay, 2) ?></div>
+        <div class="label"><?= t('to_suppliers') ?></div>
+    </div>
+    <div class="card" data-link="../inventory/low_stock_alert.php" title="<?= e(t('view_low_stock_alerts')) ?>">
+        <h3><span class="ic">⚠️</span><?= t('low_stock') ?></h3>
+        <div class="value" style="color:<?= $low_stock > 0 ? '#b91c1c' : '#15803d' ?>"><?= $low_stock ?></div>
+        <div class="label"><?= t('materials_below_reorder') ?></div>
+    </div>
+    <div class="card">
+        <h3><span class="ic">⚖️</span><?= t('net_position') ?></h3>
+        <div class="value" style="color:<?= ($recv - $pay) >= 0 ? '#15803d' : '#b91c1c' ?>"><?= number_format($recv - $pay, 2) ?></div>
+        <div class="label"><?= t('receivables_minus_payables') ?></div>
+    </div>
+</div>
+
 <?php if ($low_production): ?>
-<div class="panel" style="margin:24px 0; border-left:4px solid #dc3545;">
+<div class="panel dash-lowprod">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
         <div>
             <h3 style="margin:0;color:#dc3545;">⚠️ <?= t('low_production_alerts') ?></h3>
@@ -421,118 +463,67 @@ $canReports = has_permission('reports', 'view');
 <?php endif; ?>
 
 <?php if ($canReports): ?>
-<div class="grid-2 dashboard-chart-grid" style="margin:24px 0;">
+<div class="grid-2 dashboard-chart-grid">
     <div class="panel"><h3 style="margin-top:0;"><?= t('sales_trend') ?></h3><canvas id="chartSalesTrend" height="200"></canvas></div>
     <div class="panel"><h3 style="margin-top:0;"><?= t('production_chart') ?></h3><canvas id="chartProduction" height="200"></canvas></div>
 </div>
-<div class="grid-2 dashboard-chart-grid" style="margin-bottom:24px;">
+<div class="grid-2 dashboard-chart-grid">
     <div class="panel"><h3 style="margin-top:0;"><?= t('top_products') ?></h3><canvas id="chartTopProducts" height="220"></canvas></div>
     <div class="panel"><h3 style="margin-top:0;"><?= t('sales_vs_expenses_mtd') ?></h3><canvas id="chartExpenseSales" height="220"></canvas></div>
 </div>
 <?php endif; ?>
 
-<div class="dashboard-section-title"><h2><?= t('month_to_date') ?></h2></div>
-<div class="dashboard-cards">
-    <div class="card" data-link="../reports/financial.php" title="View financial report">
-        <h3>📊 <?= t('sales_mtd') ?></h3>
-        <div class="value" style="color:#28a745"><?=number_format($month_sales,2)?></div>
-        <div class="label"><?= t('since_month_start') ?> <?= e(format_app_date(date('Y-m-01'))) ?></div>
-    </div>
-    <div class="card" data-link="../reports/profit_loss.php" title="<?= e(t('view_profit_loss')) ?>">
-        <h3>💼 <?= t('profit_mtd') ?></h3>
-        <div class="value" style="color:<?=$month_profit>=0?'#28a745':'#dc3545'?>"><?=number_format($month_profit,2)?></div>
-        <div class="label"><?= t('net_profit_loss') ?></div>
-    </div>
-    <div class="card" data-link="../inventory/index.php" title="<?= e(t('view_finished_stock')) ?>">
-        <h3>📦 <?= t('finished_stock') ?></h3>
-        <div class="value"><?=number_format($stock)?></div>
-        <div class="label"><?= t('blocks_in_stock') ?></div>
-    </div>
-    <div class="card" data-link="../hr/index.php" title="<?= e(t('view_employees')) ?>">
-        <h3>👥 <?= t('active_employees') ?></h3>
-        <div class="value"><?=number_format($total_employees)?></div>
-        <div class="label"><?= t('employees_label') ?></div>
-    </div>
-</div>
-
-<div class="dashboard-section-title"><h2><?= t('accounts_overview') ?></h2></div>
-<div class="dashboard-cards">
-    <div class="card" data-link="../payments/customer.php" title="<?= e(t('view_customer_payments')) ?>">
-        <h3>💳 <?= t('receivables') ?></h3>
-        <div class="value" style="color:#ffc107"><?=number_format($recv,2)?></div>
-        <div class="label"><?= t('from_customers') ?> <?= $total_customers ?> <?= t('customers') ?></div>
-    </div>
-    <div class="card" data-link="../payments/supplier.php" title="<?= e(t('view_supplier_payments')) ?>">
-        <h3>📮 <?= t('payables') ?></h3>
-        <div class="value" style="color:#dc3545"><?=number_format($pay,2)?></div>
-        <div class="label"><?= t('to_suppliers') ?></div>
-    </div>
-    <div class="card" data-link="../inventory/low_stock_alert.php" title="<?= e(t('view_low_stock_alerts')) ?>">
-        <h3>⚠️ <?= t('low_stock') ?></h3>
-        <div class="value" style="color:<?=$low_stock>0?'#dc3545':'#28a745'?>"><?=$low_stock?></div>
-        <div class="label"><?= t('materials_below_reorder') ?></div>
-    </div>
-    <div class="card">
-        <h3>💼 <?= t('net_position') ?></h3>
-        <div class="value" style="color:<?=($recv-$pay)>=0?'#28a745':'#dc3545'?>"><?=number_format($recv-$pay,2)?></div>
-        <div class="label"><?= t('receivables_minus_payables') ?></div>
-    </div>
-</div>
-
-<div class="dashboard-data-grid">
-    <div class="dashboard-data-panel">
+<div class="dash-lists">
+    <div class="dash-card">
         <h3><?= t('recent_sales') ?></h3>
-        <table style="width:100%">
-            <thead><tr><th><?= t('invoice') ?></th><th><?= t('customer') ?></th><th><?= t('amount') ?></th><th><?= t('date') ?></th></tr></thead>
+        <?php if ($recent_sales): ?>
+        <table>
+            <thead><tr><th><?= t('invoice') ?></th><th><?= t('customer') ?></th><th style="text-align:right"><?= t('amount') ?></th><th><?= t('date') ?></th></tr></thead>
             <tbody>
-                <?php foreach($recent_sales as $s): ?>
+            <?php foreach ($recent_sales as $s): ?>
                 <tr>
-                    <td><?=htmlspecialchars($s['invoice_no'])?></td>
-                    <td><?=htmlspecialchars($s['customer_name']??'Walk-in')?></td>
-                    <td><?=number_format($s['total_amount'],2)?></td>
-                    <td><?=date('d M',strtotime($s['sale_date']))?></td>
+                    <td><?= htmlspecialchars($s['invoice_no']) ?></td>
+                    <td><?= htmlspecialchars($s['customer_name'] ?? 'Walk-in') ?></td>
+                    <td style="text-align:right;font-weight:600"><?= number_format($s['total_amount'], 2) ?></td>
+                    <td><?= date('d M', strtotime($s['sale_date'])) ?></td>
                 </tr>
-                <?php endforeach; ?>
+            <?php endforeach; ?>
             </tbody>
         </table>
+        <?php else: ?><div class="dash-empty">—</div><?php endif; ?>
     </div>
-    
-    <div class="dashboard-data-panel">
+    <div class="dash-card">
         <h3><?= t('recent_production') ?></h3>
-        <table style="width:100%">
-            <thead><tr><th><?= t('prod_no') ?></th><th><?= t('block_type') ?></th><th><?= t('quantity') ?></th><th><?= t('date') ?></th></tr></thead>
+        <?php if ($recent_production): ?>
+        <table>
+            <thead><tr><th><?= t('prod_no') ?></th><th><?= t('block_type') ?></th><th style="text-align:right"><?= t('quantity') ?></th><th><?= t('date') ?></th></tr></thead>
             <tbody>
-                <?php foreach($recent_production as $p): ?>
+            <?php foreach ($recent_production as $p): ?>
                 <tr>
-                    <td><?=htmlspecialchars($p['production_no'])?></td>
-                    <td><?=htmlspecialchars($p['block_name'])?></td>
-                    <td><?=number_format($p['good_quantity'])?></td>
-                    <td><?=date('d M',strtotime($p['production_date']))?></td>
+                    <td><?= htmlspecialchars($p['production_no']) ?></td>
+                    <td><?= htmlspecialchars($p['block_name']) ?></td>
+                    <td style="text-align:right;font-weight:600"><?= number_format($p['good_quantity']) ?></td>
+                    <td><?= date('d M', strtotime($p['production_date'])) ?></td>
                 </tr>
-                <?php endforeach; ?>
+            <?php endforeach; ?>
             </tbody>
         </table>
+        <?php else: ?><div class="dash-empty">—</div><?php endif; ?>
     </div>
 </div>
 
-<div style="margin-top:30px">
-    <div class="dashboard-section-title"><h2><?= t('quick_actions') ?></h2></div>
-    <div class="dashboard-actions">
-        <a class="btn" href="../production/create.php">📦 <?= t('new_production') ?></a>
-        <a class="btn" href="../production/quality.php">✅ <?= t('quality_checks') ?></a>
-        <a class="btn" href="../inventory/dispatch.php">🚚 <?= t('dispatch_tracking') ?></a>
-        <a class="btn" href="../sales/create.php">💰 <?= t('new_sale') ?></a>
-        <a class="btn" href="../purchases/create.php">🛒 <?= t('new_purchase') ?></a>
-        <a class="btn" href="../expenses/create.php">💳 <?= t('new_expense') ?></a>
-        <a class="btn" href="../customers/create.php">👤 <?= t('add_customer') ?></a>
-        <a class="btn" href="../hr/attendance.php">📅 <?= t('mark_attendance') ?></a>
-        <a class="btn" href="../reports/financial.php">📊 <?= t('view_reports') ?></a>
-        <a class="btn btn-accent" href="widgets.php">📈 <?= t('advanced_widgets') ?></a>
-        <a class="btn" href="../crm/interactions.php">📞 <?= t('followups') ?></a>
-        <a class="btn" href="../crm/delivery.php"><?= t('delivery_notes') ?></a>
-        <a class="btn" href="../crm/commissions.php"><?= t('commissions') ?></a>
-        <a class="btn" href="../crm/feedback.php"><?= t('feedback') ?></a>
-    </div>
+<div class="dash-label"><?= t('quick_actions') ?></div>
+<div class="dash-actions">
+    <a href="../production/quality.php">✅ <?= t('quality_checks') ?></a>
+    <a href="../inventory/dispatch.php">🚚 <?= t('dispatch_tracking') ?></a>
+    <a href="../purchases/create.php">🛒 <?= t('new_purchase') ?></a>
+    <a href="../customers/create.php">👤 <?= t('add_customer') ?></a>
+    <a href="../hr/attendance.php">📅 <?= t('mark_attendance') ?></a>
+    <a href="../reports/financial.php">📊 <?= t('view_reports') ?></a>
+    <a href="../crm/interactions.php">📞 <?= t('followups') ?></a>
+    <a href="../crm/delivery.php"><?= t('delivery_notes') ?></a>
+    <a href="../crm/commissions.php"><?= t('commissions') ?></a>
+    <a href="../crm/feedback.php"><?= t('feedback') ?></a>
 </div>
 
 <script>
