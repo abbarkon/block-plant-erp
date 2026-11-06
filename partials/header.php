@@ -72,6 +72,7 @@ if ($hasSysNotifTable) {
     <link rel="stylesheet" href="/block_plant/assets/css/dark-mode.css">
     <link rel="stylesheet" href="/block_plant/assets/css/glass.css?v=<?= filemtime(__DIR__ . '/../assets/css/glass.css') ?>">
     <link rel="stylesheet" href="/block_plant/assets/css/mobile.css?v=<?= filemtime(__DIR__ . '/../assets/css/mobile.css') ?>">
+    <link rel="stylesheet" href="/block_plant/assets/css/sidebar.css?v=<?= filemtime(__DIR__ . '/../assets/css/sidebar.css') ?>">
     <style>
         :root {
             --bp-primary: <?= htmlspecialchars($brand['primary']) ?>;
@@ -407,7 +408,7 @@ if ($hasSysNotifTable) {
 
             <?php if (has_permission('sales', 'view') || has_permission('crm', 'view') || has_permission('customers', 'view')): ?>
             <li class="dropdown">
-                <a href="#"><?= t('sales_crm') ?> ▼</a>
+                <a href="#"><?= t('sales_crm') ?></a>
                 <div class="dropdown-menu">
                     <?php if (has_permission('sales', 'view')): ?>
                     <a href="/block_plant/quotations/index.php"><?= t('quotations') ?></a>
@@ -434,7 +435,7 @@ if ($hasSysNotifTable) {
 
             <?php if (has_permission('purchases', 'view') || has_permission('suppliers', 'view')): ?>
             <li class="dropdown">
-                <a href="#"><?= t('purchasing') ?> ▼</a>
+                <a href="#"><?= t('purchasing') ?></a>
                 <div class="dropdown-menu">
                     <?php if (has_permission('purchases', 'view')): ?>
                     <a href="/block_plant/purchases/index.php"><?= t('purchase_orders') ?></a>
@@ -458,7 +459,7 @@ if ($hasSysNotifTable) {
 
             <?php if (has_permission('production', 'view')): ?>
             <li class="dropdown">
-                <a href="#"><?= t('production') ?> ▼</a>
+                <a href="#"><?= t('production') ?></a>
                 <div class="dropdown-menu">
                     <a href="/block_plant/production/index.php"><?= t('production_orders') ?></a>
                     <?php if (has_permission('production', 'create')): ?>
@@ -480,7 +481,7 @@ if ($hasSysNotifTable) {
 
             <?php if (has_permission('inventory', 'view')): ?>
             <li class="dropdown">
-                <a href="#"><?= t('inventory') ?> ▼</a>
+                <a href="#"><?= t('inventory') ?></a>
                 <div class="dropdown-menu">
                     <a href="/block_plant/inventory/overview.php"><?= t('inventory_overview') ?></a>
                     <a href="/block_plant/inventory/analytics.php"><?= t('inventory_analytics') ?></a>
@@ -499,7 +500,7 @@ if ($hasSysNotifTable) {
 
             <?php if (has_permission('hr', 'view')): ?>
             <li class="dropdown">
-                <a href="/block_plant/hr/index.php"><?= t('hr_payroll') ?> ▼</a>
+                <a href="/block_plant/hr/index.php"><?= t('hr_payroll') ?></a>
                 <div class="dropdown-menu">
                     <a href="/block_plant/hr/index.php"><?= t('hr_overview') ?></a>
                     <a href="/block_plant/hr/search.php"><?= t('hr_global_search') ?></a>
@@ -533,7 +534,7 @@ if ($hasSysNotifTable) {
 
             <?php if (has_permission('assets', 'view')): ?>
             <li class="dropdown">
-                <a href="#"><?= t('assets') ?> ▼</a>
+                <a href="#"><?= t('assets') ?></a>
                 <div class="dropdown-menu">
                     <a href="/block_plant/assets/index.php"><?= t('fixed_assets') ?></a>
                     <a href="/block_plant/assets/categories.php"><?= t('asset_categories') ?></a>
@@ -549,7 +550,7 @@ if ($hasSysNotifTable) {
 
             <?php if (has_permission('finance', 'view') || has_permission('expenses', 'view')): ?>
             <li class="dropdown">
-                <a href="#"><?= t('finance') ?> ▼</a>
+                <a href="#"><?= t('finance') ?></a>
                 <div class="dropdown-menu">
                     <?php if (has_permission('expenses', 'view')): ?>
                     <a href="/block_plant/expenses/index.php"><?= t('expenses') ?></a>
@@ -582,7 +583,7 @@ if ($hasSysNotifTable) {
 
             <?php if (has_permission('reports', 'view')): ?>
             <li class="dropdown">
-                <a href="#"><?= t('reports') ?> ▼</a>
+                <a href="#"><?= t('reports') ?></a>
                 <div class="dropdown-menu">
                     <a href="/block_plant/reports/sales.php"><?= t('sales_reports') ?></a>
                     <a href="/block_plant/reports/purchases.php"><?= t('purchase_reports') ?></a>
@@ -603,7 +604,7 @@ if ($hasSysNotifTable) {
 
             <!-- Settings always shown – content differs by role -->
             <li class="dropdown">
-                <a href="#">⚙️ <?= t('settings') ?> ▼</a>
+                <a href="#">⚙️ <?= t('settings') ?></a>
                 <div class="dropdown-menu">
                     <a href="/block_plant/settings/profile.php"><?= t('my_profile') ?></a>
                     <?php if ($_navIsAdmin || has_permission('settings', 'edit')): ?>
@@ -624,7 +625,7 @@ if ($hasSysNotifTable) {
 
             <?php if ($_navIsAdmin): ?>
             <li class="dropdown">
-                <a href="#"><?= t('advanced') ?> ▼</a>
+                <a href="#"><?= t('advanced') ?></a>
                 <div class="dropdown-menu">
                     <a href="/block_plant/dashboard/widgets.php"><?= t('advanced_widgets') ?></a>
                     <a href="/block_plant/dashboard/insights.php"><?= t('operational_insights') ?></a>
