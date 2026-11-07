@@ -14,7 +14,7 @@ header('Content-Type: application/json');
 $monthly = $pdo->query("
     SELECT DATE_FORMAT(purchase_date, '%Y-%m') AS label, SUM(total_amount) AS value
     FROM purchases
-    WHERE purchase_date >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+    WHERE purchase_date >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH) AND (approval_status IS NULL OR approval_status <> 'rejected')
     GROUP BY label ORDER BY label
 ")->fetchAll(PDO::FETCH_ASSOC);
 
@@ -23,7 +23,7 @@ $byMaterial = $pdo->query("
     FROM purchase_items pi
     JOIN raw_materials rm ON pi.material_id = rm.id
     JOIN purchases p ON pi.purchase_id = p.id
-    WHERE p.purchase_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+    WHERE p.purchase_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) AND (p.approval_status IS NULL OR p.approval_status <> 'rejected')
     GROUP BY rm.id ORDER BY value DESC LIMIT 8
 ")->fetchAll(PDO::FETCH_ASSOC);
 
@@ -31,7 +31,7 @@ $bySupplier = $pdo->query("
     SELECT COALESCE(s.name, 'No supplier') AS label, SUM(p.total_amount) AS value
     FROM purchases p
     LEFT JOIN suppliers s ON p.supplier_id = s.id
-    WHERE p.purchase_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+    WHERE p.purchase_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) AND (p.approval_status IS NULL OR p.approval_status <> 'rejected')
     GROUP BY p.supplier_id ORDER BY value DESC LIMIT 6
 ")->fetchAll(PDO::FETCH_ASSOC);
 
