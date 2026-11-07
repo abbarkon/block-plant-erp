@@ -3,6 +3,7 @@ session_start();require_once "../config/database.php";
 require_once "../config/helpers.php";
 require_login();
 require_permission('inventory', 'view');
+$canPurchase = has_permission('purchases', 'create');
 $pageTitle = "Low Stock Alert";
 require_once "../partials/header.php";
 
