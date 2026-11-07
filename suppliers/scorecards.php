@@ -7,7 +7,7 @@ require_permission('suppliers', 'view');
 
 $pageTitle = 'Supplier Scorecards';
 
-$suppliers = $pdo->query("SELECT s.id, s.name, s.phone, COALESCE(SUM(p.total_amount),0) AS total_purchases, COALESCE(COUNT(p.id),0) AS purchase_count, COALESCE(SUM(CASE WHEN p.payment_status = 'paid' THEN 1 ELSE 0 END),0) AS paid_count, COALESCE(AVG(CASE WHEN d.delivery_status = 'delivered' THEN 1 ELSE 0 END),0) AS delivery_rate FROM suppliers s LEFT JOIN purchases p ON p.supplier_id = s.id LEFT JOIN delivery_notes d ON d.sale_id IN (SELECT id FROM sales WHERE customer_id IS NOT NULL) WHERE 1=1 GROUP BY s.id, s.name, s.phone ORDER BY total_purchases DESC LIMIT 20")->fetchAll();
+$suppliers = $pdo->query("SELECT s.id, s.name, s.phone, COALESCE(SUM(p.total_amount),0) AS total_purchases, COALESCE(COUNT(p.id),0) AS purchase_count, COALESCE(SUM(CASE WHEN p.payment_status = 'paid' THEN 1 ELSE 0 END),0) AS paid_count, COALESCE(AVG(CASE WHEN d.delivery_status = 'delivered' THEN 1 ELSE 0 END),0) AS delivery_rate FROM suppliers s LEFT JOIN purchases p ON p.supplier_id = s.id AND (p.approval_status IS NULL OR p.approval_status <> 'rejected') LEFT JOIN delivery_notes d ON d.sale_id IN (SELECT id FROM sales WHERE customer_id IS NOT NULL) WHERE 1=1 GROUP BY s.id, s.name, s.phone ORDER BY total_purchases DESC LIMIT 20")->fetchAll();
 
 $scoreRows = [];
 foreach ($suppliers as $supplier) {
