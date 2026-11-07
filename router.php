@@ -36,6 +36,16 @@ if (substr($file, -4) === '.php') {
             if (stripos($h, 'content-type:') === 0 && stripos($h, 'text/html') !== false) $isHtml = true;
         }
         if (!$isHtml && stripos(ltrim($html), '<!doctype html') !== 0 && stripos(ltrim($html), '<html') !== 0) return $html;
+        // Amharic: translate English text still hard-coded on pages.
+        if (function_exists('app_lang') && app_lang() === 'am') {
+            require_once __DIR__ . '/config/am_translate.php';
+            $missing = [];
+            $html = am_translate_html($html, $missing);
+            if (!empty($_GET['am_missing']) && function_exists('is_system_admin') && is_system_admin() && $missing) {
+                $box = '<pre style="position:relative;z-index:9;margin:20px;padding:14px;background:#fffbe6;border:1px solid #f0d97a;white-space:pre-wrap;font:13px/1.5 monospace">Untranslated on this page:' . "\n" . htmlspecialchars(implode("\n", array_keys($missing))) . '</pre>';
+                $html = preg_replace('#</body>#i', $box . '</body>', $html, 1);
+            }
+        }
         if (stripos($html, 'rel="manifest"') !== false || stripos($html, '</head>') === false) return $html;
 
         $tags = '<link rel="manifest" href="' . $prefix . '/manifest.webmanifest">'
