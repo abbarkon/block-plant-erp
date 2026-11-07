@@ -21,7 +21,7 @@ $stats = [
 ];
 
 $topCustomers = $pdo->query("SELECT c.name, COALESCE(SUM(s.total_amount),0) AS total_amount, COALESCE(SUM(s.balance),0) AS balance FROM sales s JOIN customers c ON c.id = s.customer_id GROUP BY c.id, c.name ORDER BY total_amount DESC LIMIT 5")->fetchAll();
-$topSuppliers = $pdo->query("SELECT sp.name, COALESCE(SUM(p.total_amount),0) AS total_amount, COALESCE(SUM(p.balance),0) AS balance FROM purchases p JOIN suppliers sp ON sp.id = p.supplier_id GROUP BY sp.id, sp.name ORDER BY total_amount DESC LIMIT 5")->fetchAll();
+$topSuppliers = $pdo->query("SELECT sp.name, COALESCE(SUM(p.total_amount),0) AS total_amount, COALESCE(SUM(p.balance),0) AS balance FROM purchases p JOIN suppliers sp ON sp.id = p.supplier_id WHERE (p.approval_status IS NULL OR p.approval_status <> 'rejected') GROUP BY sp.id, sp.name ORDER BY total_amount DESC LIMIT 5")->fetchAll();
 $lowStockItems = $pdo->query("SELECT rm.name, rm.current_stock, rl.reorder_point, rm.unit FROM raw_materials rm JOIN reorder_levels rl ON rm.id = rl.material_id WHERE rm.current_stock <= rl.reorder_point ORDER BY rm.current_stock ASC LIMIT 10")->fetchAll();
 // Build the six-month sales/expense trend from independent aggregates; the
 // previous correlated alias subquery could not reliably resolve month_name.
