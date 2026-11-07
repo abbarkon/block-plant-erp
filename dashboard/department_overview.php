@@ -41,8 +41,8 @@ switch ($dashboardDepartment) {
         $metric('Receivables', (float) $value('SELECT COALESCE(SUM(balance), 0) FROM sales WHERE balance > 0'), 'Outstanding customer balances', true);
         break;
     case 'purchasing':
-        $metric('Purchases today', (float) $value('SELECT COALESCE(SUM(total_amount), 0) FROM purchases WHERE purchase_date = ?', [$today]), 'Purchase orders', true);
-        $metric('Spend this month', (float) $value('SELECT COALESCE(SUM(total_amount), 0) FROM purchases WHERE purchase_date >= ?', [$monthStart]), 'Month to date', true);
+        $metric('Purchases today', (float) $value('SELECT COALESCE(SUM(total_amount), 0) FROM purchases WHERE purchase_date = ? AND (approval_status IS NULL OR approval_status <> 'rejected')', [$today]), 'Purchase orders', true);
+        $metric('Spend this month', (float) $value('SELECT COALESCE(SUM(total_amount), 0) FROM purchases WHERE purchase_date >= ? AND (approval_status IS NULL OR approval_status <> 'rejected')', [$monthStart]), 'Month to date', true);
         $metric('Supplier balances', (float) $value('SELECT COALESCE(SUM(balance), 0) FROM purchases WHERE balance > 0'), 'Outstanding payables', true);
         $lowStockStatement = $pdo->query('SELECT rm.id, rm.name, rm.current_stock, rm.unit, rl.reorder_point FROM raw_materials rm JOIN reorder_levels rl ON rm.id = rl.material_id WHERE rm.current_stock <= rl.reorder_point AND rm.status = 1 ORDER BY (rm.current_stock / NULLIF(rl.reorder_point, 0)) ASC');
         $lowStockMaterials = $lowStockStatement->fetchAll();
