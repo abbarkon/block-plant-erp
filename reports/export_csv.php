@@ -106,7 +106,7 @@ switch ($type) {
         break;
 
     case 'purchases':
-        $sql = "SELECT p.purchase_date, p.purchase_no, s.name AS supplier_name, p.subtotal, p.total_amount, p.paid_amount, p.balance, p.payment_status FROM purchases p LEFT JOIN suppliers s ON s.id = p.supplier_id WHERE p.purchase_date BETWEEN ? AND ? ORDER BY p.purchase_date DESC LIMIT ?";
+        $sql = "SELECT p.purchase_date, p.purchase_no, s.name AS supplier_name, p.subtotal, p.total_amount, p.paid_amount, p.balance, p.payment_status FROM purchases p LEFT JOIN suppliers s ON s.id = p.supplier_id WHERE p.purchase_date BETWEEN ? AND ? AND (p.approval_status IS NULL OR p.approval_status <> 'rejected') ORDER BY p.purchase_date DESC LIMIT ?";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$from, $to, $limit]);
         $rows = $stmt->fetchAll();
