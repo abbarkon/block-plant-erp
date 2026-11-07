@@ -36,7 +36,7 @@ $productionStmt = $pdo->prepare("SELECT COALESCE(SUM(production_cost), 0) FROM p
 $productionStmt->execute([$from, $to]);
 $totalProductionCost = (float) $productionStmt->fetchColumn();
 
-$purchaseStmt = $pdo->prepare("SELECT COALESCE(SUM(total_amount), 0) FROM purchases WHERE purchase_date BETWEEN ? AND ?");
+$purchaseStmt = $pdo->prepare("SELECT COALESCE(SUM(total_amount), 0) FROM purchases WHERE purchase_date BETWEEN ? AND ? AND (approval_status IS NULL OR approval_status <> 'rejected')");
 $purchaseStmt->execute([$from, $to]);
 $totalPurchases = (float) $purchaseStmt->fetchColumn();
 
