@@ -54,8 +54,10 @@ $stmt->execute($params);
 $rows = $stmt->fetchAll();
 
 $suppliers = $pdo->query("SELECT id, name FROM suppliers WHERE status=1 ORDER BY name")->fetchAll();
+// Rejected purchases are not real purchases: keep them out of every total.
+$liveRows = array_filter($rows, function ($r) { return ($r['approval_status'] ?? 'pending') !== 'rejected'; });
 
-$monthSpend = (float) $pdo->query("SELECT COALESCE(SUM(total_amount),0) FROM purchases WHERE purchase_date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')")->fetchColumn();
+$monthSpend = (float) $pdo->query("SELECT COALESCE(SUM(total_amount),0) FROM purchases WHERE purchase_date >= DATE_FORMAT(CURDATE(), '%Y-%m-01') AND (approval_status IS NULL OR approval_status <> 'rejected')")->fetchColumn();
 $payables = (float) $pdo->query("SELECT COALESCE(SUM(balance),0) FROM purchases WHERE balance>0")->fetchColumn();
 $pendingSched = 0;
 try {
@@ -83,15 +85,15 @@ require_once "../partials/header.php";
     </div>
     <div class="module-kpi">
         <div class="stat-icon" style="background:#00897b;">💰</div>
-        <div><div class="stat-value"><?= currency_symbol() . money(array_sum(array_column($rows, 'total_amount'))) ?></div><div class="stat-label">Total value</div></div>
+        <div><div class="stat-value"><?= currency_symbol() . money(array_sum(array_column($liveRows, 'total_amount'))) ?></div><div class="stat-label">Total value</div></div>
     </div>
     <div class="module-kpi">
         <div class="stat-icon" style="background:#e74c3c;">📮</div>
-        <div><div class="stat-value"><?= currency_symbol() . money(array_sum(array_map(function ($r) { return (float) $r['balance']; }, $rows))) ?></div><div class="stat-label">Payables</div></div>
+        <div><div class="stat-value"><?= currency_symbol() . money(array_sum(array_map(function ($r) { return (float) $r['balance']; }, $liveRows))) ?></div><div class="stat-label">Payables</div></div>
     </div>
     <div class="module-kpi">
         <div class="stat-icon" style="background:#f39c12;">💳</div>
-        <div><div class="stat-value"><?= currency_symbol() . money(array_sum(array_column($rows, 'paid_amount'))) ?></div><div class="stat-label">Paid</div></div>
+        <div><div class="stat-value"><?= currency_symbol() . money(array_sum(array_column($liveRows, 'paid_amount'))) ?></div><div class="stat-label">Paid</div></div>
     </div>
 </div>
 
@@ -163,7 +165,13 @@ require_once "../partials/header.php";
                 <td><?= currency_symbol() . money($r['balance']) ?></td>
                 <td><span class="badge badge-info"><?= e(t('status_' . strtolower($r['payment_status']))) ?></span></td>
                 <td><span class="badge badge-<?= ($r['approval_status'] ?? 'pending') === 'approved' ? 'success' : (($r['approval_status'] ?? 'pending') === 'rejected' ? 'danger' : 'warning') ?>"><?= e(t('status_' . strtolower($r['approval_status'] ?? 'pending'))) ?></span></td>
-                <td class="no-print"><a class="btn-sm" href="view.php?id=<?= (int) $r['id'] ?>"><?= t('view') ?></a></td>
+                <td class="no-print"><a class="btn-sm" href="view.php?id=<?= (int) $r['id'] ?>"><?= t('view') ?></a>
+                    <?php if (($r['approval_status'] ?? 'pending') === 'rejected' && has_permission('purchases', 'delete')): ?>
+                    <form method="post" action="delete.php" style="display:inline" onsubmit="return confirm('Delete rejected purchase <?= e($r['purchase_no']) ?>? This cannot be undone.');">
+                        <input type="hidden" name="id" value="<?= (int) $r['id'] ?>">
+                        <button type="submit" class="btn-sm" style="background:#c0392b;color:#fff;border:0;cursor:pointer;">Delete</button>
+                    </form>
+                    <?php endif; ?></td>
             </tr>
             <?php endforeach; ?>
         </tbody>
