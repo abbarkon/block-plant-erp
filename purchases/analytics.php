@@ -12,7 +12,7 @@ $stats = $pdo->query("
            COALESCE(SUM(paid_amount),0) AS paid,
            COALESCE(SUM(balance),0) AS balance
     FROM purchases
-    WHERE purchase_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+    WHERE purchase_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) AND (approval_status IS NULL OR approval_status <> 'rejected')
 ")->fetch();
 
 require_once "../partials/header.php";
