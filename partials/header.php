@@ -472,6 +472,7 @@ if ($hasSysNotifTable) {
                     <a href="/block_plant/production/quality.php"><?= t('quality_checks') ?></a>
                     <a href="/block_plant/production/bom.php"><?= t('bill_of_materials') ?></a>
                     <a href="/block_plant/production/analytics.php"><?= t('production_analytics') ?></a>
+                    <a href="/block_plant/production/efficiency.php">Production Efficiency</a>
                     <?php if (has_permission('inventory', 'view')): ?>
                     <a href="/block_plant/inventory/materials.php"><?= t('raw_materials') ?></a>
                     <a href="/block_plant/inventory/index.php"><?= t('finished_goods') ?></a>
@@ -589,6 +590,8 @@ if ($hasSysNotifTable) {
                     <a href="/block_plant/reports/sales.php"><?= t('sales_reports') ?></a>
                     <a href="/block_plant/reports/purchases.php"><?= t('purchase_reports') ?></a>
                     <a href="/block_plant/reports/production.php"><?= t('production_reports') ?></a>
+                    <a href="/block_plant/reports/daily_closing.php">Daily Closing Report</a>
+                    <a href="/block_plant/reports/block_profitability.php">Block Profitability</a>
                     <a href="/block_plant/reports/inventory.php"><?= t('inventory_reports') ?></a>
                     <a href="/block_plant/reports/financial.php"><?= t('financial_reports') ?></a>
                     <a href="/block_plant/reports/payroll.php"><?= t('payroll_reports') ?></a>
