@@ -19,7 +19,7 @@ $byCategory = $pdo->query("
     ORDER BY revenue DESC
 ")->fetchAll();
 
-$maxRev = max(array_column($byCategory, 'revenue')) ?: 1;
+$maxRev = $byCategory ? (max(array_column($byCategory, 'revenue')) ?: 1) : 1;
 
 $pipelineStats = $pdo->query("
     SELECT stage, COUNT(*) AS cnt, SUM(estimated_value) AS val
@@ -36,7 +36,7 @@ $topCustomers = $pdo->query("
     LIMIT 8
 ")->fetchAll();
 
-$maxCust = max(array_column($topCustomers, 'total')) ?: 1;
+$maxCust = $topCustomers ? (max(array_column($topCustomers, 'total')) ?: 1) : 1;
 
 $monthlySales = $pdo->query("
     SELECT DATE_FORMAT(sale_date, '%Y-%m') AS ym, SUM(total_amount) AS total
