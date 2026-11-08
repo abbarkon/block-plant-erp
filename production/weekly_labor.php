@@ -36,18 +36,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($sum['due'] <= 0) {
                 set_flash('error', 'Nothing to pay for this week (no cement used or no rate set).');
             } else {
-                $pdo->prepare("INSERT INTO weekly_labor_payments(week_start, week_end, cement_bags, rate_per_bag, blocks_produced, amount, paid_at, note, created_by) VALUES(?,?,?,?,?,?,NOW(),?,?)")
-                    ->execute([$ws, $we, round($sum['bags'], 2), $sum['rate'], $sum['blocks'], round($sum['due'], 2), trim($_POST['note'] ?? ''), $_SESSION['user_id']]);
-                log_activity('create', 'production', 0, "Weekly labor paid {$ws} to {$we}: " . round($sum['due'], 2));
-                set_flash('success', 'Weekly labor payment recorded.');
+                $amount = round($sum['due'], 2);
+                $ref = 'LAB-' . $we;
+                $postedJournal = false;
+                try {
+                    $pdo->beginTransaction();
+                    $pdo->prepare("INSERT INTO weekly_labor_payments(week_start, week_end, cement_bags, rate_per_bag, blocks_produced, amount, paid_at, note, created_by) VALUES(?,?,?,?,?,?,NOW(),?,?)")
+                        ->execute([$ws, $we, round($sum['bags'], 2), $sum['rate'], $sum['blocks'], $amount, trim($_POST['note'] ?? ''), $_SESSION['user_id']]);
+                    // Money out in the cashbook.
+                    post_expense_cashbook($ref, $we, 'Weekly direct labor ' . $ws . ' to ' . $we . ' (' . round($sum['bags'], 1) . ' cement bags)', $amount, 'cash', (int) $_SESSION['user_id']);
+                    $pdo->commit();
+                } catch (Throwable $e) {
+                    if ($pdo->inTransaction()) {
+                        $pdo->rollBack();
+                    }
+                    set_flash('error', 'The payment could not be recorded: ' . $e->getMessage());
+                    header('Location: weekly_labor.php?week=' . urlencode($we));
+                    exit;
+                }
+                // Settle the accrued direct labor liability (labor was accrued when each run was saved).
+                try {
+                    $postedJournal = (bool) post_accounting_journal($ref, $we, 'Weekly direct labor paid ' . $ws . ' to ' . $we, $ref, [
+                        ['2160', $amount, 0, 'Accrued direct labor paid'],
+                        ['1110', 0, $amount, 'Cash paid for direct labor'],
+                    ], (int) $_SESSION['user_id']);
+                } catch (Throwable $e) {
+                    $postedJournal = false;
+                }
+                log_activity('create', 'production', 0, "Weekly labor paid {$ws} to {$we}: {$amount}");
+                set_flash('success', 'Weekly labor payment recorded in the cashbook' . ($postedJournal ? ' and the accounts.' : '. The accounting entry was skipped - check that accounts 2160 and 1110 exist.'));
             }
         }
         header('Location: weekly_labor.php?week=' . urlencode($we));
         exit;
     }
     if (isset($_POST['delete_payment'])) {
-        $pdo->prepare("DELETE FROM weekly_labor_payments WHERE id = ?")->execute([(int) $_POST['delete_payment']]);
-        set_flash('success', 'Payment record removed.');
+        $pid = (int) $_POST['delete_payment'];
+        $st = $pdo->prepare("SELECT * FROM weekly_labor_payments WHERE id = ?");
+        $st->execute([$pid]);
+        $pay = $st->fetch();
+        if ($pay) {
+            $ref = 'LAB-' . $pay['week_end'];
+            $pdo->prepare("DELETE FROM cashbook WHERE transaction_type = 'expense' AND reference_no = ?")->execute([$ref]);
+            try {
+                post_accounting_journal($ref . '-REV-' . date('YmdHis'), date('Y-m-d'), 'Reversal of weekly direct labor payment ' . $pay['week_start'] . ' to ' . $pay['week_end'], $ref, [
+                    ['1110', (float) $pay['amount'], 0, 'Cash returned (payment removed)'],
+                    ['2160', 0, (float) $pay['amount'], 'Accrued direct labor restored'],
+                ], (int) $_SESSION['user_id']);
+            } catch (Throwable $e) {
+            }
+            $pdo->prepare("DELETE FROM weekly_labor_payments WHERE id = ?")->execute([$pid]);
+            log_activity('delete', 'production', $pid, 'Weekly labor payment removed: ' . $ref);
+        }
+        set_flash('success', 'Payment record removed and its cashbook entry reversed.');
         header('Location: weekly_labor.php');
         exit;
     }
@@ -161,7 +202,7 @@ $costPerBlock = $sum['blocks'] > 0 ? $sum['due'] / $sum['blocks'] : 0;
                 <td style="text-align:right"><?= number_format((float) $h['cement_bags'], 1) ?></td><td style="text-align:right"><?= $cs . money($h['rate_per_bag']) ?></td>
                 <td style="text-align:right"><?= number_format((int) $h['blocks_produced']) ?></td><td style="text-align:right;font-weight:700"><?= $cs . money($h['amount']) ?></td>
                 <td><?= e(format_datetime($h['paid_at'])) ?></td>
-                <?php if ($canEdit): ?><td class="no-print"><form method="post" style="display:inline" onsubmit="return confirm('Remove this payment record?');"><input type="hidden" name="delete_payment" value="<?= (int) $h['id'] ?>"><button type="submit" class="btn-sm" style="background:#c0392b;color:#fff;border:0;cursor:pointer;">Remove</button></form></td><?php endif; ?></tr>
+                <?php if ($canEdit): ?><td class="no-print"><form method="post" style="display:inline" onsubmit="return confirm('Remove this payment? Its cashbook entry will be deleted and the accounting entry reversed.');"><input type="hidden" name="delete_payment" value="<?= (int) $h['id'] ?>"><button type="submit" class="btn-sm" style="background:#c0392b;color:#fff;border:0;cursor:pointer;">Remove</button></form></td><?php endif; ?></tr>
         <?php endforeach; if (!$history): ?><tr><td colspan="7">No payments recorded yet.</td></tr><?php endif; ?>
         </tbody>
     </table></div>
