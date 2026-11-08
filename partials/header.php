@@ -445,6 +445,7 @@ if ($hasSysNotifTable) {
                     <a href="/block_plant/purchases/analytics.php"><?= t('purchase_analytics') ?></a>
                     <a href="/block_plant/purchases/schedule.php"><?= t('purchase_schedule') ?></a>
                     <a href="/block_plant/purchases/supplier_prices.php"><?= t('supplier_prices') ?></a>
+                    <a href="/block_plant/inventory/reorder_list.php">Reorder Suggestions</a>
                     <?php endif; ?>
                     <?php if (has_permission('suppliers', 'view')): ?>
                     <a href="/block_plant/suppliers/index.php"><?= t('suppliers') ?></a>
@@ -494,6 +495,8 @@ if ($hasSysNotifTable) {
                     <a href="/block_plant/inventory/dispatch.php"><?= t('dispatch_tracking') ?></a>
                     <?php if (has_permission('inventory', 'edit')): ?>
                     <a href="/block_plant/inventory/adjustments.php"><?= t('stock_adjustments') ?></a>
+                    <a href="/block_plant/inventory/stock_count.php">Stock Count</a>
+                    <a href="/block_plant/inventory/reorder_list.php">Reorder Suggestions</a>
                     <a href="/block_plant/inventory/reorder.php"><?= t('reorder_levels') ?></a>
                     <?php endif; ?>
                     <a href="/block_plant/inventory/low_stock_alert.php"><?= t('low_stock_alerts') ?></a>
@@ -734,7 +737,7 @@ if ($hasSysNotifTable) {
     });
     </script>
     
-    <?php require __DIR__ . '/sidebar_extras.php'; ?>
+    <?php if (is_file(__DIR__ . '/sidebar_extras.php')) { require __DIR__ . '/sidebar_extras.php'; } ?>
 
     <?php if (isset($_SESSION["just_logged_in"]) && $_SESSION["just_logged_in"]): ?>
         <?php $_SESSION["just_logged_in"] = false; ?>
