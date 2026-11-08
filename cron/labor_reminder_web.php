@@ -23,6 +23,9 @@ apply_company_timezone();
 $force = !empty($_GET['force']);
 $dry = !empty($_GET['dry']);
 
+if (!$force && empty(telegram_settings()['send_labor_reminder'])) {
+    exit("Skipped: the Saturday labor reminder is switched off in Telegram settings.\n");
+}
 if (!$force && (int) date('w') !== 6) {
     exit("Skipped: today is not Saturday.\n");
 }
