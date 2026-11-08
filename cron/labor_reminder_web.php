@@ -43,22 +43,31 @@ if ($sum['due'] <= 0) {
 }
 
 $cs = currency_symbol();
+$rule = '━━━━━━━━━━━━━━━━━━━━';
+$row = function ($label, $value) {
+    return '<code>' . str_pad($label, 16, ' ') . str_pad((string) $value, 14, ' ', STR_PAD_LEFT) . '</code>';
+};
+$company = (string) (company_settings()['company_name'] ?? 'Block Plant ERP');
 $lines = [];
-$lines[] = '<b>Weekly labor payment - today 5:00 PM</b>';
-$lines[] = telegram_escape(telegram_date($ws) . ' to ' . telegram_date($we));
-$lines[] = '';
-$lines[] = 'Cement used: <b>' . number_format($sum['bags'], 1) . ' bags</b>';
-$lines[] = 'Rate per bag: ' . telegram_escape($cs . money($sum['rate']));
-$lines[] = 'Total to pay: <b>' . telegram_escape($cs . money($sum['due'])) . '</b>';
-$lines[] = 'Blocks produced: ' . number_format($sum['blocks']);
+$lines[] = '🏭 <b>' . telegram_escape(mb_strtoupper($company)) . '</b>';
+$lines[] = '💰 <i>Weekly labor payment</i>';
+$lines[] = '⏰ <b>Payday: today, Saturday 5:00 PM</b>';
+$lines[] = '🗓 ' . telegram_escape(telegram_date($ws) . ' → ' . telegram_date($we));
+$lines[] = $rule;
+$lines[] = $row('🧱 Cement used', number_format($sum['bags'], 1) . ' bags');
+$lines[] = $row('💵 Rate per bag', $cs . money($sum['rate']));
+$lines[] = $row('🏗 Blocks made', number_format($sum['blocks']));
+$lines[] = $rule;
+$lines[] = '✅ <b>TOTAL TO PAY: ' . telegram_escape($cs . money($sum['due'])) . '</b>';
 if ($sum['days']) {
     $lines[] = '';
-    foreach ($sum['days'] as $d => $row) {
-        $lines[] = telegram_escape(date('D d M', strtotime($d))) . ': ' . number_format($row['bags'], 1) . ' bags - ' . telegram_escape($cs . money($row['due']));
+    $lines[] = '📅 <b>BY DAY</b>';
+    foreach ($sum['days'] as $d => $r) {
+        $lines[] = '▫️ ' . telegram_escape(date('D d M', strtotime($d))) . ' · ' . number_format($r['bags'], 1) . ' bags · <b>' . telegram_escape($cs . money($r['due'])) . '</b>';
     }
 }
 $lines[] = '';
-$lines[] = 'Record it in the app: Production > Weekly Labor Payment.';
+$lines[] = '📝 <i>After paying, record it in the app: Production → Weekly Labor Payment.</i>';
 $message = implode("\n", $lines);
 
 if ($dry) {
