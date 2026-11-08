@@ -20,6 +20,25 @@ require_once __DIR__ . '/helpers.php';
  * Create the two Telegram tables. Idempotent, safe to call on every request
  * that touches Telegram data.
  */
+/**
+ * Extra on/off options: which sections the Telegram messages include (key => default).
+ */
+function telegram_extra_option_keys() {
+    return [
+        'show_glance' => 1,
+        'show_leave_halfday' => 1,
+        'show_payroll' => 1,
+        'show_employee_days' => 1,
+        'sum_sales' => 1,
+        'sum_payments' => 1,
+        'sum_expenses' => 1,
+        'sum_production' => 1,
+        'sum_stock' => 1,
+        'sum_cash' => 1,
+        'send_labor_reminder' => 1,
+    ];
+}
+
 function ensure_telegram_schema() {
     global $pdo;
     static $checked = false;
@@ -65,6 +84,16 @@ function ensure_telegram_schema() {
     $pdo->exec("INSERT INTO telegram_settings (id, send_time) VALUES (1, '18:00:00')
                 ON DUPLICATE KEY UPDATE id = id");
 
+    foreach (telegram_extra_option_keys() as $column => $default) {
+        try {
+            $has = $pdo->query("SHOW COLUMNS FROM telegram_settings LIKE '{$column}'")->fetch();
+            if (!$has) {
+                $pdo->exec("ALTER TABLE telegram_settings ADD COLUMN {$column} TINYINT(1) NOT NULL DEFAULT {$default}");
+            }
+        } catch (Throwable $e) {
+        }
+    }
+
     $checked = true;
 }
 
@@ -92,7 +121,7 @@ function telegram_default_settings() {
         'last_sent_at' => null,
         'last_error' => null,
         'updated_at' => null,
-    ];
+    ] + telegram_extra_option_keys();
 }
 
 /**
@@ -171,6 +200,18 @@ function telegram_save_settings(array $data) {
         $bool($data['alert_asset_maintenance'] ?? 0),
         $resolveIp !== '' ? $resolveIp : null,
     ]);
+
+    // Which sections go into the messages.
+    $sets = [];
+    $vals = [];
+    foreach (array_keys(telegram_extra_option_keys()) as $column) {
+        $sets[] = "{$column} = ?";
+        $vals[] = $bool($data[$column] ?? 0);
+    }
+    try {
+        $pdo->prepare('UPDATE telegram_settings SET ' . implode(', ', $sets) . ' WHERE id = 1')->execute($vals);
+    } catch (Throwable $e) {
+    }
 
     return telegram_settings(true);
 }
@@ -1056,6 +1097,52 @@ function telegram_attention_total(array $data) {
 }
 
 /**
+ * Lines for the optional "Business today" section (each metric can be switched off in the settings).
+ */
+function telegram_business_summary_lines($date, array $settings) {
+    global $pdo;
+    $cs = currency_symbol();
+    $val = function ($sql, array $params = []) use ($pdo) {
+        try {
+            $st = $pdo->prepare($sql);
+            $st->execute($params);
+            return (float) ($st->fetchColumn() ?: 0);
+        } catch (Throwable $e) {
+            return 0.0;
+        }
+    };
+    $row = function ($label, $value) {
+        return '<code>' . str_pad($label, 15, ' ') . str_pad((string) $value, 14, ' ', STR_PAD_LEFT) . '</code>';
+    };
+    $lines = [];
+    if (!empty($settings['sum_sales'])) {
+        $count = (int) $val("SELECT COUNT(*) FROM sales WHERE sale_date = ?", [$date]);
+        $total = $val("SELECT COALESCE(SUM(total_amount),0) FROM sales WHERE sale_date = ?", [$date]);
+        $lines[] = $row('💰 Sales', $cs . money($total));
+        $lines[] = $row('🧾 Invoices', $count);
+    }
+    if (!empty($settings['sum_payments'])) {
+        $lines[] = $row('💵 Collected', $cs . money($val("SELECT COALESCE(SUM(amount),0) FROM payments WHERE payment_date = ?", [$date])));
+    }
+    if (!empty($settings['sum_expenses'])) {
+        $lines[] = $row('📉 Expenses', $cs . money($val("SELECT COALESCE(SUM(amount),0) FROM expenses WHERE expense_date = ? AND (approval_status = 'approved' OR approval_status IS NULL)", [$date])));
+    }
+    if (!empty($settings['sum_production'])) {
+        $lines[] = $row('🏗 Blocks made', number_format($val("SELECT COALESCE(SUM(good_quantity),0) FROM production WHERE production_date = ?", [$date])));
+    }
+    if (!empty($settings['sum_stock'])) {
+        $lines[] = $row('📦 Blocks in stock', number_format($val("SELECT COALESCE(SUM(quantity),0) FROM finished_stock")));
+    }
+    if (!empty($settings['sum_cash'])) {
+        $in = $val("SELECT COALESCE(SUM(amount),0) FROM cashbook WHERE transaction_date = ? AND transaction_type = 'income'", [$date]);
+        $out = $val("SELECT COALESCE(SUM(amount),0) FROM cashbook WHERE transaction_date = ? AND transaction_type = 'expense'", [$date]);
+        $lines[] = $row('🏦 Cash in', $cs . money($in));
+        $lines[] = $row('🏦 Cash out', $cs . money($out));
+    }
+    return $lines;
+}
+
+/**
  * Render the daily HTML message for Telegram.
  */
 function telegram_build_daily_message($date, $data = null) {
@@ -1092,16 +1179,18 @@ function telegram_build_daily_message($date, $data = null) {
     $present = (int) $counts['present'];
     $rate = $active > 0 ? (int) round($present / $active * 100) : 0;
     $filled = (int) round($rate / 10);
-    $lines[] = '';
-    $lines[] = '👥 <b>TODAY AT A GLANCE</b>';
-    $lines[] = '<code>' . str_repeat('█', $filled) . str_repeat('░', 10 - $filled) . '  ' . $rate . '% present</code>';
-    $lines[] = $stat('✅ Present', $counts['present']);
-    $lines[] = $stat('⏰ Late', $counts['late']);
-    $lines[] = $stat('❌ Absent', $counts['absent']);
-    $lines[] = $stat('🏖 On leave', $counts['leave']);
-    $lines[] = $stat('🕐 Half-day', $counts['half-day']);
-    $lines[] = $stat('❓ Not recorded', $day['missing_count']);
-    $lines[] = $stat('👤 Active staff', $active);
+    if (!empty($settings['show_glance'])) {
+        $lines[] = '';
+        $lines[] = '👥 <b>TODAY AT A GLANCE</b>';
+        $lines[] = '<code>' . str_repeat('█', $filled) . str_repeat('░', 10 - $filled) . '  ' . $rate . '% present</code>';
+        $lines[] = $stat('✅ Present', $counts['present']);
+        $lines[] = $stat('⏰ Late', $counts['late']);
+        $lines[] = $stat('❌ Absent', $counts['absent']);
+        $lines[] = $stat('🏖 On leave', $counts['leave']);
+        $lines[] = $stat('🕐 Half-day', $counts['half-day']);
+        $lines[] = $stat('❓ Not recorded', $day['missing_count']);
+        $lines[] = $stat('👤 Active staff', $active);
+    }
 
     // ---- Details ----
     if (!empty($settings['alert_late']) && $day['late']) {
@@ -1125,7 +1214,7 @@ function telegram_build_daily_message($date, $data = null) {
         }
     }
 
-    if ($day['on_leave']) {
+    if (!empty($settings['show_leave_halfday']) && $day['on_leave']) {
         $lines[] = '';
         $lines[] = '🏖 <b>ON APPROVED LEAVE (' . count($day['on_leave']) . ')</b>';
         foreach ($day['on_leave'] as $row) {
@@ -1133,7 +1222,7 @@ function telegram_build_daily_message($date, $data = null) {
         }
     }
 
-    if ($day['half_day']) {
+    if (!empty($settings['show_leave_halfday']) && $day['half_day']) {
         $lines[] = '';
         $lines[] = '🕐 <b>HALF-DAY (' . count($day['half_day']) . ')</b>';
         foreach ($day['half_day'] as $row) {
@@ -1154,8 +1243,20 @@ function telegram_build_daily_message($date, $data = null) {
         }
     }
 
+    // ---- Business today (optional) ----
+    $businessLines = telegram_business_summary_lines($date, $settings);
+    if ($businessLines) {
+        $lines[] = '';
+        $lines[] = $rule;
+        $lines[] = '💼 <b>BUSINESS TODAY</b>';
+        foreach ($businessLines as $bl) {
+            $lines[] = $bl;
+        }
+    }
+
     // ---- Payroll period ----
     $totals = $period['totals'];
+    if (!empty($settings['show_payroll'])) {
     $lines[] = '';
     $lines[] = $rule;
     $lines[] = '📊 <b>PAYROLL PERIOD (16th – 15th)</b>';
@@ -1167,7 +1268,7 @@ function telegram_build_daily_message($date, $data = null) {
     $lines[] = $stat('⏰ Late time', telegram_format_minutes($totals['late_minutes'], '0:00'));
     $lines[] = '<i>Late time ≈ ' . telegram_format_days($totals['late_minutes'] / 480) . ' day deducted</i>';
 
-    if ($period['rows']) {
+    if (!empty($settings['show_employee_days']) && $period['rows']) {
         $lines[] = '';
         $lines[] = '👤 <b>DAYS PRESENT BY EMPLOYEE</b>';
         foreach ($period['rows'] as $row) {
@@ -1178,6 +1279,7 @@ function telegram_build_daily_message($date, $data = null) {
                 . ((float) ($row['absent_days'] ?? 0) > 0 ? ' · absent ' . telegram_format_days($row['absent_days']) : '');
         }
     }
+    } // end show_payroll
 
     // ---- Business alerts ----
     if ($data['alerts']) {
