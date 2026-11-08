@@ -1065,117 +1065,130 @@ function telegram_build_daily_message($date, $data = null) {
     $period = $data['period'];
     $counts = $day['counts'];
 
+    $rule = '━━━━━━━━━━━━━━━━━━━━';
+    $stat = function ($label, $value) {
+        return '<code>' . str_pad($label, 15, ' ') . str_pad((string) $value, 5, ' ', STR_PAD_LEFT) . '</code>';
+    };
+    $company = (string) (company_settings()['company_name'] ?? 'Block Plant ERP');
     $weekday = date('l', strtotime($date));
     $ethiopian = format_ethiopian_date($date);
     $lines = [];
 
-    $lines[] = '🏭 <b>' . telegram_escape((string) (company_settings()['company_name'] ?? 'Block Plant ERP')) . ' — Daily Attendance</b>';
-    $lines[] = '📅 <b>' . telegram_escape(telegram_date($date)) . '</b> (' . telegram_escape($weekday) . ')'
-        . ($ethiopian !== '' ? ' · ' . telegram_escape($ethiopian) : '');
+    // ---- Header ----
+    $lines[] = '🏭 <b>' . telegram_escape(mb_strtoupper($company)) . '</b>';
+    $lines[] = '📋 <i>Daily attendance report</i>';
+    $lines[] = '📅 <b>' . telegram_escape($weekday . ', ' . telegram_date($date)) . '</b>' . ($ethiopian !== '' ? ' · ' . telegram_escape($ethiopian) : '');
+    $lines[] = $rule;
 
     $attention = telegram_attention_total($data);
     if ($attention > 0) {
-        $lines[] = '';
-        $lines[] = '⚠️ <b>' . $attention . ' item' . ($attention === 1 ? '' : 's') . ' need your attention</b> — see the sections below.';
+        $lines[] = '🔔 <b>' . $attention . ' item' . ($attention === 1 ? '' : 's') . ' need your attention</b>';
     } else {
-        $lines[] = '';
-        $lines[] = '✅ <b>Nothing needs your attention today.</b>';
+        $lines[] = '✅ <b>All clear — nothing needs attention today</b>';
     }
 
+    // ---- Today at a glance ----
+    $active = max(0, (int) $day['active_count']);
+    $present = (int) $counts['present'];
+    $rate = $active > 0 ? (int) round($present / $active * 100) : 0;
+    $filled = (int) round($rate / 10);
     $lines[] = '';
-    $lines[] = '<b>Today at a glance</b>';
-    $lines[] = '👥 Active employees: ' . $day['active_count'];
-    $lines[] = '✅ Present: ' . $counts['present'];
-    $lines[] = '⏰ Late: ' . $counts['late'];
-    $lines[] = '❌ Absent: ' . $counts['absent'];
-    $lines[] = '🏖 On leave: ' . $counts['leave'];
-    $lines[] = '🕐 Half-day: ' . $counts['half-day'];
-    $lines[] = '❓ Not recorded: ' . $day['missing_count'];
+    $lines[] = '👥 <b>TODAY AT A GLANCE</b>';
+    $lines[] = '<code>' . str_repeat('█', $filled) . str_repeat('░', 10 - $filled) . '  ' . $rate . '% present</code>';
+    $lines[] = $stat('✅ Present', $counts['present']);
+    $lines[] = $stat('⏰ Late', $counts['late']);
+    $lines[] = $stat('❌ Absent', $counts['absent']);
+    $lines[] = $stat('🏖 On leave', $counts['leave']);
+    $lines[] = $stat('🕐 Half-day', $counts['half-day']);
+    $lines[] = $stat('❓ Not recorded', $day['missing_count']);
+    $lines[] = $stat('👤 Active staff', $active);
 
+    // ---- Details ----
     if (!empty($settings['alert_late']) && $day['late']) {
         $lines[] = '';
-        $lines[] = '<b>⏰ Late arrivals (' . count($day['late']) . ')</b>';
+        $lines[] = '⏰ <b>LATE ARRIVALS (' . count($day['late']) . ')</b>';
         foreach ($day['late'] as $row) {
             $lateMinutes = (int) ($row['late_minutes'] ?? 0);
-            $lines[] = '• ' . telegram_escape($row['name'])
-                . ($row['clock_in'] !== '' ? ' — clocked in ' . $row['clock_in'] : '')
-                . ($lateMinutes > 0 ? ', late ' . telegram_format_minutes($lateMinutes) : '');
+            $lines[] = '▫️ <b>' . telegram_escape($row['name']) . '</b>'
+                . ($row['clock_in'] !== '' ? ' · in ' . telegram_escape($row['clock_in']) : '')
+                . ($lateMinutes > 0 ? ' · late ' . telegram_format_minutes($lateMinutes) : '');
         }
     }
 
     if (!empty($settings['alert_absences']) && $day['absent']) {
         $lines[] = '';
-        $lines[] = '<b>❌ Absent without approved leave (' . count($day['absent']) . ')</b>';
+        $lines[] = '❌ <b>ABSENT, NO APPROVED LEAVE (' . count($day['absent']) . ')</b>';
         foreach ($day['absent'] as $row) {
-            $lines[] = '• ' . telegram_escape($row['name'])
+            $lines[] = '▫️ <b>' . telegram_escape($row['name']) . '</b>'
                 . ($row['code'] !== '' ? ' (' . telegram_escape($row['code']) . ')' : '')
-                . ($row['department'] !== '' ? ' — ' . telegram_escape($row['department']) : '');
+                . ($row['department'] !== '' ? ' · ' . telegram_escape($row['department']) : '');
         }
     }
 
     if ($day['on_leave']) {
         $lines[] = '';
-        $lines[] = '<b>🏖 On approved leave (' . count($day['on_leave']) . ')</b>';
+        $lines[] = '🏖 <b>ON APPROVED LEAVE (' . count($day['on_leave']) . ')</b>';
         foreach ($day['on_leave'] as $row) {
-            $lines[] = '• ' . telegram_escape($row['name'])
-                . ($row['department'] !== '' ? ' — ' . telegram_escape($row['department']) : '');
+            $lines[] = '▫️ ' . telegram_escape($row['name']) . ($row['department'] !== '' ? ' · ' . telegram_escape($row['department']) : '');
         }
     }
 
     if ($day['half_day']) {
         $lines[] = '';
-        $lines[] = '<b>🕐 Half-day (' . count($day['half_day']) . ')</b>';
+        $lines[] = '🕐 <b>HALF-DAY (' . count($day['half_day']) . ')</b>';
         foreach ($day['half_day'] as $row) {
-            $lines[] = '• ' . telegram_escape($row['name']);
+            $lines[] = '▫️ ' . telegram_escape($row['name']);
         }
     }
 
     if (!empty($settings['alert_missing_attendance']) && $day['missing']) {
         $lines[] = '';
-        $lines[] = '<b>❓ No attendance recorded (' . $day['missing_count'] . ')</b>';
+        $lines[] = '❓ <b>NO ATTENDANCE RECORDED (' . $day['missing_count'] . ')</b>';
         foreach (array_slice($day['missing'], 0, 25) as $row) {
-            $lines[] = '• ' . telegram_escape((string) ($row['name'] ?? ''))
+            $lines[] = '▫️ ' . telegram_escape((string) ($row['name'] ?? ''))
                 . (!empty($row['employee_code']) ? ' (' . telegram_escape((string) $row['employee_code']) . ')' : '')
-                . (!empty($row['department']) ? ' — ' . telegram_escape((string) $row['department']) : '');
+                . (!empty($row['department']) ? ' · ' . telegram_escape((string) $row['department']) : '');
         }
         if ($day['missing_count'] > 25) {
-            $lines[] = '• … and ' . ($day['missing_count'] - 25) . ' more';
+            $lines[] = '▫️ … and ' . ($day['missing_count'] - 25) . ' more';
         }
     }
 
-    // Payroll period.
+    // ---- Payroll period ----
     $totals = $period['totals'];
     $lines[] = '';
-    $lines[] = '<b>📊 Payroll period 16–15</b>';
-    $lines[] = telegram_escape(telegram_date($period['from'])) . ' → ' . telegram_escape(telegram_date($period['to']))
-        . ' · ' . $period['days_elapsed'] . ' of 30 days counted';
-    $lines[] = 'Present days: <b>' . telegram_format_days($totals['present_days']) . '</b>'
-        . ' · Absent: ' . telegram_format_days($totals['absent_days'])
-        . ' · Leave: ' . telegram_format_days($totals['leave_days']);
-    $lines[] = 'Late time: ' . (telegram_format_minutes($totals['late_minutes'], '0:00'))
-        . ' (≈ ' . telegram_format_days($totals['late_minutes'] / 480) . ' day deducted)';
+    $lines[] = $rule;
+    $lines[] = '📊 <b>PAYROLL PERIOD (16th – 15th)</b>';
+    $lines[] = '🗓 ' . telegram_escape(telegram_date($period['from'])) . ' → ' . telegram_escape(telegram_date($period['to']))
+        . ' · day ' . $period['days_elapsed'] . ' of 30';
+    $lines[] = $stat('✅ Present days', telegram_format_days($totals['present_days']));
+    $lines[] = $stat('❌ Absent days', telegram_format_days($totals['absent_days']));
+    $lines[] = $stat('🏖 Leave days', telegram_format_days($totals['leave_days']));
+    $lines[] = $stat('⏰ Late time', telegram_format_minutes($totals['late_minutes'], '0:00'));
+    $lines[] = '<i>Late time ≈ ' . telegram_format_days($totals['late_minutes'] / 480) . ' day deducted</i>';
 
     if ($period['rows']) {
         $lines[] = '';
-        $lines[] = '<b>👤 Days present by employee</b>';
+        $lines[] = '👤 <b>DAYS PRESENT BY EMPLOYEE</b>';
         foreach ($period['rows'] as $row) {
             $late = (int) ($row['late_minutes'] ?? 0);
-            $lines[] = '• ' . telegram_escape((string) $row['name']) . ' — '
-                . telegram_format_days($row['present_days']) . ' present'
+            $lines[] = '▫️ <b>' . telegram_escape((string) $row['name']) . '</b> · '
+                . telegram_format_days($row['present_days']) . ' days'
                 . ($late > 0 ? ' · late ' . telegram_format_minutes($late) : '')
                 . ((float) ($row['absent_days'] ?? 0) > 0 ? ' · absent ' . telegram_format_days($row['absent_days']) : '');
         }
     }
 
-    // Business alerts.
+    // ---- Business alerts ----
     if ($data['alerts']) {
         $lines[] = '';
-        $lines[] = '<b>⚠️ Needs your attention</b>';
+        $lines[] = $rule;
+        $lines[] = '🔔 <b>NEEDS YOUR ATTENTION</b>';
         foreach ($data['alerts'] as $alert) {
             $lines[] = '';
-            $lines[] = $alert['icon'] . ' <b>' . telegram_escape($alert['title']) . ' (' . $alert['count'] . ')</b>';
+            $lines[] = $alert['icon'] . ' <b>' . telegram_escape(mb_strtoupper($alert['title'])) . ' (' . $alert['count'] . ')</b>';
             foreach ($alert['lines'] as $line) {
-                $lines[] = telegram_escape($line);
+                $lines[] = '▫️ ' . telegram_escape(ltrim($line, "•- \t"));
             }
         }
     } elseif ($attention === 0) {
@@ -1184,7 +1197,8 @@ function telegram_build_daily_message($date, $data = null) {
     }
 
     $lines[] = '';
-    $lines[] = '<i>Generated ' . telegram_escape(date('d M Y H:i', strtotime($data['generated_at']))) . ' · Block Plant ERP</i>';
+    $lines[] = $rule;
+    $lines[] = '🕒 <i>Generated ' . telegram_escape(date('d M Y H:i', strtotime($data['generated_at']))) . ' · ' . telegram_escape($company) . '</i>';
 
     return implode("\n", $lines);
 }
