@@ -734,6 +734,8 @@ if ($hasSysNotifTable) {
     });
     </script>
     
+    <?php require __DIR__ . '/sidebar_extras.php'; ?>
+
     <?php if (isset($_SESSION["just_logged_in"]) && $_SESSION["just_logged_in"]): ?>
         <?php $_SESSION["just_logged_in"] = false; ?>
         <?php if ($pendingTasksCount > 0): ?>
