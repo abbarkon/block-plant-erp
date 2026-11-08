@@ -57,7 +57,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'alert_overdue_balances' => $_POST['alert_overdue_balances'] ?? 0,
             'alert_asset_maintenance' => $_POST['alert_asset_maintenance'] ?? 0,
             'resolve_ip' => $_POST['resolve_ip'] ?? '',
-        ]);
+        ] + array_combine(
+            array_keys(telegram_extra_option_keys()),
+            array_map(function ($key) { return $_POST[$key] ?? 0; }, array_keys(telegram_extra_option_keys()))
+        ));
 
         log_activity('update', 'settings', 1, 'Telegram alert settings updated');
         set_flash('success', 'Telegram settings saved.');
@@ -275,6 +278,63 @@ require_once "../partials/header.php";
         <input type="checkbox" name="attach_csv" value="1" <?= !empty($settings['attach_csv']) ? 'checked' : '' ?>>
         <span>Attach today's attendance as a CSV file<small>Opens in Excel. One row per employee, including the people with no record.</small></span>
     </label>
+
+    <h3>What to include in the daily message</h3>
+    <p style="color:#64748b;font-size:.85rem;margin:-6px 0 10px;">Tick the sections you want to receive. Unticked sections are left out of the message.</p>
+    <div class="tg-toggles">
+        <label class="tg-toggle">
+            <input type="checkbox" name="show_glance" value="1" <?= !empty($settings['show_glance']) ? 'checked' : '' ?>>
+            <span>Attendance at a glance<small>Present, late, absent, leave and not-recorded counts with a progress bar.</small></span>
+        </label>
+        <label class="tg-toggle">
+            <input type="checkbox" name="show_leave_halfday" value="1" <?= !empty($settings['show_leave_halfday']) ? 'checked' : '' ?>>
+            <span>People on leave and half-day<small>Names of employees on approved leave or working half-days.</small></span>
+        </label>
+        <label class="tg-toggle">
+            <input type="checkbox" name="show_payroll" value="1" <?= !empty($settings['show_payroll']) ? 'checked' : '' ?>>
+            <span>Payroll period summary<small>Present, absent and leave days and late time for the 16th to 15th period.</small></span>
+        </label>
+        <label class="tg-toggle">
+            <input type="checkbox" name="show_employee_days" value="1" <?= !empty($settings['show_employee_days']) ? 'checked' : '' ?>>
+            <span>Days present by employee<small>One line per employee inside the payroll period.</small></span>
+        </label>
+    </div>
+
+    <h3>Business figures to send</h3>
+    <div class="tg-toggles">
+        <label class="tg-toggle">
+            <input type="checkbox" name="sum_sales" value="1" <?= !empty($settings['sum_sales']) ? 'checked' : '' ?>>
+            <span>Sales<small>Total sales and number of invoices for the day.</small></span>
+        </label>
+        <label class="tg-toggle">
+            <input type="checkbox" name="sum_payments" value="1" <?= !empty($settings['sum_payments']) ? 'checked' : '' ?>>
+            <span>Payments collected<small>Money received from customers that day.</small></span>
+        </label>
+        <label class="tg-toggle">
+            <input type="checkbox" name="sum_expenses" value="1" <?= !empty($settings['sum_expenses']) ? 'checked' : '' ?>>
+            <span>Expenses<small>Approved expenses for the day.</small></span>
+        </label>
+        <label class="tg-toggle">
+            <input type="checkbox" name="sum_production" value="1" <?= !empty($settings['sum_production']) ? 'checked' : '' ?>>
+            <span>Blocks produced<small>Good blocks made that day.</small></span>
+        </label>
+        <label class="tg-toggle">
+            <input type="checkbox" name="sum_stock" value="1" <?= !empty($settings['sum_stock']) ? 'checked' : '' ?>>
+            <span>Finished blocks in stock<small>Total blocks currently in stock.</small></span>
+        </label>
+        <label class="tg-toggle">
+            <input type="checkbox" name="sum_cash" value="1" <?= !empty($settings['sum_cash']) ? 'checked' : '' ?>>
+            <span>Cash in and out<small>Cashbook money in and out for the day.</small></span>
+        </label>
+    </div>
+
+    <h3>Other messages</h3>
+    <div class="tg-toggles">
+        <label class="tg-toggle">
+            <input type="checkbox" name="send_labor_reminder" value="1" <?= !empty($settings['send_labor_reminder']) ? 'checked' : '' ?>>
+            <span>Saturday labor payment reminder<small>Cement bags and the total to pay, sent before the 5:00 PM payday.</small></span>
+        </label>
+    </div>
 
     <h3>What counts as "needs my attention"</h3>
     <div class="tg-toggles">
