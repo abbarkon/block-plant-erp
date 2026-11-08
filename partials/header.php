@@ -473,6 +473,7 @@ if ($hasSysNotifTable) {
                     <a href="/block_plant/production/bom.php"><?= t('bill_of_materials') ?></a>
                     <a href="/block_plant/production/analytics.php"><?= t('production_analytics') ?></a>
                     <a href="/block_plant/production/efficiency.php">Production Efficiency</a>
+                    <a href="/block_plant/production/weekly_labor.php">Weekly Labor Payment</a>
                     <?php if (has_permission('inventory', 'view')): ?>
                     <a href="/block_plant/inventory/materials.php"><?= t('raw_materials') ?></a>
                     <a href="/block_plant/inventory/index.php"><?= t('finished_goods') ?></a>
@@ -642,7 +643,6 @@ if ($hasSysNotifTable) {
                     <a href="/block_plant/assets/maintenance.php"><?= t('asset_maintenance') ?></a>
                     <a href="/block_plant/crm/interactions.php"><?= t('followups_interactions') ?></a>
                     <a href="/block_plant/inventory/low_stock_alert.php"><?= t('low_stock_alerts') ?></a>
-                    <a href="/block_plant/api/dashboard_data.php" target="_blank" rel="noopener"><?= t('dashboard_api') ?></a>
                 </div>
             </li>
             <?php endif; ?>
