@@ -21,6 +21,16 @@ try {
 $selSupplier = (int) ($_GET['supplier_id'] ?? 0);
 $selMaterial = (int) ($_GET['material_id'] ?? 0);
 $selQty = (float) ($_GET['qty'] ?? 0);
+// Several lines at once, e.g. ?items=3:25,7:10 (material id : quantity) from the reorder suggestions.
+$preItems = [];
+foreach (explode(',', (string) ($_GET['items'] ?? '')) as $pair) {
+    $bits = explode(':', $pair, 2);
+    $mid = (int) ($bits[0] ?? 0);
+    $qty = (float) ($bits[1] ?? 0);
+    if ($mid > 0 && $qty > 0) {
+        $preItems[$mid] = $qty;
+    }
+}
 
 $matJson = [];
 foreach ($materials as $m) {
@@ -88,6 +98,7 @@ const priceMap = <?= json_encode($priceMap) ?>;
 const materials = <?= json_encode($matJson) ?>;
 const preMaterial = <?= (int) $selMaterial ?>;
 const preQty = <?= json_encode($selQty) ?>;
+const preItems = <?= json_encode($preItems) ?>;
 const currencySymbol = <?= json_encode(currency_symbol()) ?>;
 const itemRows = document.getElementById('itemRows');
 const paidAmountInput = document.getElementById('paidAmount');
@@ -165,7 +176,9 @@ loadingCostInput.addEventListener('input', updateTotals);
 unloadingCostInput.addEventListener('input', updateTotals);
 document.getElementById('addRow').addEventListener('click', () => addRow());
 
-if (preMaterial) {
+if (Object.keys(preItems).length) {
+    Object.keys(preItems).forEach(id => addRow(parseInt(id, 10), preItems[id], unitCostFor(id)));
+} else if (preMaterial) {
     addRow(preMaterial, preQty || '', unitCostFor(preMaterial));
 } else {
     addRow(materials[0]?.id || '', '', unitCostFor(materials[0]?.id));
