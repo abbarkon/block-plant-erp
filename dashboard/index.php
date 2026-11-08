@@ -186,7 +186,22 @@ $greet = (function_exists('app_lang') && app_lang() === 'am')
     ? ($dashHour < 12 ? 'ደህና ጠዋት' : ($dashHour < 18 ? 'ደህና ከሰዓት' : 'ደህና ማታ'))
     : ($dashHour < 12 ? 'Good morning' : ($dashHour < 18 ? 'Good afternoon' : 'Good evening'));
 $moreLabel = (function_exists('app_lang') && app_lang() === 'am') ? 'ተጨማሪ' : 'More';
-$alertCount = ($low_stock > 0 ? 1 : 0) + ($low_production ? 1 : 0) + ($task_reminders ? 1 : 0);
+$laborDue = null;
+if ((int) date('w') === 6 && has_permission('production', 'view')) {
+    require_once __DIR__ . '/../config/labor_settings.php';
+    try {
+        [$lws, $lwe] = labor_week_bounds(date('Y-m-d'));
+        if (!labor_payment_for_week($lwe)) {
+            $lsum = labor_week_summary($lws, $lwe);
+            if ($lsum['due'] > 0) {
+                $laborDue = $lsum;
+            }
+        }
+    } catch (Throwable $e) {
+        $laborDue = null;
+    }
+}
+$alertCount = ($low_stock > 0 ? 1 : 0) + ($low_production ? 1 : 0) + ($task_reminders ? 1 : 0) + ($laborDue ? 1 : 0);
 ?>
 <style>
 :root{--d-p:<?= htmlspecialchars($brandDash['primary']) ?>;--d-s:<?= htmlspecialchars($brandDash['secondary']) ?>;--d-ink:#14262e;--d-muted:#62767e;--d-line:#e3eaec;--d-bg:#fff}
@@ -284,11 +299,13 @@ $alertCount = ($low_stock > 0 ? 1 : 0) + ($low_production ? 1 : 0) + ($task_remi
         <?php if ($low_stock > 0): ?><span><?= number_format($low_stock) ?> <?= t($low_stock === 1 ? 'material_below_reorder_one' : 'materials_below_reorder_many') ?>. </span><?php endif; ?>
         <?php if ($low_production): ?><span><?= number_format(count($low_production)) ?> <?= t(count($low_production) === 1 ? 'block_type_below_target_one' : 'block_types_below_target_many') ?>. </span><?php endif; ?>
         <?php if ($task_reminders): ?><span><?= count($task_reminders) ?> <?= t('tasks_overdue_due_soon') ?>.</span><?php endif; ?>
+        <?php if ($laborDue): ?><span>Saturday: weekly labor payment due at 5:00 PM &mdash; <?= number_format($laborDue['bags'], 1) ?> cement bags, <?= e(currency_symbol()) ?><?= money($laborDue['due']) ?>.</span><?php endif; ?>
     </div>
     <div class="da-links">
         <?php if ($low_stock > 0): ?><a href="../inventory/low_stock_alert.php"><?= t('view_stock_alerts') ?></a><?php endif; ?>
         <?php if ($low_production): ?><a href="../production/schedule.php"><?= t('view_production') ?></a><?php endif; ?>
         <?php if ($task_reminders): ?><a href="tasks.php"><?= t('view_tasks') ?></a><?php endif; ?>
+        <?php if ($laborDue): ?><a href="../production/weekly_labor.php">Pay labor</a><?php endif; ?>
     </div>
 </div>
 <?php endif; ?>
