@@ -2,6 +2,7 @@
 session_start();
 require_once "../config/database.php";
 require_once "../config/helpers.php";
+require_once "../config/multi_department.php";
 require_permission('settings', 'edit');
 
 $pageTitle = "User Management";
