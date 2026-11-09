@@ -4423,7 +4423,7 @@ function leave_status_label($status) {
     $label = t($key);
     return $label !== $key ? $label : ucfirst($status);
 }
-?>
+
 
 // ---- Multiple departments per user ----
 function ensure_extra_departments_schema() {
