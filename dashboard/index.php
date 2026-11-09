@@ -320,7 +320,7 @@ $alertCount = ($low_stock > 0 ? 1 : 0) + ($low_production ? 1 : 0) + ($task_remi
         <?php if (has_permission('purchases', 'approve')): ?>
         <div class="pa-item<?= $pendingApprovals['purchases'] === 0 ? ' zero' : '' ?>">
             <div>
-                <div style="font-weight:700;color:#183b56;"><?= t('purchase_orders') ?></div>
+                <div style="font-weight:700;color:#1f2933;"><?= t('purchase_orders') ?></div>
                 <div class="pa-meta"><?= currency_symbol() . number_format($pendingPurchasesValue, 2) ?> <?= t('awaiting_approval') ?></div>
             </div>
             <a href="../purchases/approvals.php" style="text-align:right;text-decoration:none;">
@@ -332,7 +332,7 @@ $alertCount = ($low_stock > 0 ? 1 : 0) + ($low_production ? 1 : 0) + ($task_remi
         <?php if (has_permission('expenses', 'approve')): ?>
         <div class="pa-item<?= $pendingApprovals['expenses'] === 0 ? ' zero' : '' ?>">
             <div>
-                <div style="font-weight:700;color:#183b56;"><?= t('expense_claims') ?></div>
+                <div style="font-weight:700;color:#1f2933;"><?= t('expense_claims') ?></div>
                 <div class="pa-meta"><?= currency_symbol() . number_format($pendingExpensesValue, 2) ?> <?= t('awaiting_approval') ?></div>
             </div>
             <a href="../expenses/approvals.php" style="text-align:right;text-decoration:none;">
@@ -344,7 +344,7 @@ $alertCount = ($low_stock > 0 ? 1 : 0) + ($low_production ? 1 : 0) + ($task_remi
         <?php if (has_permission('hr', 'approve')): ?>
         <?php foreach (['hr_leaves' => [t('leave_requests'), '../hr/leaves.php'], 'hr_overtime' => [t('overtime_requests'), '../hr/overtime.php'], 'hr_exits' => [t('exit_clearances'), '../hr/exit_clearance.php']] as $key => [$label, $url]): ?>
         <div class="pa-item<?= $pendingApprovals[$key] === 0 ? ' zero' : '' ?>">
-            <div style="font-weight:700;color:#183b56;"><?= e($label) ?></div>
+            <div style="font-weight:700;color:#1f2933;"><?= e($label) ?></div>
             <a href="<?= e($url) ?>" style="text-align:right;text-decoration:none;"><div class="pa-count"><?= number_format($pendingApprovals[$key]) ?></div><div class="pa-meta"><?= t('review') ?> →</div></a>
         </div>
         <?php endforeach; ?>
@@ -352,7 +352,7 @@ $alertCount = ($low_stock > 0 ? 1 : 0) + ($low_production ? 1 : 0) + ($task_remi
         <?php if (has_permission('finance', 'approve')): ?>
         <?php foreach (['finance_loans' => [t('loan_requests'), '../finance/loan_approval.php'], 'finance_payroll' => [t('payroll_transfers'), '../finance/payroll_approval.php']] as $key => [$label, $url]): ?>
         <div class="pa-item<?= $pendingApprovals[$key] === 0 ? ' zero' : '' ?>">
-            <div style="font-weight:700;color:#183b56;"><?= e($label) ?></div>
+            <div style="font-weight:700;color:#1f2933;"><?= e($label) ?></div>
             <a href="<?= e($url) ?>" style="text-align:right;text-decoration:none;"><div class="pa-count"><?= number_format($pendingApprovals[$key]) ?></div><div class="pa-meta"><?= t('review') ?> →</div></a>
         </div>
         <?php endforeach; ?>
@@ -360,7 +360,7 @@ $alertCount = ($low_stock > 0 ? 1 : 0) + ($low_production ? 1 : 0) + ($task_remi
         <?php if (has_permission('gate', 'edit')): ?>
         <div class="pa-item<?= $pendingApprovals['gate'] === 0 ? ' zero' : '' ?>">
             <div>
-                <div style="font-weight:700;color:#183b56;"><?= t('gate_holds') ?></div>
+                <div style="font-weight:700;color:#1f2933;"><?= t('gate_holds') ?></div>
                 <div class="pa-meta"><?= t('rejected_clearances_reinstate') ?></div>
             </div>
             <a href="../gate/index.php" style="text-align:right;text-decoration:none;">

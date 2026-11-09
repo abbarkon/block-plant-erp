@@ -3,7 +3,6 @@ session_start();
 require_once "../config/database.php";
 require_once "../config/helpers.php";
 require_permission('settings', 'edit');
-ensure_manufacturing_costing_schema();
 
 $pageTitle = "Block Types";
 
@@ -15,7 +14,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $name = trim($_POST['name'] ?? '');
         $size = trim($_POST['size'] ?? '');
         $priceRaw = trim($_POST['selling_price'] ?? '');
-        $yieldRaw = trim($_POST['yield_factor'] ?? '1');
 
         if ($name === '' || mb_strlen($name) > 100) {
             set_flash('danger', 'Block name is required (maximum 100 characters).');
@@ -32,13 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Location: blocks.php');
             exit;
         }
-        if ($yieldRaw === '' || !is_numeric($yieldRaw) || (float) $yieldRaw <= 0 || (float) $yieldRaw > 9999.9999) {
-            set_flash('danger', 'Yield factor must be a number greater than 0 and up to 9,999.9999.');
-            header('Location: blocks.php');
-            exit;
-        }
         $price = round((float) $priceRaw, 2);
-        $yieldFactor = round((float) $yieldRaw, 4);
 
         try {
             if ($id > 0) {
@@ -49,19 +41,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     header('Location: blocks.php');
                     exit;
                 }
-                $pdo->prepare("UPDATE block_types SET name = ?, size = ?, selling_price = ?, yield_factor = ? WHERE id = ?")
-                    ->execute([$name, $size, $price, $yieldFactor, $id]);
-                log_activity('update', 'settings', $id, "Block type updated: {$name} ({$size}) at {$price} with yield {$yieldFactor}");
+                $pdo->prepare("UPDATE block_types SET name = ?, size = ?, selling_price = ? WHERE id = ?")
+                    ->execute([$name, $size, $price, $id]);
+                log_activity('update', 'settings', $id, "Block type updated: {$name} ({$size}) at {$price}");
                 set_flash('success', 'Block type updated.');
             } else {
                 $pdo->beginTransaction();
-                $pdo->prepare("INSERT INTO block_types(name, size, selling_price, yield_factor, status) VALUES(?,?,?,?,1)")
-                    ->execute([$name, $size, $price, $yieldFactor]);
+                $pdo->prepare("INSERT INTO block_types(name, size, selling_price, status) VALUES(?,?,?,1)")
+                    ->execute([$name, $size, $price]);
                 $newId = (int) $pdo->lastInsertId();
                 $pdo->prepare("INSERT INTO finished_stock(block_type_id, quantity) VALUES(?, 0)")
                     ->execute([$newId]);
                 $pdo->commit();
-                log_activity('create', 'settings', $newId, "Block type created: {$name} ({$size}) at {$price} with yield {$yieldFactor}");
+                log_activity('create', 'settings', $newId, "Block type created: {$name} ({$size}) at {$price}");
                 set_flash('success', 'Block type added and added to finished stock.');
             }
         } catch (PDOException $e) {
@@ -173,9 +165,9 @@ require_once "../partials/header.php";
     @media (max-width: 900px) { .block-grid { grid-template-columns: 1fr; } }
     .kpi-row { display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:14px; margin-bottom:20px; }
     @media (max-width: 900px) { .kpi-row { grid-template-columns: repeat(2, minmax(0,1fr)); } }
-    .kpi-card { background:#fff; border:1px solid #e2e8f0; border-left:4px solid #246a73; border-radius:10px; padding:14px 16px; box-shadow:0 4px 14px rgba(15,23,42,.05); }
+    .kpi-card { background:#fff; border:1px solid #e2e8f0; border-left:4px solid #b8481b; border-radius:10px; padding:14px 16px; box-shadow:0 4px 14px rgba(15,23,42,.05); }
     .kpi-card span { display:block; color:#64748b; font-size:.78rem; text-transform:uppercase; letter-spacing:.04em; }
-    .kpi-card strong { display:block; margin-top:4px; color:#183b56; font-size:1.35rem; }
+    .kpi-card strong { display:block; margin-top:4px; color:#1f2933; font-size:1.35rem; }
     .block-form .hint { color:#64748b; font-size:.78rem; margin-top:4px; }
     .actions-inline { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
     @media print { .no-print { display:none !important; } body { background:#fff; } .kpi-card, .panel { box-shadow:none; } }
@@ -220,10 +212,6 @@ require_once "../partials/header.php";
             <input type="number" step="0.01" min="0" max="99999999" name="selling_price" required value="<?= e($editBlock['selling_price'] ?? '') ?>">
             <p class="hint">Price must be zero or greater. Prices are per block.</p>
 
-            <label style="margin-top:12px;">Yield factor *</label>
-            <input type="number" step="0.0001" min="0.0001" max="9999.9999" name="yield_factor" required value="<?= e($editBlock['yield_factor'] ?? 1) ?>">
-            <p class="hint">Used to estimate produced quantity: cement bags × yield factor.</p>
-
             <div class="actions-inline" style="margin-top:18px;">
                 <button type="submit" class="btn btn-accent"><?= $editBlock ? 'Save changes' : 'Add block type' ?></button>
                 <?php if ($editBlock): ?>
@@ -242,7 +230,6 @@ require_once "../partials/header.php";
                         <th>Block name</th>
                         <th>Size</th>
                         <th style="text-align:right;">Selling price</th>
-                        <th style="text-align:right;">Yield</th>
                         <th style="text-align:right;">On hand</th>
                         <th style="text-align:right;">Unit cost</th>
                         <th>Status</th>
@@ -251,14 +238,13 @@ require_once "../partials/header.php";
                 </thead>
                 <tbody>
                     <?php if (!$blocks): ?>
-                    <tr><td colspan="8">No block types configured yet. Add the first product on the left.</td></tr>
+                    <tr><td colspan="7">No block types configured yet. Add the first product on the left.</td></tr>
                     <?php endif; ?>
                     <?php foreach ($blocks as $block): ?>
                     <tr>
                         <td><strong><?= e($block['name']) ?></strong></td>
                         <td><?= e($block['size']) ?></td>
                         <td style="text-align:right;"><?= e(currency_symbol()) ?><?= money($block['selling_price']) ?></td>
-                        <td style="text-align:right;"><?= number_format((float) ($block['yield_factor'] ?? 1), 4) ?></td>
                         <td style="text-align:right;"><?= number_format((float) $block['stock_qty'], 2) ?></td>
                         <td style="text-align:right;"><?= e(currency_symbol()) ?><?= money($block['unit_cost']) ?></td>
                         <td>

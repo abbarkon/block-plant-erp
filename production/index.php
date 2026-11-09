@@ -112,11 +112,11 @@ require_once "../partials/header.php";
 
 <div class="stats-grid no-print">
     <div class="stat-card">
-        <div class="stat-icon" style="background:#3949ab;">🏭</div>
+        <div class="stat-icon" style="background:#b8481b;">🏭</div>
         <div><div class="stat-value"><?= number_format(count($rows)) ?></div><div class="stat-label">Runs shown</div></div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon" style="background:#00897b;">✓</div>
+        <div class="stat-icon" style="background:#2f7d4f;">✓</div>
         <div><div class="stat-value"><?= number_format($shownGood) ?></div><div class="stat-label">Good blocks</div></div>
     </div>
     <div class="stat-card">
@@ -190,24 +190,11 @@ require_once "../partials/header.php";
                 <td><?= e($r['block_name'] . ' ' . $r['size']) ?></td>
                 <td><?= number_format($r['planned_quantity']) ?></td>
                 <td><?= number_format($r['produced_quantity']) ?></td>
-                <td style="color:#00897b;font-weight:600;"><?= number_format($r['good_quantity']) ?></td>
+                <td style="color:#2f7d4f;font-weight:600;"><?= number_format($r['good_quantity']) ?></td>
                 <td style="color:#c0392b;"><?= number_format($r['rejected_quantity']) ?></td>
                 <td><?= currency_symbol() . money($r['production_cost']) ?></td>
-                <td class="no-print">
-                    <div class="actions-inline">
-                        <a class="btn-sm" href="view.php?id=<?= (int) $r['id'] ?>">View</a>
-                        <?php if (has_permission('production', 'edit')): ?>
-                        <a class="btn-sm btn-secondary" href="edit.php?id=<?= (int) $r['id'] ?>">Edit</a>
-                        <?php endif; ?>
-                        <?php if (has_permission('production', 'delete')): ?>
-                        <form method="post" action="save.php" style="display:inline;" onsubmit="return confirm('Delete this production record? This cannot be undone.');">
-                            <input type="hidden" name="action" value="delete">
-                            <input type="hidden" name="production_id" value="<?= (int) $r['id'] ?>">
-                            <button type="submit" class="btn-sm" style="background:#c0392b;border:0;color:#fff;cursor:pointer;">Delete</button>
-                        </form>
-                        <?php endif; ?>
-                    </div>
-                </td>
+                <td class="no-print"><a class="btn-sm" href="view.php?id=<?= (int) $r['id'] ?>">View</a>
+                    <?php if (has_permission('production', 'edit')): ?><a class="btn-sm" href="edit.php?id=<?= (int) $r['id'] ?>">Edit</a><?php endif; ?></td>
             </tr>
             <?php endforeach; ?>
         </tbody>

@@ -73,7 +73,7 @@ require_once "../partials/header.php";
             <div><label>Factory overhead (<?= e(currency_symbol()) ?>)</label><input type="number" name="overhead_cost" min="0" step="0.01" value="<?= e($p['overhead_cost']) ?>" required></div>
         </div>
 
-        <p id="goodPreview" style="color:#00897b;font-weight:600;"></p>
+        <p id="goodPreview" style="color:#2f7d4f;font-weight:600;"></p>
 
         <h3>Materials</h3>
         <div id="materialRows"></div>
@@ -111,7 +111,7 @@ function refreshRow(div) {
     div.querySelector('.mc').value = mat.unit_cost;
     const available = mat.stock + (oldQty[mid] || 0);   // stock if this run were not counted
     const after = available - qty;
-    info.style.color = after < 0 ? '#c0392b' : '#00897b';
+    info.style.color = after < 0 ? '#c0392b' : '#2f7d4f';
     info.textContent = 'Stock now ' + fmt(mat.stock) + (mat.unit ? ' ' + mat.unit : '') +
         ' → after saving ' + fmt(after) + (after < 0 ? ' (not enough stock!)' : '');
 }

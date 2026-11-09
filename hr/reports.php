@@ -71,28 +71,28 @@ $performance_dist = $pdo->query("SELECT
 <!-- Key Metrics -->
 <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:15px; margin-bottom:20px;">
     <div class="panel" style="margin-bottom:0; text-align:center;">
-        <div style="font-size:2rem; font-weight:bold; color:#183b56;"><?= number_format($metrics['total_employees']) ?></div>
-        <div style="color:#667a80; font-size:0.85rem;">Total Employees</div>
+        <div style="font-size:2rem; font-weight:bold; color:#1f2933;"><?= number_format($metrics['total_employees']) ?></div>
+        <div style="color:#6a6259; font-size:0.85rem;">Total Employees</div>
     </div>
     <div class="panel" style="margin-bottom:0; text-align:center;">
-        <div style="font-size:2rem; font-weight:bold; color:#2a9d8f;"><?= number_format($metrics['new_hires']) ?></div>
-        <div style="color:#667a80; font-size:0.85rem;">New Hires (<?= $year ?>)</div>
+        <div style="font-size:2rem; font-weight:bold; color:#d9742f;"><?= number_format($metrics['new_hires']) ?></div>
+        <div style="color:#6a6259; font-size:0.85rem;">New Hires (<?= $year ?>)</div>
     </div>
     <div class="panel" style="margin-bottom:0; text-align:center;">
-        <div style="font-size:2rem; font-weight:bold; color:#e76f51;"><?= number_format($metrics['avg_attendance'], 1) ?>%</div>
-        <div style="color:#667a80; font-size:0.85rem;">Avg Attendance (<?= date('F', mktime(0,0,0,$month,1)) ?>)</div>
+        <div style="font-size:2rem; font-weight:bold; color:#e8a33d;"><?= number_format($metrics['avg_attendance'], 1) ?>%</div>
+        <div style="color:#6a6259; font-size:0.85rem;">Avg Attendance (<?= date('F', mktime(0,0,0,$month,1)) ?>)</div>
     </div>
     <div class="panel" style="margin-bottom:0; text-align:center;">
-        <div style="font-size:2rem; font-weight:bold; color:#246a73;"><?= number_format($metrics['total_leave_days']) ?></div>
-        <div style="color:#667a80; font-size:0.85rem;">Total Leave Days (<?= $year ?>)</div>
+        <div style="font-size:2rem; font-weight:bold; color:#b8481b;"><?= number_format($metrics['total_leave_days']) ?></div>
+        <div style="color:#6a6259; font-size:0.85rem;">Total Leave Days (<?= $year ?>)</div>
     </div>
     <div class="panel" style="margin-bottom:0; text-align:center;">
         <div style="font-size:2rem; font-weight:bold; color:#64748b;"><?= e(currency_symbol()) . number_format($metrics['avg_salary'], 0) ?></div>
-        <div style="color:#667a80; font-size:0.85rem;">Avg Salary</div>
+        <div style="color:#6a6259; font-size:0.85rem;">Avg Salary</div>
     </div>
     <div class="panel" style="margin-bottom:0; text-align:center;">
         <div style="font-size:2rem; font-weight:bold; color:#d97706;"><?= number_format($metrics['overtime_hours'], 1) ?></div>
-        <div style="color:#667a80; font-size:0.85rem;">Overtime Hours (<?= $year ?>)</div>
+        <div style="color:#6a6259; font-size:0.85rem;">Overtime Hours (<?= $year ?>)</div>
     </div>
 </div>
 
@@ -110,7 +110,7 @@ $performance_dist = $pdo->query("SELECT
                 <strong><?= $dept['count'] ?></strong>
             </div>
             <div style="background:#e5e7eb; height:20px; border-radius:10px;">
-                <div style="background:#246a73; height:100%; border-radius:10px; width:<?= ($dept['count'] / $metrics['total_employees']) * 100 ?>%;"></div>
+                <div style="background:#b8481b; height:100%; border-radius:10px; width:<?= ($dept['count'] / $metrics['total_employees']) * 100 ?>%;"></div>
             </div>
         </div>
         <?php endforeach; ?>
@@ -180,7 +180,7 @@ $performance_dist = $pdo->query("SELECT
             </div>
             <div style="text-align:center; margin-top:10px;">
                 <span style="font-size:1.5rem; font-weight:bold; color:#10b981;"><?= round(($training_stats['completed'] / $training_stats['total']) * 100, 1) ?>%</span>
-                <div style="color:#667a80; font-size:0.85rem;">Completion Rate</div>
+                <div style="color:#6a6259; font-size:0.85rem;">Completion Rate</div>
             </div>
         </div>
         <?php else: ?>
@@ -196,19 +196,19 @@ $performance_dist = $pdo->query("SELECT
     <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:15px; margin-top:15px;">
         <div style="text-align:center; padding:15px; background:#f0fdf4; border-radius:8px;">
             <div style="font-size:1.5rem; font-weight:bold; color:#10b981;"><?= $performance_dist['excellent'] ?></div>
-            <div style="color:#667a80; font-size:0.85rem;">Excellent (4.5+)</div>
+            <div style="color:#6a6259; font-size:0.85rem;">Excellent (4.5+)</div>
         </div>
         <div style="text-align:center; padding:15px; background:#eff6ff; border-radius:8px;">
             <div style="font-size:1.5rem; font-weight:bold; color:#3b82f6;"><?= $performance_dist['good'] ?></div>
-            <div style="color:#667a80; font-size:0.85rem;">Good (3.5-4.4)</div>
+            <div style="color:#6a6259; font-size:0.85rem;">Good (3.5-4.4)</div>
         </div>
         <div style="text-align:center; padding:15px; background:#fffbeb; border-radius:8px;">
             <div style="font-size:1.5rem; font-weight:bold; color:#f59e0b;"><?= $performance_dist['satisfactory'] ?></div>
-            <div style="color:#667a80; font-size:0.85rem;">Satisfactory (2.5-3.4)</div>
+            <div style="color:#6a6259; font-size:0.85rem;">Satisfactory (2.5-3.4)</div>
         </div>
         <div style="text-align:center; padding:15px; background:#fef2f2; border-radius:8px;">
             <div style="font-size:1.5rem; font-weight:bold; color:#ef4444;"><?= $performance_dist['needs_improvement'] ?></div>
-            <div style="color:#667a80; font-size:0.85rem;">Needs Improvement (<2.5)</div>
+            <div style="color:#6a6259; font-size:0.85rem;">Needs Improvement (<2.5)</div>
         </div>
     </div>
     <?php else: ?>

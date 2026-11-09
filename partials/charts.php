@@ -1,8 +1,8 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 (function () {
-    const primary = getComputedStyle(document.documentElement).getPropertyValue('--bp-primary').trim() || '#3949ab';
-    const accent = getComputedStyle(document.documentElement).getPropertyValue('--bp-accent').trim() || '#00897b';
+    const primary = getComputedStyle(document.documentElement).getPropertyValue('--bp-primary').trim() || '#b8481b';
+    const accent = getComputedStyle(document.documentElement).getPropertyValue('--bp-accent').trim() || '#2f7d4f';
 
     fetch('/block_plant/api/charts_data.php')
         .then(r => r.json())
@@ -52,7 +52,7 @@
                         labels: data.top_products.map(x => x.label),
                         datasets: [{
                             data: data.top_products.map(x => x.value),
-                            backgroundColor: ['#3949ab', '#00897b', '#5c6bc0', '#26a69a', '#7e57c2', '#66bb6a']
+                            backgroundColor: ['#b8481b', '#2f7d4f', '#5c6bc0', '#26a69a', '#7e57c2', '#66bb6a']
                         }]
                     },
                     options: { responsive: true }

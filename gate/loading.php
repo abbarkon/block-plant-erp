@@ -95,7 +95,7 @@ if ($verifyId > 0) {
     ?>
     <div class="page-header">
         <div><h1>Verify loading — <?= e($clearance['clearance_number']) ?></h1>
-        <p style="color:#667a80;">Enter the quantity actually loaded for each product. The clearance only advances when loaded matches ordered, unless you override a mismatch.</p></div>
+        <p style="color:#6a6259;">Enter the quantity actually loaded for each product. The clearance only advances when loaded matches ordered, unless you override a mismatch.</p></div>
         <a href="loading.php" class="btn btn-secondary">← Back to list</a>
     </div>
     <?php if ($flash): ?><div class="flash <?= $flash['type'] === 'error' ? 'flash-error' : 'flash-success' ?>"><?= e($flash['message']) ?></div><?php endif; ?>
@@ -120,7 +120,7 @@ if ($verifyId > 0) {
                         <td><?= e($it['name'] . ' ' . $it['size']) ?></td>
                         <td><?= number_format((int) $it['ordered_qty']) ?></td>
                         <td><input type="number" min="0" step="1" name="loaded_qty[<?= (int) $it['block_type_id'] ?>]" value="<?= (int) $it['ordered_qty'] ?>" data-ordered="<?= (int) $it['ordered_qty'] ?>" class="loaded-input" style="width:110px;padding:6px;border:1px solid #cbd5e1;border-radius:6px;"></td>
-                        <td class="match-cell" style="font-weight:600;color:#2a9d8f;">✓ Match</td>
+                        <td class="match-cell" style="font-weight:600;color:#d9742f;">✓ Match</td>
                     </tr>
                 <?php endforeach; ?>
                 </tbody>
@@ -144,7 +144,7 @@ if ($verifyId > 0) {
                     var cell = inp.closest('tr').querySelector('.match-cell');
                     if (parseInt(inp.value || '0', 10) === parseInt(inp.dataset.ordered, 10)) {
                         cell.textContent = '✓ Match';
-                        cell.style.color = '#2a9d8f';
+                        cell.style.color = '#d9742f';
                     } else {
                         cell.textContent = '✕ Mismatch';
                         cell.style.color = '#b91c1c';
@@ -172,7 +172,7 @@ if ($verifyId > 0) {
 $rows = $pdo->query("SELECT gc.*, s.invoice_no, c.name AS customer_name, (SELECT GROUP_CONCAT(CONCAT(bt.name, ' ', bt.size, ' x ', si.quantity) SEPARATOR ', ') FROM sale_items si JOIN block_types bt ON bt.id=si.block_type_id WHERE si.sale_id=s.id) AS products FROM gate_clearances gc JOIN sales s ON s.id=gc.sale_id LEFT JOIN customers c ON c.id=gc.customer_id WHERE gc.status='WAITING_LOADING' ORDER BY gc.generated_at ASC")->fetchAll();
 require_once __DIR__ . '/../partials/header.php';
 ?>
-<div class="page-header"><div><h1>Loading Confirmation</h1><p style="color:#667a80;">Verify the correct vehicle and loaded quantities before releasing a paid sale to the gate.</p></div><a href="index.php" class="btn btn-secondary">Gate dashboard</a></div>
+<div class="page-header"><div><h1>Loading Confirmation</h1><p style="color:#6a6259;">Verify the correct vehicle and loaded quantities before releasing a paid sale to the gate.</p></div><a href="index.php" class="btn btn-secondary">Gate dashboard</a></div>
 <?php if ($flash): ?><div class="flash <?= $flash['type'] === 'error' ? 'flash-error' : 'flash-success' ?>"><?= e($flash['message']) ?></div><?php endif; ?>
 <div class="table-container"><table class="data-table"><thead><tr><th>Clearance</th><th>Invoice</th><th>Customer</th><th>Vehicle</th><th>Products</th><th>Payment</th><th>Action</th></tr></thead><tbody>
 <?php if (!$rows): ?><tr><td colspan="7">No paid sales are waiting for loading confirmation.</td></tr><?php endif; ?>

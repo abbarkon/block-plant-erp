@@ -101,7 +101,7 @@ require_once "../partials/header.php";
         <div><div class="stat-value"><?= $planned ?></div><div class="stat-label">Planned</div></div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon" style="background:#00897b;">🏭</div>
+        <div class="stat-icon" style="background:#2f7d4f;">🏭</div>
         <div><div class="stat-value"><?= $inProgress ?></div><div class="stat-label">In progress</div></div>
     </div>
 </div>

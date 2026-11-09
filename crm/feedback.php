@@ -119,7 +119,7 @@ require_once "../partials/header.php";
     <div class="stat-card"><div class="stat-icon" style="background:#3498db;">📝</div><div><div class="stat-value"><?= (int) $kpi['cnt'] ?></div><div class="stat-label">Responses</div></div></div>
     <div class="stat-card"><div class="stat-icon" style="background:#f39c12;">⭐</div><div><div class="stat-value"><?= $kpi['overall'] !== null ? e($kpi['overall']) . '/5' : '—' ?></div><div class="stat-label">Overall rating</div></div></div>
     <div class="stat-card"><div class="stat-icon" style="background:#9b59b6;">📦</div><div><div class="stat-value"><?= $kpi['product'] !== null ? e($kpi['product']) : '—' ?></div><div class="stat-label">Product quality</div></div></div>
-    <div class="stat-card"><div class="stat-icon" style="background:#00897b;">🤝</div><div><div class="stat-value"><?= $kpi['service'] !== null ? e($kpi['service']) : '—' ?></div><div class="stat-label">Service</div></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:#2f7d4f;">🤝</div><div><div class="stat-value"><?= $kpi['service'] !== null ? e($kpi['service']) : '—' ?></div><div class="stat-label">Service</div></div></div>
     <div class="stat-card"><div class="stat-icon" style="background:#e67e22;">🚚</div><div><div class="stat-value"><?= $kpi['delivery'] !== null ? e($kpi['delivery']) : '—' ?></div><div class="stat-label">Delivery</div></div></div>
 </div>
 

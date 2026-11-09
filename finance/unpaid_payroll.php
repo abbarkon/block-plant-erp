@@ -397,7 +397,7 @@ $periodLabel = date('F Y', mktime(0, 0, 0, $selectedMonth, 1, $selectedYear));
 <?php endif; ?>
 
 <style>
-.up-hero{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:22px;padding:28px 32px;border-radius:18px;background:linear-gradient(120deg,#183b56,#246a73 65%,#2a9d8f);color:#fff;box-shadow:0 14px 34px rgba(24,59,86,.16)}
+.up-hero{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:22px;padding:28px 32px;border-radius:18px;background:linear-gradient(120deg,#1f2933,#b8481b 65%,#d9742f);color:#fff;box-shadow:0 14px 34px rgba(24,59,86,.16)}
 .up-hero h1{margin:4px 0;color:#fff;font-size:2.05rem}
 .up-hero p{margin:0;color:rgba(255,255,255,.76)}
 .up-eyebrow{font-size:.68rem;font-weight:800;letter-spacing:.13em;color:#bce6df}
@@ -407,29 +407,29 @@ $periodLabel = date('F Y', mktime(0, 0, 0, $selectedMonth, 1, $selectedYear));
 .up-filter label{display:block;margin:0 0 5px}
 .up-filter select{margin:0}
 .up-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:0 0 18px}
-.up-summary div{padding:15px 17px;background:#fff;border:1px solid #dce7e5;border-radius:11px;box-shadow:0 5px 16px rgba(24,59,86,.05)}
-.up-summary span{display:block;font-size:.76rem;color:#667a80}
-.up-summary strong{display:block;margin-top:5px;font-size:1.15rem;color:#183b56;font-variant-numeric:tabular-nums}
+.up-summary div{padding:15px 17px;background:#fff;border:1px solid #e3ddd4;border-radius:11px;box-shadow:0 5px 16px rgba(24,59,86,.05)}
+.up-summary span{display:block;font-size:.76rem;color:#6a6259}
+.up-summary strong{display:block;margin-top:5px;font-size:1.15rem;color:#1f2933;font-variant-numeric:tabular-nums}
 .up-summary strong.up-bad{color:#b3452f}
 .up-summary strong.up-ok{color:#1d7a4f}
 .up-panel{margin-bottom:18px}
 .up-panel-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:10px}
 .up-panel-head h3{margin:0}
-.up-count{font-size:.8rem;color:#667a80;font-weight:700}
+.up-count{font-size:.8rem;color:#6a6259;font-weight:700}
 .up-table th.up-num,.up-table td.up-num{text-align:right;font-variant-numeric:tabular-nums}
-.up-table tfoot th{padding:13px 12px;background:#eaf3f0;color:#183b56;text-align:right;font-variant-numeric:tabular-nums}
+.up-table tfoot th{padding:13px 12px;background:#f4efe8;color:#1f2933;text-align:right;font-variant-numeric:tabular-nums}
 .up-table tfoot th:first-child{text-align:left}
 .up-code{color:#8b98a1;font-size:.78rem;margin-left:4px}
 .up-status{display:inline-block;padding:3px 9px;border-radius:20px;background:#fff4e0;color:#a86a12;font-size:.74rem;font-weight:800}
 .up-pay-btn{background:#1d7a4f!important}
 .up-muted{color:#b8c2c8;font-size:.82rem}
-.up-empty{text-align:center;padding:34px!important;color:#667a80}
+.up-empty{text-align:center;padding:34px!important;color:#6a6259}
 .up-modal{position:fixed;inset:0;background:rgba(10,25,35,.55);display:grid;place-items:center;padding:20px;z-index:9999}
 .up-modal[hidden]{display:none}
 .up-modal-card{width:min(100%,520px);background:#fff;border-radius:14px;padding:24px;box-shadow:0 30px 70px rgba(10,25,35,.3)}
 .up-modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
 .up-modal-head h2{margin:0;font-size:1.2rem}
-.up-modal-close{border:none;background:none;font-size:1.6rem;line-height:1;cursor:pointer;color:#667a80}
+.up-modal-close{border:none;background:none;font-size:1.6rem;line-height:1;cursor:pointer;color:#6a6259}
 .up-field{margin-bottom:14px}
 .up-field label{display:block;margin:0 0 5px;font-weight:700;font-size:.85rem}
 .up-readonly{padding:10px 12px;background:#f4f7f8;border-radius:8px;font-weight:700}
@@ -439,7 +439,7 @@ $periodLabel = date('F Y', mktime(0, 0, 0, $selectedMonth, 1, $selectedYear));
 @media(max-width:600px){.up-hero{align-items:flex-start;flex-direction:column;padding:24px 20px}.up-hero h1{font-size:1.75rem}.up-summary{grid-template-columns:1fr 1fr;gap:8px}.up-filter{grid-template-columns:1fr}}
 @media print {
     .no-print, .up-hero-actions, .up-filter, .up-modal { display: none !important; }
-    .up-hero { background: #183b56 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; box-shadow: none; }
+    .up-hero { background: #1f2933 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; box-shadow: none; }
     .up-table { min-width: 0; }
     .table-container { overflow: visible; }
 }

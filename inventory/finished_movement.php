@@ -84,7 +84,7 @@ require_once "../partials/header.php";
 </div>
 
 <div class="stats-grid">
-    <div class="stat-card"><div class="stat-icon" style="background:#00897b;">↓</div><div><div class="stat-value"><?= number_format($summary['in']) ?></div><div class="stat-label">In (period)</div></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:#2f7d4f;">↓</div><div><div class="stat-value"><?= number_format($summary['in']) ?></div><div class="stat-label">In (period)</div></div></div>
     <div class="stat-card"><div class="stat-icon" style="background:#e74c3c;">↑</div><div><div class="stat-value"><?= number_format($summary['out']) ?></div><div class="stat-label">Out (period)</div></div></div>
 </div>
 
@@ -135,7 +135,7 @@ require_once "../partials/header.php";
                 <td><?= format_date($r['transaction_date']) ?></td>
                 <td><?= e($r['block_name'] . ' ' . $r['size']) ?></td>
                 <td><span class="badge badge-muted"><?= e($r['transaction_type']) ?></span></td>
-                <td style="color:<?= $r['quantity'] >= 0 ? '#00897b' : '#c0392b' ?>;font-weight:600;"><?= $r['quantity'] >= 0 ? '+' : '' ?><?= number_format($r['quantity'], 0) ?></td>
+                <td style="color:<?= $r['quantity'] >= 0 ? '#2f7d4f' : '#c0392b' ?>;font-weight:600;"><?= $r['quantity'] >= 0 ? '+' : '' ?><?= number_format($r['quantity'], 0) ?></td>
                 <td><?= e($r['reference_no'] ?? '') ?></td>
                 <td><?= e($r['notes'] ?? '') ?></td>
                 <td><?= e($r['user_name'] ?? '—') ?></td>

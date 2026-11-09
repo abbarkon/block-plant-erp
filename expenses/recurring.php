@@ -280,9 +280,9 @@ require_once "../partials/header.php";
 <style>
     .rec-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin-bottom:20px; }
     @media (max-width: 950px) { .rec-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } }
-    .rec-kpi { background:#fff; border:1px solid #e2e8f0; border-left:4px solid #246a73; border-radius:10px; padding:14px 16px; box-shadow:0 4px 14px rgba(15,23,42,.05); }
+    .rec-kpi { background:#fff; border:1px solid #e2e8f0; border-left:4px solid #b8481b; border-radius:10px; padding:14px 16px; box-shadow:0 4px 14px rgba(15,23,42,.05); }
     .rec-kpi span { display:block; color:#64748b; font-size:.76rem; text-transform:uppercase; letter-spacing:.04em; }
-    .rec-kpi strong { display:block; margin-top:4px; color:#183b56; font-size:1.3rem; }
+    .rec-kpi strong { display:block; margin-top:4px; color:#1f2933; font-size:1.3rem; }
     .rec-kpi.due { border-left-color:#b45309; }
     .rec-form label { margin-top:12px; }
     .rec-form .hint { color:#64748b; font-size:.78rem; margin-top:4px; }

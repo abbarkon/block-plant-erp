@@ -13,8 +13,8 @@
     --glass-shadow: 0 10px 30px rgba(16, 42, 51, 0.10), 0 2px 8px rgba(16, 42, 51, 0.06);
     --glass-shadow-hover: 0 18px 44px rgba(16, 42, 51, 0.16), 0 4px 12px rgba(16, 42, 51, 0.08);
     --glass-ring: 0 0 0 3px rgba(42, 157, 143, 0.22);
-    --grad-accent: linear-gradient(120deg, #2a9d8f 0%, #246a73 55%, #183b56 100%);
-    --grad-warm: linear-gradient(120deg, #e76f51 0%, #f4a261 100%);
+    --grad-accent: linear-gradient(120deg, #d9742f 0%, #b8481b 55%, #1f2933 100%);
+    --grad-warm: linear-gradient(120deg, #e8a33d 0%, #f4a261 100%);
     --bp-radius-lg: 18px;
     --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -204,7 +204,7 @@ body.theme-advanced {
 .theme-advanced select:focus,
 .theme-advanced textarea:focus {
     outline: none;
-    border-color: #2a9d8f !important;
+    border-color: #d9742f !important;
     background: #fff !important;
     box-shadow: var(--glass-ring) !important;
 }
@@ -277,7 +277,7 @@ body.theme-advanced {
 .theme-advanced ::-webkit-scrollbar { width: 11px; height: 11px; }
 .theme-advanced ::-webkit-scrollbar-track { background: rgba(24, 59, 86, 0.05); }
 .theme-advanced ::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, #2a9d8f, #246a73);
+    background: linear-gradient(180deg, #d9742f, #b8481b);
     border-radius: 999px;
     border: 2px solid transparent;
     background-clip: padding-box;
@@ -342,7 +342,7 @@ body.dark-theme.theme-advanced input:focus,
 body.dark-theme.theme-advanced select:focus,
 body.dark-theme.theme-advanced textarea:focus {
     background: #0d222a !important;
-    border-color: #2a9d8f !important;
+    border-color: #d9742f !important;
 }
 
 body.dark-theme.theme-advanced .data-table tbody tr:hover td {
@@ -589,7 +589,7 @@ body.dark-theme .kbd-key { background: rgba(13, 34, 42, 0.7); color: #e8f1ef; bo
 .timeline { position: relative; margin: 8px 0 0; padding-left: 34px; }
 .timeline::before {
     content: ""; position: absolute; left: 12px; top: 6px; bottom: 6px;
-    width: 2px; background: linear-gradient(180deg, #2a9d8f, rgba(36, 106, 115, 0.25));
+    width: 2px; background: linear-gradient(180deg, #d9742f, rgba(36, 106, 115, 0.25));
 }
 .timeline-day { margin-bottom: 26px; }
 .timeline-day-label {
@@ -616,7 +616,7 @@ body.dark-theme .kbd-key { background: rgba(13, 34, 42, 0.7); color: #e8f1ef; bo
 .timeline-item::before {
     content: ""; position: absolute; left: -27px; top: 18px;
     width: 10px; height: 10px; border-radius: 50%;
-    background: #fff; border: 2px solid #2a9d8f;
+    background: #fff; border: 2px solid #d9742f;
 }
 .timeline-ico {
     width: 36px; height: 36px; flex-shrink: 0;

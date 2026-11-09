@@ -50,12 +50,12 @@ $companyName = function_exists('company_display_name') ? company_display_name() 
         * { box-sizing: border-box; }
         body { margin: 0; background: #edf1f3; color: #18252c; font-family: Arial, Helvetica, sans-serif; font-size: 12px; }
         .toolbar { display: flex; justify-content: flex-end; gap: 10px; padding: 16px max(16px, calc((100vw - 1100px) / 2)); }
-        .toolbar a, .toolbar button { border: 0; border-radius: 5px; padding: 10px 14px; background: #246a73; color: #fff; font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; }
+        .toolbar a, .toolbar button { border: 0; border-radius: 5px; padding: 10px 14px; background: #b8481b; color: #fff; font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; }
         .toolbar a { background: #66757c; }
         .sheet { width: min(1100px, calc(100% - 32px)); margin: 0 auto 30px; padding: 30px; background: #fff; box-shadow: 0 8px 28px rgba(20, 39, 47, .12); }
-        .sheet-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; padding-bottom: 18px; border-bottom: 2px solid #246a73; }
-        .company { color: #246a73; font-size: 11px; font-weight: 700; text-transform: uppercase; }
-        h1 { margin: 6px 0 4px; color: #183b56; font-size: 24px; }
+        .sheet-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; padding-bottom: 18px; border-bottom: 2px solid #b8481b; }
+        .company { color: #b8481b; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+        h1 { margin: 6px 0 4px; color: #1f2933; font-size: 24px; }
         .subtitle { color: #607078; }
         .period { min-width: 180px; padding: 12px 14px; border: 1px solid #d6e0e3; border-radius: 5px; }
         .period strong { display: block; margin-top: 4px; font-size: 16px; }
@@ -68,7 +68,7 @@ $companyName = function_exists('company_display_name') ? company_display_name() 
         tbody tr:nth-child(even) { background: #f8fafb; }
         tfoot td { background: #eef4f4; font-weight: 700; }
         .signoff { margin-top: 28px; padding: 18px; border: 1px solid #cbd8db; border-radius: 5px; break-inside: avoid; }
-        .signoff h2 { margin: 0 0 8px; color: #183b56; font-size: 16px; }
+        .signoff h2 { margin: 0 0 8px; color: #1f2933; font-size: 16px; }
         .declaration { margin: 0 0 26px; color: #42555d; line-height: 1.5; }
         .signature-grid { display: grid; grid-template-columns: 1.4fr 1.4fr 1fr; gap: 22px; }
         .signature-field { min-height: 42px; border-bottom: 1px solid #33464e; }

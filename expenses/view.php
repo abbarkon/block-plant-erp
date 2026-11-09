@@ -36,16 +36,16 @@ require_once "../partials/header.php";
 
 <style>
     .voucher { max-width:920px; margin:0 auto; background:#fff; border:1px solid #e2e8f0; border-radius:12px; box-shadow:0 10px 30px rgba(15,23,42,.07); overflow:hidden; }
-    .voucher-head { display:flex; justify-content:space-between; gap:20px; padding:24px 26px; border-bottom:3px solid #246a73; background:#f8fafc; flex-wrap:wrap; }
-    .voucher-head h1 { margin:0; color:#183b56; font-size:1.35rem; }
+    .voucher-head { display:flex; justify-content:space-between; gap:20px; padding:24px 26px; border-bottom:3px solid #b8481b; background:#f8fafc; flex-wrap:wrap; }
+    .voucher-head h1 { margin:0; color:#1f2933; font-size:1.35rem; }
     .voucher-head p { margin:4px 0 0; color:#64748b; font-size:.86rem; }
     .voucher-body { padding:24px 26px; }
     .voucher-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px 22px; margin-bottom:22px; }
     @media (max-width: 760px) { .voucher-grid { grid-template-columns:1fr 1fr; } }
     .voucher-grid span { display:block; color:#64748b; font-size:.75rem; text-transform:uppercase; letter-spacing:.04em; margin-bottom:3px; }
-    .voucher-grid strong { color:#183b56; font-weight:600; }
-    .amount-box { border:1px solid #e2e8f0; border-radius:10px; padding:16px; background:#eaf3f0; display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom:22px; }
-    .amount-box .amount { font-size:1.6rem; font-weight:800; color:#183b56; }
+    .voucher-grid strong { color:#1f2933; font-weight:600; }
+    .amount-box { border:1px solid #e2e8f0; border-radius:10px; padding:16px; background:#f4efe8; display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom:22px; }
+    .amount-box .amount { font-size:1.6rem; font-weight:800; color:#1f2933; }
     .note-box { border-left:4px solid #b45309; background:#fffbeb; padding:12px 14px; border-radius:8px; margin-bottom:20px; color:#78350f; font-size:.88rem; }
     .history-list { list-style:none; margin:0; padding:0; }
     .history-list li { padding:10px 0; border-bottom:1px solid #eef2f7; font-size:.86rem; display:flex; gap:12px; }
@@ -65,16 +65,6 @@ require_once "../partials/header.php";
         <p style="color:#64748b;margin:6px 0 0;"><?= e($expense['voucher_no']) ?> · <?= e(format_date($expense['expense_date'])) ?></p>
     </div>
     <div class="header-actions">
-        <?php if (has_permission('expenses', 'edit')): ?>
-        <a href="edit.php?id=<?= (int) $expense['id'] ?>" class="btn btn-accent">Edit voucher</a>
-        <?php endif; ?>
-        <?php if (has_permission('expenses', 'delete')): ?>
-        <form method="post" action="save.php" style="display:inline;" onsubmit="return confirm('Delete this expense voucher? This also removes the matching cashbook posting.');">
-            <input type="hidden" name="action" value="delete">
-            <input type="hidden" name="expense_id" value="<?= (int) $expense['id'] ?>">
-            <button type="submit" class="btn btn-secondary" style="background:#c0392b;border:0;color:#fff;cursor:pointer;">Delete</button>
-        </form>
-        <?php endif; ?>
         <a href="index.php" class="btn btn-secondary">Back to expenses</a>
         <button type="button" class="btn btn-secondary" onclick="window.print()">Print voucher</button>
     </div>
@@ -89,7 +79,7 @@ require_once "../partials/header.php";
             <p><?= e($company['address'] ?? '') ?><?= !empty($company['phone']) ? ' · ' . e($company['phone']) : '' ?><?= !empty($company['email']) ? ' · ' . e($company['email']) : '' ?></p>
         </div>
         <div style="text-align:right;">
-            <div style="font-weight:800;color:#183b56;letter-spacing:.06em;">EXPENSE VOUCHER</div>
+            <div style="font-weight:800;color:#1f2933;letter-spacing:.06em;">EXPENSE VOUCHER</div>
             <p><?= e($expense['voucher_no']) ?></p>
             <span class="badge badge-<?= $status === 'approved' ? 'success' : ($status === 'rejected' ? 'danger' : 'warning') ?>"><?= e(ucfirst($status)) ?></span>
         </div>
@@ -118,7 +108,7 @@ require_once "../partials/header.php";
 
         <div style="margin-bottom:18px;">
             <span style="display:block;color:#64748b;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Description</span>
-            <div style="color:#183b56;line-height:1.55;"><?= nl2br(e($expense['description'])) ?></div>
+            <div style="color:#1f2933;line-height:1.55;"><?= nl2br(e($expense['description'])) ?></div>
         </div>
         <?php if (!empty($expense['notes'])): ?>
         <div style="margin-bottom:18px;">
@@ -132,7 +122,7 @@ require_once "../partials/header.php";
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
             <div>
-                <h4 style="margin:0 0 8px;color:#183b56;">Cashbook posting</h4>
+                <h4 style="margin:0 0 8px;color:#1f2933;">Cashbook posting</h4>
                 <?php if ($cashEntry): ?>
                 <p style="margin:0;color:#475569;font-size:.88rem;">
                     Posted as <strong><?= e($cashEntry['transaction_type']) ?></strong> on <?= e(format_date($cashEntry['transaction_date'])) ?>
@@ -145,7 +135,7 @@ require_once "../partials/header.php";
                 <?php endif; ?>
             </div>
             <div>
-                <h4 style="margin:0 0 8px;color:#183b56;">Audit trail</h4>
+                <h4 style="margin:0 0 8px;color:#1f2933;">Audit trail</h4>
                 <?php if (!$history): ?>
                 <p style="margin:0;color:#64748b;font-size:.88rem;">No audit entries yet.</p>
                 <?php else: ?>

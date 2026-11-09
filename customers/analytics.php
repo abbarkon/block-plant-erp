@@ -76,7 +76,7 @@ require_once "../partials/header.php";
         <div class="bar-chart-row">
             <span class="label"><?= e($row['name']) ?></span>
             <div class="bar-wrap">
-                <div class="bar-fill" style="width:<?= number_format(($row['total'] / $maxCust) * 100, 1) ?>%;background:linear-gradient(90deg,#3949ab,#5c6bc0);"></div>
+                <div class="bar-fill" style="width:<?= number_format(($row['total'] / $maxCust) * 100, 1) ?>%;background:linear-gradient(90deg,#b8481b,#5c6bc0);"></div>
             </div>
             <span style="font-size:0.85rem;"><?= currency_symbol() . money($row['total']) ?></span>
         </div>

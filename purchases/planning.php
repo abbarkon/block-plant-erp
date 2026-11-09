@@ -47,7 +47,7 @@ require_once "../partials/header.php";
         <div><div class="stat-value"><?= $critical ?></div><div class="stat-label"><?= t('at_or_below_reorder') ?></div></div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon" style="background:#3949ab;">🧱</div>
+        <div class="stat-icon" style="background:#b8481b;">🧱</div>
         <div><div class="stat-value"><?= count($materials) ?></div><div class="stat-label"><?= t('materials_tracked') ?></div></div>
     </div>
 </div>

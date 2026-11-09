@@ -165,16 +165,16 @@ require_once '../partials/header.php';
 
 <style>
 .department-dashboard{max-width:1400px;margin:0 auto}
-.department-dashboard__header{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;padding:28px 30px;margin-bottom:22px;background:linear-gradient(115deg,#173b4f,#246a73 72%,#2a9d8f);color:#fff;border-radius:12px}
+.department-dashboard__header{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;padding:28px 30px;margin-bottom:22px;background:linear-gradient(115deg,#173b4f,#b8481b 72%,#d9742f);color:#fff;border-radius:12px}
 .department-dashboard__header h1{margin:4px 0 8px;color:#fff;font-size:2rem}
 .department-dashboard__description{margin:0;color:rgba(255,255,255,.82)}
 .department-dashboard__eyebrow{margin:0;color:#b8ded8;font-size:.76rem;font-weight:700}
 .department-dashboard__identity{display:grid;gap:4px;text-align:right;white-space:nowrap}
 .department-dashboard__identity span{font-size:.85rem;color:rgba(255,255,255,.75)}
 .department-dashboard__metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
-.department-dashboard__metric{padding:18px 20px;border:1px solid #dce7e5;border-top:3px solid #2a9d8f;background:#fff;border-radius:8px}
-.department-dashboard__metric h2{margin:0;color:#667a80;font-size:.8rem;text-transform:uppercase}
-.department-dashboard__value{margin:14px 0 5px;color:#183b56;font-size:1.8rem;font-weight:800}
+.department-dashboard__metric{padding:18px 20px;border:1px solid #e3ddd4;border-top:3px solid #d9742f;background:#fff;border-radius:8px}
+.department-dashboard__metric h2{margin:0;color:#6a6259;font-size:.8rem;text-transform:uppercase}
+.department-dashboard__value{margin:14px 0 5px;color:#1f2933;font-size:1.8rem;font-weight:800}
 .department-dashboard__note{margin:0;color:#839499;font-size:.85rem}
 .department-dashboard__stock-alert{margin-top:22px;padding:20px;border:1px solid #f2c879;border-left:5px solid #d97706;border-radius:8px;background:#fff9e9;color:#78350f}
 .department-dashboard__stock-alert.is-clear{border-color:#9ed5b3;border-left-color:#198754;background:#f1fbf4;color:#14532d}
@@ -186,8 +186,8 @@ require_once '../partials/header.php';
 .department-dashboard__stock-list li span{display:grid;gap:3px}
 .department-dashboard__stock-list small{color:#765e3d}
 .department-dashboard__stock-list a{font-weight:700;white-space:nowrap;color:#176b58}
-.department-dashboard__section{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-top:28px;padding:20px 0;border-top:1px solid #dce7e5}
-.department-dashboard__section h2{margin:0;color:#183b56;font-size:1.2rem}
+.department-dashboard__section{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-top:28px;padding:20px 0;border-top:1px solid #e3ddd4}
+.department-dashboard__section h2{margin:0;color:#1f2933;font-size:1.2rem}
 .department-dashboard__section p{margin:5px 0 0;color:#64748b}
 .department-dashboard__links{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:9px}
 @media(max-width:700px){.department-dashboard__header,.department-dashboard__section{align-items:flex-start;flex-direction:column}.department-dashboard__identity{text-align:left}.department-dashboard__links{justify-content:flex-start}.department-dashboard__stock-list li{align-items:flex-start;flex-direction:column}}

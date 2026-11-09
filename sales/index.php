@@ -118,7 +118,7 @@ require_once "../partials/header.php";
 <div class="stats-grid no-print">
     <div class="stat-card"><div class="stat-icon" style="background:#3498db;">🧾</div><div><div class="stat-value"><?= number_format((int) $kpi['cnt']) ?></div><div class="stat-label">Invoices shown</div></div></div>
     <div class="stat-card"><div class="stat-icon" style="background:#9b59b6;">💰</div><div><div class="stat-value"><?= currency_symbol() . money($kpi['total']) ?></div><div class="stat-label">Invoiced value</div></div></div>
-    <div class="stat-card"><div class="stat-icon" style="background:#00897b;">✅</div><div><div class="stat-value"><?= currency_symbol() . money($kpi['paid']) ?></div><div class="stat-label">Collected</div></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:#2f7d4f;">✅</div><div><div class="stat-value"><?= currency_symbol() . money($kpi['paid']) ?></div><div class="stat-label">Collected</div></div></div>
     <div class="stat-card"><div class="stat-icon" style="background:#e67e22;">⏳</div><div><div class="stat-value"><?= currency_symbol() . money($kpi['balance']) ?></div><div class="stat-label">Outstanding</div></div></div>
 </div>
 

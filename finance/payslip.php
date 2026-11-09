@@ -79,11 +79,11 @@ if ($id === 0 && $employeeId === 0 && !$batch) {
             body { margin: 0; background: #edf1f3; color: #18252c; font-family: Arial, Helvetica, sans-serif; font-size: 13px; }
             .wrap { width: min(760px, calc(100% - 32px)); margin: 40px auto; }
             .card { background: #fff; border-radius: 10px; padding: 26px; box-shadow: 0 8px 28px rgba(20, 39, 47, .12); }
-            h1 { margin: 0 0 6px; color: #183b56; font-size: 22px; }
+            h1 { margin: 0 0 6px; color: #1f2933; font-size: 22px; }
             .sub { color: #607078; margin-bottom: 20px; }
             ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
-            a.row { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border: 1px solid #dbe4e6; border-radius: 6px; text-decoration: none; color: #183b56; font-weight: 700; }
-            a.row:hover { background: #f2f7f8; border-color: #246a73; }
+            a.row { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border: 1px solid #dbe4e6; border-radius: 6px; text-decoration: none; color: #1f2933; font-weight: 700; }
+            a.row:hover { background: #f2f7f8; border-color: #b8481b; }
             a.row span { color: #64748b; font-weight: 400; font-size: 12px; }
             .empty { color: #64748b; }
         </style>
@@ -253,17 +253,17 @@ if (isset($_GET['emailed'])) {
         body { margin: 0; background: #edf1f3; color: #18252c; font-family: Arial, Helvetica, sans-serif; font-size: 12px; }
         .toolbar { display: flex; justify-content: flex-end; align-items: center; gap: 10px; padding: 16px max(16px, calc((100vw - 820px) / 2)); flex-wrap: wrap; }
         .toolbar button, .toolbar .note { border: 0; border-radius: 5px; padding: 10px 14px; font: inherit; font-weight: 700; cursor: pointer; }
-        .toolbar button { background: #246a73; color: #fff; }
+        .toolbar button { background: #b8481b; color: #fff; }
         .toolbar button:first-child { background: #66757c; }
         .toolbar button:disabled { background: #b7c2c6; cursor: not-allowed; }
         .flash { padding: 10px 14px; border-radius: 5px; background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; font-weight: 700; }
         .sheet { width: min(820px, calc(100% - 32px)); margin: 0 auto 30px; padding: 32px; background: #fff; box-shadow: 0 8px 28px rgba(20, 39, 47, .12); break-after: page; }
         .sheet:last-of-type { break-after: auto; }
-        .sheet-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; padding-bottom: 16px; border-bottom: 2px solid #246a73; }
-        .company { color: #246a73; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+        .sheet-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; padding-bottom: 16px; border-bottom: 2px solid #b8481b; }
+        .company { color: #b8481b; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
         .tagline { margin-top: 2px; color: #607078; }
         .muted { color: #607078; }
-        h1 { margin: 8px 0 4px; color: #183b56; font-size: 22px; }
+        h1 { margin: 8px 0 4px; color: #1f2933; font-size: 22px; }
         .period { min-width: 190px; padding: 12px 14px; border: 1px solid #d6e0e3; border-radius: 5px; text-align: right; }
         .period span { color: #607078; text-transform: uppercase; font-size: 10px; letter-spacing: .05em; }
         .period strong { display: block; margin: 4px 0 8px; font-size: 16px; }
@@ -278,7 +278,7 @@ if (isset($_GET['emailed'])) {
         .box td { padding: 8px 12px; border-top: 1px solid #e6edee; }
         .num { text-align: right; white-space: nowrap; }
         .box tr.total td { background: #f3f7f8; font-weight: 700; }
-        .net { display: flex; justify-content: space-between; align-items: center; margin: 18px 0; padding: 16px 20px; border-radius: 6px; background: #183b56; color: #fff; }
+        .net { display: flex; justify-content: space-between; align-items: center; margin: 18px 0; padding: 16px 20px; border-radius: 6px; background: #1f2933; color: #fff; }
         .net span { text-transform: uppercase; font-size: 11px; letter-spacing: .06em; opacity: .85; }
         .net strong { font-size: 24px; }
         .details .detail-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px 18px; padding: 14px; }

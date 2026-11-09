@@ -175,7 +175,7 @@ require_once "../partials/header.php";
                     <?php if ($i['status'] === 'pending' && has_permission('crm', 'edit')): ?>
                     <form method="post" style="display:inline;">
                         <input type="hidden" name="complete_id" value="<?= (int) $i['id'] ?>">
-                        <button type="submit" class="btn-sm" style="background:#00897b;border:0;cursor:pointer;">Done</button>
+                        <button type="submit" class="btn-sm" style="background:#2f7d4f;border:0;cursor:pointer;">Done</button>
                     </form>
                     <?php endif; ?>
                 </td>

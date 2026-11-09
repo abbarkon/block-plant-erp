@@ -368,8 +368,8 @@ require_once "../partials/header.php";
     color: #475569;
 }
 .journal-type-tabs input[type=radio]:checked + label {
-    border-color: var(--bp-primary, #3949ab);
-    background: var(--bp-primary, #3949ab);
+    border-color: var(--bp-primary, #b8481b);
+    background: var(--bp-primary, #b8481b);
     color: #fff;
 }
 .journal-type-tabs input[type=radio] { display: none; }
@@ -444,7 +444,7 @@ require_once "../partials/header.php";
     background: #fff; color: #1e293b;
     transition: border-color .2s;
 }
-.form-row input:focus, .form-row select:focus { border-color: var(--bp-primary, #3949ab); outline: none; box-shadow: 0 0 0 3px rgba(57,73,171,.1); }
+.form-row input:focus, .form-row select:focus { border-color: var(--bp-primary, #b8481b); outline: none; box-shadow: 0 0 0 3px rgba(57,73,171,.1); }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 @media(max-width: 600px){ .grid-2 { grid-template-columns: 1fr; } }
 

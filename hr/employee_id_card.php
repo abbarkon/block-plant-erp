@@ -31,22 +31,22 @@ $companyName = company_display_name();
         *{box-sizing:border-box}
         body{margin:0;padding:28px;background:#e9efed;color:#173b4f;font-family:Arial,sans-serif}
         .toolbar{display:flex;justify-content:center;gap:10px;margin:0 auto 22px}
-        .toolbar a,.toolbar button{padding:10px 16px;border:0;border-radius:4px;background:#246a73;color:#fff;font-size:14px;text-decoration:none;cursor:pointer}
+        .toolbar a,.toolbar button{padding:10px 16px;border:0;border-radius:4px;background:#b8481b;color:#fff;font-size:14px;text-decoration:none;cursor:pointer}
         .toolbar a{background:#52616b}
         .card{position:relative;display:flex;width:85.6mm;height:54mm;margin:0 auto;overflow:hidden;border:1px solid #c8d5d1;border-radius:3mm;background:#fff;box-shadow:0 12px 35px rgba(23,59,79,.18)}
         .card-main{display:flex;flex:1;flex-direction:column;min-width:0;padding:4mm 4mm 3mm}
-        .company{padding-bottom:2mm;border-bottom:1px solid #dce7e5;color:#246a73;font-size:9pt;font-weight:700;line-height:1.15;overflow-wrap:anywhere}
+        .company{padding-bottom:2mm;border-bottom:1px solid #e3ddd4;color:#b8481b;font-size:9pt;font-weight:700;line-height:1.15;overflow-wrap:anywhere}
         .card-content{display:flex;flex:1;align-items:center;gap:3mm;padding-top:2mm}
-        .photo{flex:none;width:23mm;height:30mm;overflow:hidden;border:1px solid #dce7e5;border-radius:1.5mm;background:#e7f0ed}
+        .photo{flex:none;width:23mm;height:30mm;overflow:hidden;border:1px solid #e3ddd4;border-radius:1.5mm;background:#e7f0ed}
         .photo img{display:block;width:100%;height:100%;object-fit:cover}
-        .photo-fallback{display:grid;width:100%;height:100%;place-items:center;color:#246a73;font-size:24pt;font-weight:700}
+        .photo-fallback{display:grid;width:100%;height:100%;place-items:center;color:#b8481b;font-size:24pt;font-weight:700}
         .details{min-width:0;align-self:center}
         .details h1{margin:0 0 2mm;font-size:12pt;line-height:1.05;overflow-wrap:anywhere}
         .role{margin:0 0 2.5mm;color:#52616b;font-size:8pt;line-height:1.15;overflow-wrap:anywhere}
         .field{margin-top:1.5mm;font-size:7pt;line-height:1.15;overflow-wrap:anywhere}
-        .field span{display:block;margin-bottom:.4mm;color:#667a80;font-size:5.5pt;text-transform:uppercase}
+        .field span{display:block;margin-bottom:.4mm;color:#6a6259;font-size:5.5pt;text-transform:uppercase}
         .code{color:#173b4f;font-size:8pt;font-weight:700}
-        .card-band{display:flex;width:5mm;align-items:flex-end;justify-content:center;padding:2mm 0;background:linear-gradient(180deg,#246a73,#183b56)}
+        .card-band{display:flex;width:5mm;align-items:flex-end;justify-content:center;padding:2mm 0;background:linear-gradient(180deg,#b8481b,#1f2933)}
         .card-band span{color:#fff;font-size:5.5pt;font-weight:700;writing-mode:vertical-rl;transform:rotate(180deg)}
         .status{position:absolute;right:7mm;bottom:3mm;color:<?= (int) $employee['status'] === 1 ? '#17643a' : '#8b2525' ?>;font-size:6pt;font-weight:700;text-transform:uppercase}
         @page{size:85.6mm 54mm;margin:0}

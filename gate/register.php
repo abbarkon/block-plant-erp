@@ -197,7 +197,7 @@ require_once __DIR__ . '/../partials/header.php';
         <div><div class="stat-value"><?= number_format($kpi['total']) ?></div><div class="stat-label"><?= e(t('gate_total_clearances')) ?></div></div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon" style="background:#2a9d8f;">🚚</div>
+        <div class="stat-icon" style="background:#d9742f;">🚚</div>
         <div><div class="stat-value"><?= number_format($kpi['exited']) ?></div><div class="stat-label"><?= e(t('gate_exited')) ?></div></div>
     </div>
     <div class="stat-card">

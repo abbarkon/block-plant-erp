@@ -1,25 +1,6 @@
 <?php
 // Helper functions for the Block Plant ERP system
 
-if (!function_exists('mb_strlen')) {
-    function mb_strlen($string, $encoding = null) {
-        return strlen((string) $string);
-    }
-}
-
-if (!function_exists('mb_substr')) {
-    function mb_substr($string, $start, $length = null, $encoding = null) {
-        $string = (string) $string;
-        return $length === null ? substr($string, $start) : substr($string, $start, $length);
-    }
-}
-
-if (!function_exists('mb_strtoupper')) {
-    function mb_strtoupper($string, $encoding = null) {
-        return strtoupper((string) $string);
-    }
-}
-
 /**
  * Set beautiful modal popup variables
  * @param string $type - success, error, warning, info
@@ -1214,11 +1195,7 @@ function ensure_manufacturing_costing_schema() {
     global $pdo;
     $columns = [
         'production' => ['labor_cost' => 'DECIMAL(14,2) NOT NULL DEFAULT 0', 'overhead_cost' => 'DECIMAL(14,2) NOT NULL DEFAULT 0'],
-        'block_types' => [
-            'labor_cost_per_block' => 'DECIMAL(12,4) NOT NULL DEFAULT 0',
-            'overhead_cost_per_block' => 'DECIMAL(12,4) NOT NULL DEFAULT 0',
-            'yield_factor' => 'DECIMAL(10,4) NOT NULL DEFAULT 1',
-        ],
+        'block_types' => ['labor_cost_per_block' => 'DECIMAL(12,4) NOT NULL DEFAULT 0', 'overhead_cost_per_block' => 'DECIMAL(12,4) NOT NULL DEFAULT 0'],
         'finished_stock' => ['average_unit_cost' => 'DECIMAL(14,4) NOT NULL DEFAULT 0'],
         'sales' => ['cogs_amount' => 'DECIMAL(14,2) NOT NULL DEFAULT 0'],
     ];
@@ -1447,29 +1424,32 @@ function has_permission($module, $action = 'view') {
         if ($module === 'dashboard' && $action === 'view') {
             return $userRole !== '';
         }
-        $departmentRole = strtolower(trim((string) ($user['department_role'] ?? '')));
-        if (in_array($departmentRole, ['manager', 'user'], true)) {
-            $department = strtolower(trim((string) ($user['department'] ?? '')));
-            $departmentModules = department_permission_modules()[$department] ?? [];
-            if (!in_array($module, $departmentModules, true)) {
-                return false;
-            }
-            if ($departmentRole === 'manager') {
-                return true;
-            }
-            // Department users always keep their baseline view/create access.
-            if (in_array($action, ['view', 'create'], true)) {
-                return true;
-            }
-            // HR managers can grant extra actions (edit/delete/approve) to HR
-            // users from HR → Permissions. Those explicit grants extend the
-            // baseline without ever opening modules outside the department.
-            ensure_hr_permission_schema();
+        // A user may belong to several departments (primary + extra ones added in User Management).
+        $assignments = user_department_assignments((int) $_SESSION['user_id'], $user);
+        if ($assignments) {
             $col = $allowed[$action];
-            $stmt = $pdo->prepare("SELECT {$col} FROM hr_permission_grants WHERE user_id = ?");
-            $stmt->execute([(int) $_SESSION['user_id']]);
-            $row = $stmt->fetch();
-            return $row && (int) $row[$col] === 1;
+            foreach ($assignments as $assignment) {
+                $departmentModules = department_permission_modules()[$assignment['department']] ?? [];
+                if (!in_array($module, $departmentModules, true)) {
+                    continue;
+                }
+                if ($assignment['role'] === 'manager') {
+                    return true;
+                }
+                // Department users always keep their baseline view/create access.
+                if (in_array($action, ['view', 'create'], true)) {
+                    return true;
+                }
+                // HR managers can grant extra actions (edit/delete/approve) from HR > Permissions.
+                ensure_hr_permission_schema();
+                $stmt = $pdo->prepare("SELECT {$col} FROM hr_permission_grants WHERE user_id = ?");
+                $stmt->execute([(int) $_SESSION['user_id']]);
+                $row = $stmt->fetch();
+                if ($row && (int) $row[$col] === 1) {
+                    return true;
+                }
+            }
+            return false;
         }
         ensure_user_permission_defaults((int) $_SESSION['user_id']);
         $col = $allowed[$action];
@@ -1508,6 +1488,11 @@ function can_manage_hr_permissions($userId = null) {
         if ($department === 'hr' && $departmentRole === 'manager') {
             return true;
         }
+        foreach (user_department_assignments((int) ($userId ?: $_SESSION['user_id']), $user) as $a) {
+            if ($a['department'] === 'hr' && $a['role'] === 'manager') {
+                return true;
+            }
+        }
         return $departmentRole === '' && has_permission('hr', 'edit');
     } catch (PDOException $e) {
         return false;
@@ -1527,7 +1512,7 @@ function require_permission($module, $action = 'view') {
     <meta http-equiv="refresh" content="10;url=' . $dashboardUrl . '">
     <title>Access denied | Block Plant ERP</title>
     <style>
-        :root { --primary: #1a237e; --accent: #00897b; --ink: #172033; --muted: #64748b; }
+        :root { --primary: #1a237e; --accent: #2f7d4f; --ink: #172033; --muted: #64748b; }
         * { box-sizing: border-box; }
         body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; background: linear-gradient(135deg, #eef2ff, #e6fffa); color: var(--ink); font-family: Segoe UI, Arial, sans-serif; }
         .access-card { width: min(100%, 500px); padding: 42px 36px; text-align: center; background: rgba(255,255,255,.96); border: 1px solid #dbe3ef; border-radius: 20px; box-shadow: 0 20px 55px rgba(30, 41, 59, .16); animation: appear .35s ease-out; }
@@ -1576,7 +1561,7 @@ function render_not_found($title = 'Not found', $message = 'The requested record
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>' . e($title) . ' | Block Plant ERP</title>
     <style>
-        :root { --primary: #1a237e; --accent: #00897b; --ink: #172033; --muted: #64748b; }
+        :root { --primary: #1a237e; --accent: #2f7d4f; --ink: #172033; --muted: #64748b; }
         * { box-sizing: border-box; }
         body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; background: linear-gradient(135deg, #eef2ff, #e6fffa); color: var(--ink); font-family: Segoe UI, Arial, sans-serif; }
         .notfound-card { width: min(100%, 500px); padding: 42px 36px; text-align: center; background: rgba(255,255,255,.96); border: 1px solid #dbe3ef; border-radius: 20px; box-shadow: 0 20px 55px rgba(30, 41, 59, .16); }
@@ -1782,11 +1767,21 @@ function company_tagline() {
     return $c['tagline'] ?? '';
 }
 
+/** Colours saved by older versions (the previous defaults) are replaced by the new brand palette. */
+function brand_color_or_default($stored, $default) {
+    $stored = strtolower(trim((string) $stored));
+    $legacy = ['', '#3949ab', '#00897b', '#0e6a78', '#0f3340', '#246a73', '#183b56', '#2a9d8f', '#b8481b', '#2f7d4f'];
+    if (!preg_match('/^#[0-9a-f]{6}$/', $stored) || in_array($stored, $legacy, true)) {
+        return $default;
+    }
+    return $stored;
+}
+
 function brand_colors() {
     $c = company_settings();
     return [
-        'primary' => $c['primary_color'] ?? '#3949ab',
-        'secondary' => $c['secondary_color'] ?? '#00897b',
+        'primary' => brand_color_or_default($c['primary_color'] ?? '', '#b8481b'),
+        'secondary' => brand_color_or_default($c['secondary_color'] ?? '', '#7c2d12'),
     ];
 }
 
@@ -3909,7 +3904,7 @@ function render_attendance_warning_revoked($revocation, $employee, $from, $to, $
         .revoked-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-bottom: 20px; }
         .revoked-field { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 9px; padding: 10px 12px; }
         .revoked-field span { display: block; color: #64748b; font-size: .74rem; text-transform: uppercase; letter-spacing: .03em; margin-bottom: 3px; }
-        .revoked-field strong { color: #183b56; font-weight: 600; overflow-wrap: anywhere; }
+        .revoked-field strong { color: #1f2933; font-weight: 600; overflow-wrap: anywhere; }
         .revoked-actions { display: flex; gap: 10px; flex-wrap: wrap; }
         .button { display: inline-block; padding: 10px 16px; border-radius: 8px; background: #475569; color: #fff; text-decoration: none; font-weight: 600; }
         .button:hover { opacity: .9; }
@@ -4429,3 +4424,63 @@ function leave_status_label($status) {
     return $label !== $key ? $label : ucfirst($status);
 }
 ?>
+
+// ---- Multiple departments per user ----
+function ensure_extra_departments_schema() {
+    static $done = false;
+    if ($done) {
+        return;
+    }
+    global $pdo;
+    $pdo->exec("CREATE TABLE IF NOT EXISTS user_extra_departments (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        department VARCHAR(40) NOT NULL,
+        department_role VARCHAR(20) NOT NULL DEFAULT 'user',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY uniq_user_dept (user_id, department)
+    )");
+    $done = true;
+}
+
+/** All department assignments for a user: the primary one plus any extra ones. */
+function user_department_assignments($userId, $userRow = null) {
+    global $pdo;
+    ensure_extra_departments_schema();
+    $out = [];
+    if ($userRow === null) {
+        $st = $pdo->prepare("SELECT role, department, department_role FROM users WHERE id = ?");
+        $st->execute([(int) $userId]);
+        $userRow = $st->fetch() ?: [];
+    }
+    $dept = strtolower(trim((string) ($userRow['department'] ?? '')));
+    $role = strtolower(trim((string) ($userRow['department_role'] ?? '')));
+    if ($dept !== '' && in_array($role, ['manager', 'user'], true)) {
+        $out[$dept] = ['department' => $dept, 'role' => $role];
+    }
+    $st = $pdo->prepare("SELECT department, department_role FROM user_extra_departments WHERE user_id = ?");
+    $st->execute([(int) $userId]);
+    foreach ($st->fetchAll() as $r) {
+        $d = strtolower(trim((string) $r['department']));
+        $rl = strtolower(trim((string) $r['department_role']));
+        if ($d === '' || !in_array($rl, ['manager', 'user'], true)) {
+            continue;
+        }
+        // If the same department appears twice, the stronger role wins.
+        if (!isset($out[$d]) || ($rl === 'manager' && $out[$d]['role'] !== 'manager')) {
+            $out[$d] = ['department' => $d, 'role' => $rl];
+        }
+    }
+    return array_values($out);
+}
+
+function user_extra_department_map() {
+    global $pdo;
+    ensure_extra_departments_schema();
+    $map = [];
+    foreach ($pdo->query("SELECT id, user_id, department, department_role FROM user_extra_departments ORDER BY department")->fetchAll() as $r) {
+        $map[(int) $r['user_id']][] = $r;
+    }
+    return $map;
+}
+

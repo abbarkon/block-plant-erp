@@ -204,7 +204,7 @@ $badgeClass = static function (string $status): string {
 </div>
 
 <style>
-.jl-hero{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:22px;padding:28px 32px;border-radius:18px;background:linear-gradient(120deg,#183b56,#246a73 65%,#2a9d8f);color:#fff;box-shadow:0 14px 34px rgba(24,59,86,.16)}
+.jl-hero{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:22px;padding:28px 32px;border-radius:18px;background:linear-gradient(120deg,#1f2933,#b8481b 65%,#d9742f);color:#fff;box-shadow:0 14px 34px rgba(24,59,86,.16)}
 .jl-hero h1{margin:4px 0;color:#fff;font-size:2.05rem}
 .jl-hero p{margin:0;color:rgba(255,255,255,.76)}
 .jl-hero-eyebrow{font-size:.68rem;font-weight:800;letter-spacing:.13em;color:#bce6df}
@@ -215,20 +215,20 @@ $badgeClass = static function (string $status): string {
 .jl-filter input{margin:0}
 .jl-filter .btn{min-height:38px;white-space:nowrap}
 .jl-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:0 0 18px}
-.jl-summary div{padding:15px 17px;background:#fff;border:1px solid #dce7e5;border-radius:11px;box-shadow:0 5px 16px rgba(24,59,86,.05)}
-.jl-summary span{display:block;font-size:.76rem;color:#667a80}
-.jl-summary strong{display:block;margin-top:5px;font-size:1.15rem;color:#183b56;font-variant-numeric:tabular-nums}
+.jl-summary div{padding:15px 17px;background:#fff;border:1px solid #e3ddd4;border-radius:11px;box-shadow:0 5px 16px rgba(24,59,86,.05)}
+.jl-summary span{display:block;font-size:.76rem;color:#6a6259}
+.jl-summary strong{display:block;margin-top:5px;font-size:1.15rem;color:#1f2933;font-variant-numeric:tabular-nums}
 .jl-summary strong.jl-ok{color:#1d7a4f}
 .jl-summary strong.jl-bad{color:#b3452f}
 .jl-table-wrap{overflow-x:auto}
 .jl-table{min-width:940px}
 .jl-table th.jl-num,.jl-table td.jl-num{text-align:right;font-variant-numeric:tabular-nums}
-.jl-table td a.jl-link{font-weight:700;color:#246a73;text-decoration:none}
+.jl-table td a.jl-link{font-weight:700;color:#b8481b;text-decoration:none}
 .jl-table td a.jl-link:hover{text-decoration:underline}
-.jl-table tfoot th{padding:13px 12px;background:#eaf3f0;color:#183b56;text-align:right;font-variant-numeric:tabular-nums}
+.jl-table tfoot th{padding:13px 12px;background:#f4efe8;color:#1f2933;text-align:right;font-variant-numeric:tabular-nums}
 .jl-table tfoot th:first-child{text-align:left}
-.jl-empty{text-align:center;padding:34px!important;color:#667a80}
-.jl-note{margin:10px 0 0;font-size:.82rem;color:#667a80}
+.jl-empty{text-align:center;padding:34px!important;color:#6a6259}
+.jl-note{margin:10px 0 0;font-size:.82rem;color:#6a6259}
 .jl-guide{margin-top:20px;padding:20px;background:#fff8e6;border:1px solid #f0e2b8;border-radius:12px}
 .jl-guide h3{margin:0 0 8px}
 .jl-guide ul{margin:0;padding-left:20px;line-height:1.8}
@@ -236,7 +236,7 @@ $badgeClass = static function (string $status): string {
 @media(max-width:600px){.jl-hero{align-items:flex-start;flex-direction:column;padding:24px 20px}.jl-hero h1{font-size:1.75rem}.jl-filter{grid-template-columns:1fr}.jl-summary{grid-template-columns:1fr 1fr;gap:8px}}
 @media print {
     .no-print, .jl-hero-actions, .jl-filter, .jl-guide, .jl-note { display: none !important; }
-    .jl-hero { background: #183b56 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; box-shadow: none; }
+    .jl-hero { background: #1f2933 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; box-shadow: none; }
     .jl-table { min-width: 0; }
     .table-container { overflow: visible; }
 }

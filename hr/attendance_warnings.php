@@ -84,7 +84,7 @@ require_once "../partials/header.php";
         margin-bottom: 18px;
     }
     .warning-head h1 { margin: 0 0 4px; }
-    .warning-company { font-size: 1.15rem; font-weight: 700; color: #183b56; }
+    .warning-company { font-size: 1.15rem; font-weight: 700; color: #1f2933; }
     .warning-meta { color: #64748b; font-size: .88rem; margin-top: 4px; }
     .warning-actions { display: flex; gap: 8px; flex-wrap: wrap; }
     .warning-filters { padding: 18px; margin-bottom: 18px; }
@@ -111,7 +111,7 @@ require_once "../partials/header.php";
         text-align: center;
         box-shadow: 0 2px 8px rgba(0,0,0,.05);
     }
-    .warning-kpi strong { display: block; font-size: 1.45rem; color: #183b56; }
+    .warning-kpi strong { display: block; font-size: 1.45rem; color: #1f2933; }
     .warning-kpi span { color: #64748b; font-size: .78rem; }
     .warning-kpi.kpi-days { border-top-color: #dc2626; }
     .warning-kpi.kpi-period { border-top-color: #2563eb; }
@@ -147,11 +147,11 @@ require_once "../partials/header.php";
     }
     .warning-dates { color: #475569; max-width: 330px; font-size: .88rem; line-height: 1.5; }
     .warning-dates .more { color: #64748b; font-size: .78rem; }
-    .warning-emp-name { font-weight: 700; color: #183b56; }
+    .warning-emp-name { font-weight: 700; color: #1f2933; }
     .warning-emp-code { color: #64748b; font-size: .8rem; }
     .warning-emp-sub { color: #64748b; font-size: .8rem; margin-top: 2px; }
     .warning-empty { text-align: center; padding: 30px 20px; color: #64748b; }
-    .warning-empty h2 { margin-top: 0; color: #183b56; }
+    .warning-empty h2 { margin-top: 0; color: #1f2933; }
     .warning-note { border-left: 4px solid #d97706; background: #fffbeb; color: #78350f; padding: 14px 16px; border-radius: 8px; margin-top: 18px; }
     .warning-note strong { color: #92400e; }
     .warning-muted { color: #94a3b8; font-size: .8rem; }

@@ -27,8 +27,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $currency = strtoupper(trim($_POST['currency'] ?? 'ETB'));
     $currencySymbol = trim($_POST['currency_symbol'] ?? 'Br');
     $locale = $_POST['locale_default'] ?? 'en';
-    $primary = strtolower(trim($_POST['primary_color'] ?? '#3949ab'));
-    $secondary = strtolower(trim($_POST['secondary_color'] ?? '#00897b'));
+    $primary = strtolower(trim($_POST['primary_color'] ?? '#b8481b'));
+    $secondary = strtolower(trim($_POST['secondary_color'] ?? '#7c2d12'));
     $commissionRaw = trim($_POST['default_commission_rate'] ?? '0');
     $removeLogo = !empty($_POST['remove_logo']);
 
@@ -153,7 +153,7 @@ require_once "../partials/header.php";
 <style>
     .brand-preview { display:flex; gap:18px; align-items:center; padding:20px; border:1px dashed #cbd5e1; border-radius:12px; background:#f8fafc; margin-bottom:6px; }
     .brand-preview__logo { width:72px; height:72px; border-radius:14px; object-fit:contain; background:#fff; border:1px solid #e2e8f0; display:grid; place-items:center; font-size:1.8rem; font-weight:800; color:#fff; flex:0 0 auto; }
-    .brand-preview__name { font-size:1.25rem; font-weight:800; color:#183b56; margin:0; }
+    .brand-preview__name { font-size:1.25rem; font-weight:800; color:#1f2933; margin:0; }
     .brand-preview__tagline { color:#64748b; margin:3px 0 0; font-size:.88rem; }
     .brand-swatches { display:flex; gap:8px; margin-top:8px; }
     .brand-swatches span { display:inline-flex; align-items:center; gap:6px; font-size:.75rem; color:#475569; }
@@ -187,7 +187,7 @@ require_once "../partials/header.php";
         <?php if (!empty($company['logo_path'])): ?>
         <img class="brand-preview__logo" id="brandLogoPreview" src="<?= e($company['logo_path']) ?>" alt="Company logo" style="background:#fff;">
         <?php else: ?>
-        <div class="brand-preview__logo" id="brandLogoFallback" style="background:linear-gradient(135deg, <?= e($company['primary_color'] ?? '#3949ab') ?>, <?= e($company['secondary_color'] ?? '#00897b') ?>);">
+        <div class="brand-preview__logo" id="brandLogoFallback" style="background:linear-gradient(135deg, <?= e(brand_colors()['primary']) ?>, <?= e(brand_colors()['secondary']) ?>);">
             <?= e(mb_strtoupper(mb_substr($company['company_name'] ?? 'BP', 0, 2))) ?>
         </div>
         <?php endif; ?>
@@ -195,8 +195,8 @@ require_once "../partials/header.php";
             <p class="brand-preview__name" id="brandNamePreview"><?= e($company['company_name'] ?? 'Company name') ?></p>
             <p class="brand-preview__tagline" id="brandTaglinePreview"><?= e($company['tagline'] ?? 'Your tagline appears here') ?></p>
             <div class="brand-swatches">
-                <span><i id="primarySwatch" style="background:<?= e($company['primary_color'] ?? '#3949ab') ?>;"></i> Primary <code id="primaryHex"><?= e($company['primary_color'] ?? '#3949ab') ?></code></span>
-                <span><i id="secondarySwatch" style="background:<?= e($company['secondary_color'] ?? '#00897b') ?>;"></i> Secondary <code id="secondaryHex"><?= e($company['secondary_color'] ?? '#00897b') ?></code></span>
+                <span><i id="primarySwatch" style="background:<?= e(brand_colors()['primary']) ?>;"></i> Primary <code id="primaryHex"><?= e(brand_colors()['primary']) ?></code></span>
+                <span><i id="secondarySwatch" style="background:<?= e(brand_colors()['secondary']) ?>;"></i> Secondary <code id="secondaryHex"><?= e(brand_colors()['secondary']) ?></code></span>
             </div>
         </div>
     </div>
@@ -250,11 +250,11 @@ require_once "../partials/header.php";
         </div>
         <div>
             <label>Primary color</label>
-            <input type="color" name="primary_color" value="<?= e($company['primary_color'] ?? '#3949ab') ?>" oninput="document.getElementById('primarySwatch').style.background=this.value;document.getElementById('primaryHex').textContent=this.value;">
+            <input type="color" name="primary_color" value="<?= e(brand_colors()['primary']) ?>" oninput="document.getElementById('primarySwatch').style.background=this.value;document.getElementById('primaryHex').textContent=this.value;">
         </div>
         <div>
             <label>Secondary / accent color</label>
-            <input type="color" name="secondary_color" value="<?= e($company['secondary_color'] ?? '#00897b') ?>" oninput="document.getElementById('secondarySwatch').style.background=this.value;document.getElementById('secondaryHex').textContent=this.value;">
+            <input type="color" name="secondary_color" value="<?= e(brand_colors()['secondary']) ?>" oninput="document.getElementById('secondarySwatch').style.background=this.value;document.getElementById('secondaryHex').textContent=this.value;">
         </div>
     </div>
     <p style="margin-top:10px;">
@@ -289,8 +289,8 @@ require_once "../partials/header.php";
 function resetBrandColors() {
     var primary = document.querySelector('input[name="primary_color"]');
     var secondary = document.querySelector('input[name="secondary_color"]');
-    primary.value = '#3949ab';
-    secondary.value = '#00897b';
+    primary.value = '#b8481b';
+    secondary.value = '#2f7d4f';
     primary.dispatchEvent(new Event('input'));
     secondary.dispatchEvent(new Event('input'));
 }

@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_reinstate']))
 $pageTitle = 'Reinstate Clearance';
 require_once __DIR__ . '/../partials/header.php';
 ?>
-<div class="panel" style="max-width:620px;margin:40px auto;border-top:5px solid #2a9d8f;">
+<div class="panel" style="max-width:620px;margin:40px auto;border-top:5px solid #d9742f;">
     <h1>Reinstate this clearance?</h1>
     <p>Use this when a rejected vehicle's issue is resolved. The clearance returns to the gate (or loading, if it was never loaded). A note is required and the salesperson will be notified.</p>
     <div class="grid-2">

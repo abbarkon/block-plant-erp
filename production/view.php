@@ -43,24 +43,17 @@ require_once "../partials/header.php";
 <div class="page-header no-print">
     <h1><?= e($p['production_no']) ?></h1>
     <div class="header-actions">
-        <?php if (has_permission('production', 'edit')): ?>
-        <a href="edit.php?id=<?= (int) $p['id'] ?>" class="btn btn-accent">Edit run</a>
-        <?php endif; ?>
-        <?php if (has_permission('production', 'delete')): ?>
-        <form method="post" action="save.php" style="display:inline;" onsubmit="return confirm('Delete this production record? This cannot be undone.');">
-            <input type="hidden" name="action" value="delete">
-            <input type="hidden" name="production_id" value="<?= (int) $p['id'] ?>">
-            <button type="submit" class="btn btn-secondary" style="background:#c0392b;border:0;color:#fff;cursor:pointer;">Delete</button>
-        </form>
-        <?php endif; ?>
         <button type="button" class="btn btn-secondary" onclick="window.print()">Print</button>
+        <?php if (has_permission('production', 'edit')): ?>
+        <a href="edit.php?id=<?= (int) $p['id'] ?>" class="btn btn-accent">Edit</a>
+        <?php endif; ?>
         <a href="index.php" class="btn btn-secondary">← All runs</a>
     </div>
 </div>
 
 <div class="stats-grid">
     <div class="stat-card"><div class="stat-icon" style="background:#3498db;">📅</div><div><div class="stat-value"><?= format_date($p['production_date']) ?></div><div class="stat-label">Date</div></div></div>
-    <div class="stat-card"><div class="stat-icon" style="background:#00897b;">✓</div><div><div class="stat-value"><?= number_format($p['good_quantity']) ?></div><div class="stat-label">Good qty</div></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:#2f7d4f;">✓</div><div><div class="stat-value"><?= number_format($p['good_quantity']) ?></div><div class="stat-label">Good qty</div></div></div>
     <div class="stat-card"><div class="stat-icon" style="background:#e74c3c;">%</div><div><div class="stat-value"><?= number_format($qual, 1) ?>%</div><div class="stat-label">Quality</div></div></div>
     <div class="stat-card"><div class="stat-icon" style="background:#9b59b6;">💰</div><div><div class="stat-value"><?= currency_symbol() . money($p['production_cost']) ?></div><div class="stat-label">Total cost</div></div></div>
 </div>

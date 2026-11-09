@@ -364,16 +364,16 @@ $typeBadge = static function (string $type): string {
 <p class="coa-footnote"><?= number_format($journalCount) ?> journal entries currently reference this chart. Deactivating an account never deletes history — it only removes the account from active use.</p>
 
 <style>
-.coa-hero{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:22px;padding:28px 32px;border-radius:18px;background:linear-gradient(120deg,#183b56,#246a73 65%,#2a9d8f);color:#fff;box-shadow:0 14px 34px rgba(24,59,86,.16)}
+.coa-hero{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:22px;padding:28px 32px;border-radius:18px;background:linear-gradient(120deg,#1f2933,#b8481b 65%,#d9742f);color:#fff;box-shadow:0 14px 34px rgba(24,59,86,.16)}
 .coa-hero h1{margin:4px 0;color:#fff;font-size:2.05rem}
 .coa-hero p{margin:0;color:rgba(255,255,255,.76)}
 .coa-eyebrow{font-size:.68rem;font-weight:800;letter-spacing:.13em;color:#bce6df}
 .coa-hero-actions{display:flex;gap:10px;flex-wrap:wrap}
 .coa-hero-actions .btn{background:rgba(255,255,255,.15)!important;border:1px solid rgba(255,255,255,.25);color:#fff!important;box-shadow:none}
 .coa-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:0 0 18px}
-.coa-summary div{padding:15px 17px;background:#fff;border:1px solid #dce7e5;border-radius:11px;box-shadow:0 5px 16px rgba(24,59,86,.05)}
-.coa-summary span{display:block;font-size:.76rem;color:#667a80}
-.coa-summary strong{display:block;margin-top:5px;font-size:1.3rem;color:#183b56}
+.coa-summary div{padding:15px 17px;background:#fff;border:1px solid #e3ddd4;border-radius:11px;box-shadow:0 5px 16px rgba(24,59,86,.05)}
+.coa-summary span{display:block;font-size:.76rem;color:#6a6259}
+.coa-summary strong{display:block;margin-top:5px;font-size:1.3rem;color:#1f2933}
 .coa-form-panel{padding:20px;margin-bottom:18px}
 .coa-form-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
 .coa-form-head h3{margin:0}
@@ -381,7 +381,7 @@ $typeBadge = static function (string $type): string {
 .coa-form label{display:block;margin:0 0 5px}
 .coa-form input,.coa-form select{margin:0}
 .coa-form button{min-height:38px;white-space:nowrap}
-.coa-note{margin:12px 0 0;font-size:.82rem;color:#667a80}
+.coa-note{margin:12px 0 0;font-size:.82rem;color:#6a6259}
 .coa-table-wrap{overflow-x:auto}
 .coa-table{min-width:900px}
 .coa-table th.coa-num,.coa-table td.coa-num{text-align:right;font-variant-numeric:tabular-nums}
@@ -399,13 +399,13 @@ $typeBadge = static function (string $type): string {
 .coa-status.is-active{color:#1d7a4f}
 .coa-status.is-off{color:#8b98a1}
 .coa-muted{color:#b8c2c8}
-.coa-empty{text-align:center;padding:34px!important;color:#667a80}
-.coa-footnote{margin:12px 0 0;font-size:.82rem;color:#667a80}
+.coa-empty{text-align:center;padding:34px!important;color:#6a6259}
+.coa-footnote{margin:12px 0 0;font-size:.82rem;color:#6a6259}
 @media(max-width:900px){.coa-form{grid-template-columns:1fr 1fr}.coa-form button{grid-column:1/-1}.coa-summary{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:600px){.coa-hero{align-items:flex-start;flex-direction:column;padding:24px 20px}.coa-hero h1{font-size:1.75rem}.coa-form{grid-template-columns:1fr}.coa-summary{grid-template-columns:1fr 1fr;gap:8px}}
 @media print {
     .no-print, .coa-hero-actions, .coa-form-panel, .coa-actions, .coa-footnote { display: none !important; }
-    .coa-hero { background: #183b56 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; box-shadow: none; }
+    .coa-hero { background: #1f2933 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; box-shadow: none; }
     .coa-table { min-width: 0; }
     .table-container { overflow: visible; }
 }

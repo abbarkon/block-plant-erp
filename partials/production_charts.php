@@ -1,8 +1,8 @@
 <script>
 (function () {
     if (typeof Chart === 'undefined') return;
-    const primary = getComputedStyle(document.documentElement).getPropertyValue('--bp-primary').trim() || '#3949ab';
-    const accent = getComputedStyle(document.documentElement).getPropertyValue('--bp-accent').trim() || '#00897b';
+    const primary = getComputedStyle(document.documentElement).getPropertyValue('--bp-primary').trim() || '#b8481b';
+    const accent = getComputedStyle(document.documentElement).getPropertyValue('--bp-accent').trim() || '#2f7d4f';
 
     fetch('/block_plant/api/production_charts_data.php')
         .then(r => r.json())

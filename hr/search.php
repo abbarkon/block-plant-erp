@@ -144,7 +144,7 @@ if($searchQuery) {
 
 <?php if($totalResults === 0): ?>
 <div class="panel">
-    <p style="text-align:center; padding:40px; color:#667a80;">No results found. Try different keywords or search in a specific category.</p>
+    <p style="text-align:center; padding:40px; color:#6a6259;">No results found. Try different keywords or search in a specific category.</p>
 </div>
 <?php else: ?>
 

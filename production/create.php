@@ -93,10 +93,10 @@ require_once "../partials/header.php";
             <?php endforeach; ?>
         </select>
 
-        <div class="panel" style="background:#f1f8f7;border:1px dashed #00897b;margin:12px 0;padding:12px;">
-            <label>Cement to use <span id="cementUnit" style="color:#667a80;"></span> <small style="color:#667a80;">(optional - calculates the produced quantity)</small></label>
+        <div class="panel" style="background:#f1f8f7;border:1px dashed #2f7d4f;margin:12px 0;padding:12px;">
+            <label>Cement to use <span id="cementUnit" style="color:#6a6259;"></span> <small style="color:#6a6259;">(optional - calculates the produced quantity)</small></label>
             <input type="number" id="cementQty" min="0" step="0.01" placeholder="Enter cement amount to auto-calculate blocks">
-            <p id="cementHint" style="margin:6px 0 0;font-size:.85rem;color:#667a80;"></p>
+            <p id="cementHint" style="margin:6px 0 0;font-size:.85rem;color:#6a6259;"></p>
         </div>
 
         <div class="grid-2">
@@ -110,11 +110,11 @@ require_once "../partials/header.php";
             <div><label>Direct labor cost (<?= e(currency_symbol()) ?>)</label><input type="number" name="labor_cost" id="laborCost" min="0" step="0.01" value="0" required></div>
             <div><label>Factory overhead (<?= e(currency_symbol()) ?>)</label><input type="number" name="overhead_cost" id="overheadCost" min="0" step="0.01" value="0" required></div>
         </div>
-        <p style="color:#667a80;font-size:.82rem;">Material cost is calculated from current raw-material weighted-average cost. Labor and overhead are allocated across good blocks. Direct labor starts at the BOM labor cost per block × produced quantity; you can override it.</p>
+        <p style="color:#6a6259;font-size:.82rem;">Material cost is calculated from current raw-material weighted-average cost. Labor and overhead are allocated across good blocks. Direct labor starts at the BOM labor cost per block × produced quantity; you can override it.</p>
 
-        <p id="laborHint" style="color:#667a80;font-size:.82rem;margin:4px 0;"></p>
-        <p id="overheadHint" style="color:#667a80;font-size:.82rem;margin:4px 0;"></p>
-        <p id="goodPreview" style="color:#00897b;font-weight:600;"></p>
+        <p id="laborHint" style="color:#6a6259;font-size:.82rem;margin:4px 0;"></p>
+        <p id="overheadHint" style="color:#6a6259;font-size:.82rem;margin:4px 0;"></p>
+        <p id="goodPreview" style="color:#2f7d4f;font-weight:600;"></p>
 
         <h3>Materials <small style="font-weight:normal;color:#64748b;">(auto-filled from BOM × produced qty)</small></h3>
         <div id="materialRows"></div>

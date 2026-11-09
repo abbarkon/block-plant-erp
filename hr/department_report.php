@@ -146,20 +146,20 @@ try {
     <h3>Employee Overview</h3>
     <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:15px; margin-top:15px;">
         <div style="text-align:center; padding:15px; background:#f8fafc; border-radius:8px;">
-            <div style="font-size:1.5rem; font-weight:bold; color:#183b56;"><?= number_format($totalEmployees) ?></div>
-            <div style="color:#667a80; font-size:0.85rem;">Total Employees</div>
+            <div style="font-size:1.5rem; font-weight:bold; color:#1f2933;"><?= number_format($totalEmployees) ?></div>
+            <div style="color:#6a6259; font-size:0.85rem;">Total Employees</div>
         </div>
         <div style="text-align:center; padding:15px; background:#d1fae5; border-radius:8px;">
             <div style="font-size:1.5rem; font-weight:bold; color:#10b981;"><?= number_format($activeEmployees) ?></div>
-            <div style="color:#667a80; font-size:0.85rem;">Active Employees</div>
+            <div style="color:#6a6259; font-size:0.85rem;">Active Employees</div>
         </div>
         <div style="text-align:center; padding:15px; background:#fee2e2; border-radius:8px;">
             <div style="font-size:1.5rem; font-weight:bold; color:#ef4444;"><?= number_format($inactiveEmployees) ?></div>
-            <div style="color:#667a80; font-size:0.85rem;">Inactive Employees</div>
+            <div style="color:#6a6259; font-size:0.85rem;">Inactive Employees</div>
         </div>
         <div style="text-align:center; padding:15px; background:#e0e7ff; border-radius:8px;">
             <div style="font-size:1.5rem; font-weight:bold; color:#6366f1;"><?= number_format($newHiresThisYear) ?></div>
-            <div style="color:#667a80; font-size:0.85rem;">New Hires (<?= $selectedYear ?>)</div>
+            <div style="color:#6a6259; font-size:0.85rem;">New Hires (<?= $selectedYear ?>)</div>
         </div>
     </div>
 </div>
@@ -195,27 +195,27 @@ try {
     <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:15px; margin-top:15px;">
         <div style="text-align:center; padding:15px; background:#d1fae5; border-radius:8px;">
             <div style="font-size:1.3rem; font-weight:bold; color:#10b981;"><?= number_format($attendanceStats['present']) ?></div>
-            <div style="color:#667a80; font-size:0.85rem;">Present Days</div>
+            <div style="color:#6a6259; font-size:0.85rem;">Present Days</div>
         </div>
         <div style="text-align:center; padding:15px; background:#fee2e2; border-radius:8px;">
             <div style="font-size:1.3rem; font-weight:bold; color:#ef4444;"><?= number_format($attendanceStats['absent']) ?></div>
-            <div style="color:#667a80; font-size:0.85rem;">Absent Days</div>
+            <div style="color:#6a6259; font-size:0.85rem;">Absent Days</div>
         </div>
         <div style="text-align:center; padding:15px; background:#fef3c7; border-radius:8px;">
             <div style="font-size:1.3rem; font-weight:bold; color:#f59e0b;"><?= number_format($attendanceStats['half-day']) ?></div>
-            <div style="color:#667a80; font-size:0.85rem;">Half-Days</div>
+            <div style="color:#6a6259; font-size:0.85rem;">Half-Days</div>
         </div>
         <div style="text-align:center; padding:15px; background:#e0e7ff; border-radius:8px;">
             <div style="font-size:1.3rem; font-weight:bold; color:#6366f1;"><?= number_format($attendanceStats['leave']) ?></div>
-            <div style="color:#667a80; font-size:0.85rem;">Leave Days</div>
+            <div style="color:#6a6259; font-size:0.85rem;">Leave Days</div>
         </div>
         <div style="text-align:center; padding:15px; background:#ffedd5; border-radius:8px;">
             <div style="font-size:1.3rem; font-weight:bold; color:#ea580c;"><?= number_format($attendanceStats['late'] ?? 0) ?></div>
-            <div style="color:#667a80; font-size:0.85rem;">Late Days</div>
+            <div style="color:#6a6259; font-size:0.85rem;">Late Days</div>
         </div>
         <div style="text-align:center; padding:15px; background:#f8fafc; border-radius:8px;">
-            <div style="font-size:1.3rem; font-weight:bold; color:#183b56;"><?= $avgAttendance ?>%</div>
-            <div style="color:#667a80; font-size:0.85rem;">Avg Attendance</div>
+            <div style="font-size:1.3rem; font-weight:bold; color:#1f2933;"><?= $avgAttendance ?>%</div>
+            <div style="color:#6a6259; font-size:0.85rem;">Avg Attendance</div>
         </div>
     </div>
 </div>
@@ -225,20 +225,20 @@ try {
     <h3>Leave Statistics (<?= $selectedYear ?>)</h3>
     <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:15px; margin-top:15px;">
         <div style="text-align:center; padding:15px; background:#f8fafc; border-radius:8px;">
-            <div style="font-size:1.3rem; font-weight:bold; color:#183b56;"><?= number_format($totalLeaveRequests) ?></div>
-            <div style="color:#667a80; font-size:0.85rem;">Total Requests</div>
+            <div style="font-size:1.3rem; font-weight:bold; color:#1f2933;"><?= number_format($totalLeaveRequests) ?></div>
+            <div style="color:#6a6259; font-size:0.85rem;">Total Requests</div>
         </div>
         <div style="text-align:center; padding:15px; background:#d1fae5; border-radius:8px;">
             <div style="font-size:1.3rem; font-weight:bold; color:#10b981;"><?= number_format($approvedLeaves) ?></div>
-            <div style="color:#667a80; font-size:0.85rem;">Approved</div>
+            <div style="color:#6a6259; font-size:0.85rem;">Approved</div>
         </div>
         <div style="text-align:center; padding:15px; background:#fee2e2; border-radius:8px;">
             <div style="font-size:1.3rem; font-weight:bold; color:#ef4444;"><?= number_format($rejectedLeaves) ?></div>
-            <div style="color:#667a80; font-size:0.85rem;">Rejected</div>
+            <div style="color:#6a6259; font-size:0.85rem;">Rejected</div>
         </div>
         <div style="text-align:center; padding:15px; background:#fef3c7; border-radius:8px;">
             <div style="font-size:1.3rem; font-weight:bold; color:#f59e0b;"><?= number_format($pendingLeaves) ?></div>
-            <div style="color:#667a80; font-size:0.85rem;">Pending</div>
+            <div style="color:#6a6259; font-size:0.85rem;">Pending</div>
         </div>
     </div>
     
@@ -271,11 +271,11 @@ try {
     <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:15px; margin-top:15px;">
         <div style="text-align:center; padding:15px; background:#eff6ff; border-radius:8px;">
             <div style="font-size:1.5rem; font-weight:bold; color:#3b82f6;"><?= e(currency_symbol()) . number_format($totalPayroll, 2) ?></div>
-            <div style="color:#667a80; font-size:0.85rem;">Total Payroll</div>
+            <div style="color:#6a6259; font-size:0.85rem;">Total Payroll</div>
         </div>
         <div style="text-align:center; padding:15px; background:#f8fafc; border-radius:8px;">
-            <div style="font-size:1.5rem; font-weight:bold; color:#183b56;"><?= e(currency_symbol()) . number_format($avgSalary, 2) ?></div>
-            <div style="color:#667a80; font-size:0.85rem;">Avg Salary</div>
+            <div style="font-size:1.5rem; font-weight:bold; color:#1f2933;"><?= e(currency_symbol()) . number_format($avgSalary, 2) ?></div>
+            <div style="color:#6a6259; font-size:0.85rem;">Avg Salary</div>
         </div>
     </div>
 </div>
@@ -285,20 +285,20 @@ try {
     <h3>Loan & Advance Statistics (<?= $selectedYear ?>)</h3>
     <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:15px; margin-top:15px;">
         <div style="text-align:center; padding:15px; background:#f8fafc; border-radius:8px;">
-            <div style="font-size:1.3rem; font-weight:bold; color:#183b56;"><?= number_format($totalLoans) ?></div>
-            <div style="color:#667a80; font-size:0.85rem;">Total Requests</div>
+            <div style="font-size:1.3rem; font-weight:bold; color:#1f2933;"><?= number_format($totalLoans) ?></div>
+            <div style="color:#6a6259; font-size:0.85rem;">Total Requests</div>
         </div>
         <div style="text-align:center; padding:15px; background:#d1fae5; border-radius:8px;">
             <div style="font-size:1.3rem; font-weight:bold; color:#10b981;"><?= number_format($approvedLoans) ?></div>
-            <div style="color:#667a80; font-size:0.85rem;">Approved Loans</div>
+            <div style="color:#6a6259; font-size:0.85rem;">Approved Loans</div>
         </div>
         <div style="text-align:center; padding:15px; background:#e0e7ff; border-radius:8px;">
             <div style="font-size:1.3rem; font-weight:bold; color:#6366f1;"><?= e(currency_symbol()) . number_format($totalLoanAmount, 2) ?></div>
-            <div style="color:#667a80; font-size:0.85rem;">Total Loan Amount</div>
+            <div style="color:#6a6259; font-size:0.85rem;">Total Loan Amount</div>
         </div>
         <div style="text-align:center; padding:15px; background:#fef3c7; border-radius:8px;">
             <div style="font-size:1.3rem; font-weight:bold; color:#f59e0b;"><?= e(currency_symbol()) . number_format($outstandingBalance, 2) ?></div>
-            <div style="color:#667a80; font-size:0.85rem;">Outstanding Balance</div>
+            <div style="color:#6a6259; font-size:0.85rem;">Outstanding Balance</div>
         </div>
     </div>
 </div>
@@ -308,12 +308,12 @@ try {
     <h3>Performance Overview (<?= $selectedYear ?>)</h3>
     <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:15px; margin-top:15px;">
         <div style="text-align:center; padding:15px; background:#f8fafc; border-radius:8px;">
-            <div style="font-size:1.3rem; font-weight:bold; color:#183b56;"><?= number_format($totalReviews) ?></div>
-            <div style="color:#667a80; font-size:0.85rem;">Total Reviews</div>
+            <div style="font-size:1.3rem; font-weight:bold; color:#1f2933;"><?= number_format($totalReviews) ?></div>
+            <div style="color:#6a6259; font-size:0.85rem;">Total Reviews</div>
         </div>
         <div style="text-align:center; padding:15px; background:#d1fae5; border-radius:8px;">
             <div style="font-size:1.3rem; font-weight:bold; color:#10b981;"><?= $avgRating ?></div>
-            <div style="color:#667a80; font-size:0.85rem;">Avg Rating (1-5)</div>
+            <div style="color:#6a6259; font-size:0.85rem;">Avg Rating (1-5)</div>
         </div>
     </div>
 </div>
@@ -323,12 +323,12 @@ try {
     <h3>Training Overview (<?= $selectedYear ?>)</h3>
     <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:15px; margin-top:15px;">
         <div style="text-align:center; padding:15px; background:#f8fafc; border-radius:8px;">
-            <div style="font-size:1.3rem; font-weight:bold; color:#183b56;"><?= number_format($totalTraining) ?></div>
-            <div style="color:#667a80; font-size:0.85rem;">Training Programs</div>
+            <div style="font-size:1.3rem; font-weight:bold; color:#1f2933;"><?= number_format($totalTraining) ?></div>
+            <div style="color:#6a6259; font-size:0.85rem;">Training Programs</div>
         </div>
         <div style="text-align:center; padding:15px; background:#d1fae5; border-radius:8px;">
             <div style="font-size:1.3rem; font-weight:bold; color:#10b981;"><?= number_format($completedTraining) ?></div>
-            <div style="color:#667a80; font-size:0.85rem;">Completed Enrollments</div>
+            <div style="color:#6a6259; font-size:0.85rem;">Completed Enrollments</div>
         </div>
     </div>
 </div>
@@ -338,12 +338,12 @@ try {
     <h3>Shift Management Overview</h3>
     <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:15px; margin-top:15px;">
         <div style="text-align:center; padding:15px; background:#f8fafc; border-radius:8px;">
-            <div style="font-size:1.3rem; font-weight:bold; color:#183b56;"><?= number_format($totalShifts) ?></div>
-            <div style="color:#667a80; font-size:0.85rem;">Total Shifts</div>
+            <div style="font-size:1.3rem; font-weight:bold; color:#1f2933;"><?= number_format($totalShifts) ?></div>
+            <div style="color:#6a6259; font-size:0.85rem;">Total Shifts</div>
         </div>
         <div style="text-align:center; padding:15px; background:#d1fae5; border-radius:8px;">
             <div style="font-size:1.3rem; font-weight:bold; color:#10b981;"><?= number_format($activeShifts) ?></div>
-            <div style="color:#667a80; font-size:0.85rem;">Active Shifts</div>
+            <div style="color:#6a6259; font-size:0.85rem;">Active Shifts</div>
         </div>
     </div>
 </div>
@@ -353,16 +353,16 @@ try {
     <h3>Overtime Overview (<?= $selectedYear ?>)</h3>
     <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:15px; margin-top:15px;">
         <div style="text-align:center; padding:15px; background:#f8fafc; border-radius:8px;">
-            <div style="font-size:1.3rem; font-weight:bold; color:#183b56;"><?= number_format($totalOvertimeRequests) ?></div>
-            <div style="color:#667a80; font-size:0.85rem;">Total Requests</div>
+            <div style="font-size:1.3rem; font-weight:bold; color:#1f2933;"><?= number_format($totalOvertimeRequests) ?></div>
+            <div style="color:#6a6259; font-size:0.85rem;">Total Requests</div>
         </div>
         <div style="text-align:center; padding:15px; background:#d1fae5; border-radius:8px;">
             <div style="font-size:1.3rem; font-weight:bold; color:#10b981;"><?= number_format($approvedOvertime) ?></div>
-            <div style="color:#667a80; font-size:0.85rem;">Approved</div>
+            <div style="color:#6a6259; font-size:0.85rem;">Approved</div>
         </div>
         <div style="text-align:center; padding:15px; background:#e0e7ff; border-radius:8px;">
             <div style="font-size:1.3rem; font-weight:bold; color:#6366f1;"><?= number_format($totalOvertimeHours) ?></div>
-            <div style="color:#667a80; font-size:0.85rem;">Total Hours</div>
+            <div style="color:#6a6259; font-size:0.85rem;">Total Hours</div>
         </div>
     </div>
 </div>
@@ -372,20 +372,20 @@ try {
     <h3>Employee Documents Overview</h3>
     <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:15px; margin-top:15px;">
         <div style="text-align:center; padding:15px; background:#f8fafc; border-radius:8px;">
-            <div style="font-size:1.3rem; font-weight:bold; color:#183b56;"><?= number_format($totalDocuments) ?></div>
-            <div style="color:#667a80; font-size:0.85rem;">Total Documents</div>
+            <div style="font-size:1.3rem; font-weight:bold; color:#1f2933;"><?= number_format($totalDocuments) ?></div>
+            <div style="color:#6a6259; font-size:0.85rem;">Total Documents</div>
         </div>
         <div style="text-align:center; padding:15px; background:#fef3c7; border-radius:8px;">
             <div style="font-size:1.3rem; font-weight:bold; color:#f59e0b;"><?= number_format($expiringDocuments) ?></div>
-            <div style="color:#667a80; font-size:0.85rem;">Expiring (30 days)</div>
+            <div style="color:#6a6259; font-size:0.85rem;">Expiring (30 days)</div>
         </div>
     </div>
 </div>
 
 <!-- Report Footer -->
 <div style="text-align:center; margin-top:30px; padding:20px; background:#f8fafc; border-radius:8px;">
-    <p style="color:#667a80; font-size:0.9rem;">Report generated on <?= date('d F Y H:i') ?></p>
-    <p style="color:#667a80; font-size:0.85rem;">HR Department Report - Block Plant ERP System</p>
+    <p style="color:#6a6259; font-size:0.9rem;">Report generated on <?= date('d F Y H:i') ?></p>
+    <p style="color:#6a6259; font-size:0.85rem;">HR Department Report - Block Plant ERP System</p>
 </div>
 
 <style>

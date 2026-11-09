@@ -64,13 +64,13 @@ require_once "../partials/header.php";
 <style>
     .alert-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin-bottom:20px; }
     @media (max-width: 950px) { .alert-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } }
-    .alert-kpi { background:#fff; border:1px solid #e2e8f0; border-left:4px solid #246a73; border-radius:10px; padding:14px 16px; box-shadow:0 4px 14px rgba(15,23,42,.05); }
+    .alert-kpi { background:#fff; border:1px solid #e2e8f0; border-left:4px solid #b8481b; border-radius:10px; padding:14px 16px; box-shadow:0 4px 14px rgba(15,23,42,.05); }
     .alert-kpi span { display:block; color:#64748b; font-size:.76rem; text-transform:uppercase; letter-spacing:.04em; }
-    .alert-kpi strong { display:block; margin-top:4px; color:#183b56; font-size:1.3rem; }
+    .alert-kpi strong { display:block; margin-top:4px; color:#1f2933; font-size:1.3rem; }
     .alert-kpi.danger { border-left-color:#b91c1c; }
     .alert-kpi.warn { border-left-color:#b45309; }
     .alert-section { background:#fff; border:1px solid #e2e8f0; border-radius:12px; box-shadow:0 8px 24px rgba(15,23,42,.06); padding:20px; margin-bottom:20px; }
-    .alert-section h3 { margin:0 0 12px; color:#183b56; display:flex; align-items:center; gap:8px; }
+    .alert-section h3 { margin:0 0 12px; color:#1f2933; display:flex; align-items:center; gap:8px; }
     @media print { .no-print { display:none !important; } body { background:#fff; } .alert-kpi, .alert-section { box-shadow:none; } }
 </style>
 

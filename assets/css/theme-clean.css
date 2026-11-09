@@ -2,39 +2,39 @@
    Replaces the earlier theme-clean.css (same file name, so no other change is needed). */
 
 body.theme-advanced {
-    --bp-primary: #0e6a78;
-    --bp-primary-dark: #0a525d;
-    --bp-primary-soft: #e3f1f3;
-    --bp-accent: #f2b441;
-    --bp-bg: #edf2f4;
+    --bp-primary: #b8481b;
+    --bp-primary-dark: #983a14;
+    --bp-primary-soft: #fbeee7;
+    --bp-accent: #e8a33d;
+    --bp-bg: #f4f1ec;
     --bp-surface: #ffffff;
-    --bp-surface-2: #f5f8f9;
-    --bp-border: #d9e3e7;
-    --bp-ink: #14262d;
-    --bp-text: #2b414a;
-    --bp-muted: #5a6f77;
-    --bp-ok: #17824f;     --bp-ok-bg: #dcf4e7;
-    --bp-bad: #c23636;    --bp-bad-bg: #fbe3e3;
-    --bp-warn: #a85f00;   --bp-warn-bg: #fff0cf;
-    --bp-info: #1b64b3;   --bp-info-bg: #dfecfb;
+    --bp-surface-2: #f8f5f0;
+    --bp-border: #e3ddd4;
+    --bp-ink: #1f2933;
+    --bp-text: #3b4651;
+    --bp-muted: #6a6259;
+    --bp-ok: #2f7d4f;     --bp-ok-bg: #e0f3e6;
+    --bp-bad: #b42318;    --bp-bad-bg: #fde8e6;
+    --bp-warn: #8a5a00;   --bp-warn-bg: #fff3cc;
+    --bp-info: #1d5fa8;   --bp-info-bg: #e1edfb;
     --bp-radius: 14px;
-    --bp-shadow: 0 1px 2px rgba(15, 51, 64, .06), 0 6px 18px rgba(15, 51, 64, .05);
+    --bp-shadow: 0 1px 2px rgba(31, 41, 51, .06), 0 6px 18px rgba(31, 41, 51, .05);
 }
 body.theme-advanced.dark-theme {
-    --bp-primary: #38b0c2;
-    --bp-primary-dark: #2a93a4;
-    --bp-primary-soft: #153640;
-    --bp-bg: #0c181d;
-    --bp-surface: #13242b;
-    --bp-surface-2: #182d35;
-    --bp-border: #25404a;
-    --bp-ink: #eaf2f4;
-    --bp-text: #cfdde1;
-    --bp-muted: #93aab2;
-    --bp-ok: #4fd18a;   --bp-ok-bg: #12382a;
-    --bp-bad: #ff8b8b;  --bp-bad-bg: #3d1b1f;
-    --bp-warn: #ffc15a; --bp-warn-bg: #3b2d10;
-    --bp-info: #7db8ff; --bp-info-bg: #14304f;
+    --bp-primary: #f08a52;
+    --bp-primary-dark: #e07638;
+    --bp-primary-soft: #3a2218;
+    --bp-bg: #14171a;
+    --bp-surface: #1e2327;
+    --bp-surface-2: #252b30;
+    --bp-border: #36404a;
+    --bp-ink: #f3efe9;
+    --bp-text: #d9d3ca;
+    --bp-muted: #a39b90;
+    --bp-ok: #5fd08f;   --bp-ok-bg: #153523;
+    --bp-bad: #ff8f84;  --bp-bad-bg: #40201d;
+    --bp-warn: #ffc65c; --bp-warn-bg: #3b2f10;
+    --bp-info: #82bbff; --bp-info-bg: #14304f;
     --bp-shadow: 0 1px 2px rgba(0, 0, 0, .35), 0 6px 18px rgba(0, 0, 0, .25);
 }
 
@@ -70,7 +70,7 @@ body.theme-advanced::before, body.theme-advanced::after { display: none !importa
 
 /* ---- Top bar ---- */
 .theme-advanced .topbar {
-    background: #0f3340 !important;
+    background: #1f2933 !important;
     -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
     box-shadow: 0 1px 0 rgba(255,255,255,.06) !important;
     border-bottom: 0 !important;
@@ -118,7 +118,7 @@ body.theme-advanced::before, body.theme-advanced::after { display: none !importa
 .theme-advanced .btn-danger { background: var(--bp-bad) !important; color: #fff !important; border: 1px solid var(--bp-bad) !important; }
 .theme-advanced .btn-danger:hover { filter: brightness(.92); }
 .theme-advanced .dash-hero .dh-btn { border: 1px solid rgba(255,255,255,.28) !important; }
-.theme-advanced .dash-hero .dh-btn.solid { background: #fff !important; color: var(--d-p, #0e6a78) !important; }
+.theme-advanced .dash-hero .dh-btn.solid { background: #fff !important; color: var(--d-p, #b8481b) !important; }
 
 /* ---- Forms ---- */
 .theme-advanced :is(input:not([type=checkbox]):not([type=radio]), select, textarea) {
@@ -130,7 +130,7 @@ body.theme-advanced::before, body.theme-advanced::after { display: none !importa
     padding: 9px 12px;
     transition: border-color .15s ease, box-shadow .15s ease;
 }
-.theme-advanced :is(input, select, textarea)::placeholder { color: #8196a0; }
+.theme-advanced :is(input, select, textarea)::placeholder { color: #9a9288; }
 .theme-advanced :is(input:not([type=checkbox]):not([type=radio]), select, textarea):focus {
     outline: none;
     border-color: var(--bp-primary) !important;

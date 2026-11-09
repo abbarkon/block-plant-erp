@@ -186,7 +186,7 @@ $cur = currency_symbol();
 </div>
 
 <style>
-.cash-hero{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:22px;padding:28px 32px;border-radius:18px;background:linear-gradient(120deg,#183b56,#246a73 65%,#2a9d8f);color:#fff;box-shadow:0 14px 34px rgba(24,59,86,.16)}
+.cash-hero{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:22px;padding:28px 32px;border-radius:18px;background:linear-gradient(120deg,#1f2933,#b8481b 65%,#d9742f);color:#fff;box-shadow:0 14px 34px rgba(24,59,86,.16)}
 .cash-hero h1{margin:4px 0;color:#fff;font-size:2.05rem}
 .cash-hero p{margin:0;color:rgba(255,255,255,.76)}
 .cash-eyebrow{font-size:.68rem;font-weight:800;letter-spacing:.13em;color:#bce6df}
@@ -197,13 +197,13 @@ $cur = currency_symbol();
 .cash-filter input,.cash-filter select{margin:0}
 .cash-filter button{min-height:38px}
 .cash-ranges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
-.cash-range{padding:7px 13px;border-radius:20px;background:#fff;border:1px solid #dce7e5;color:#246a73;font-size:.82rem;font-weight:700;text-decoration:none}
+.cash-range{padding:7px 13px;border-radius:20px;background:#fff;border:1px solid #e3ddd4;color:#b8481b;font-size:.82rem;font-weight:700;text-decoration:none}
 .cash-range:hover{background:#eaf5f1}
-.cash-range.is-active{background:#246a73;border-color:#246a73;color:#fff}
+.cash-range.is-active{background:#b8481b;border-color:#b8481b;color:#fff}
 .cash-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:0 0 18px}
-.cash-summary div{padding:15px 17px;background:#fff;border:1px solid #dce7e5;border-radius:11px;box-shadow:0 5px 16px rgba(24,59,86,.05)}
-.cash-summary span{display:block;font-size:.76rem;color:#667a80}
-.cash-summary strong{display:block;margin-top:5px;font-size:1.15rem;color:#183b56;font-variant-numeric:tabular-nums}
+.cash-summary div{padding:15px 17px;background:#fff;border:1px solid #e3ddd4;border-radius:11px;box-shadow:0 5px 16px rgba(24,59,86,.05)}
+.cash-summary span{display:block;font-size:.76rem;color:#6a6259}
+.cash-summary strong{display:block;margin-top:5px;font-size:1.15rem;color:#1f2933;font-variant-numeric:tabular-nums}
 .cash-summary .is-in strong{color:#1d7a4f}
 .cash-summary .is-out strong{color:#b3452f}
 .cash-table-wrap{overflow-x:auto}
@@ -211,18 +211,18 @@ $cur = currency_symbol();
 .cash-table th.cash-num,.cash-table td.cash-num{text-align:right;font-variant-numeric:tabular-nums}
 .cash-table td.cash-in{color:#1d7a4f;font-weight:700}
 .cash-table td.cash-out{color:#b3452f;font-weight:700}
-.cash-table tfoot th{padding:13px 12px;background:#eaf3f0;color:#183b56;text-align:right;font-variant-numeric:tabular-nums}
+.cash-table tfoot th{padding:13px 12px;background:#f4efe8;color:#1f2933;text-align:right;font-variant-numeric:tabular-nums}
 .cash-table tfoot th:first-child{text-align:left}
-.cash-empty{text-align:center;padding:34px!important;color:#667a80}
+.cash-empty{text-align:center;padding:34px!important;color:#6a6259}
 .cash-badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:.72rem;font-weight:800;letter-spacing:.03em;text-transform:uppercase;background:#eef2f5;color:#4a5f6b}
 .cash-badge-receipt,.cash-badge-income{background:#e6f4ec;color:#1d7a4f}
 .cash-badge-payment,.cash-badge-expense{background:#fdeee9;color:#b3452f}
-.cash-ref{display:block;margin-top:4px;color:#667a80}
+.cash-ref{display:block;margin-top:4px;color:#6a6259}
 @media(max-width:850px){.cash-filter{grid-template-columns:1fr 1fr}.cash-filter button{grid-column:1/-1}.cash-summary{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:600px){.cash-hero{align-items:flex-start;flex-direction:column;padding:24px 20px}.cash-hero h1{font-size:1.75rem}.cash-summary{grid-template-columns:1fr 1fr;gap:8px}.cash-filter{grid-template-columns:1fr}}
 @media print {
     .no-print, .cash-filter, .cash-ranges, .cash-hero-actions { display: none !important; }
-    .cash-hero { background: #183b56 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; box-shadow: none; }
+    .cash-hero { background: #1f2933 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; box-shadow: none; }
     .cash-table { min-width: 0; }
     .table-container { overflow: visible; }
 }

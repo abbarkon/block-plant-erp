@@ -284,11 +284,11 @@ $cur = currency_symbol();
 
 <style>
 .jl-header p{color:#64748b;margin:6px 0 0}
-.jl-eyebrow{font-size:.68rem;font-weight:800;letter-spacing:.13em;color:#246a73}
+.jl-eyebrow{font-size:.68rem;font-weight:800;letter-spacing:.13em;color:#b8481b}
 .jl-bar{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:14px}
 .jl-bar h3{margin:0}
-.jl-totals{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:.85rem;color:#667a80}
-.jl-totals strong{display:inline-block;margin-left:5px;color:#183b56;font-size:1rem;font-variant-numeric:tabular-nums}
+.jl-totals{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:.85rem;color:#6a6259}
+.jl-totals strong{display:inline-block;margin-left:5px;color:#1f2933;font-size:1rem;font-variant-numeric:tabular-nums}
 .jl-state{padding:5px 12px;border-radius:20px;font-size:.76rem;font-weight:800;background:#fdeee9;color:#b3452f}
 .jl-state.is-balanced{background:#e6f4ec;color:#1d7a4f}
 .jl-table th.jl-num,.jl-table td.jl-num{text-align:right}
@@ -300,7 +300,7 @@ $cur = currency_symbol();
 .jl-row-invalid td{background:#fff6f4}
 .jl-row-invalid select,.jl-row-invalid input{border-color:#e08b76}
 .jl-actions{display:flex;justify-content:space-between;gap:12px;margin-top:16px;flex-wrap:wrap}
-.jl-hint{margin:12px 0 0;font-size:.82rem;color:#667a80}
+.jl-hint{margin:12px 0 0;font-size:.82rem;color:#6a6259}
 @media(max-width:700px){.jl-bar{align-items:flex-start;flex-direction:column}.jl-actions{flex-direction:column-reverse}.jl-actions .btn{width:100%}}
 @media print {
     .no-print, .jl-actions, .jl-remove-col { display: none !important; }
