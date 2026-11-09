@@ -106,6 +106,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    if ($action === 'add_extra_department') {
+        $id = (int) ($_POST['user_id'] ?? 0);
+        $department = trim($_POST['department'] ?? '');
+        $departmentRole = $_POST['department_role'] ?? '';
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+        $stmt->execute([$id]);
+        $target = $stmt->fetch();
+        if (!$target) {
+            set_flash('danger', 'That user no longer exists.');
+        } elseif (user_is_admin_role($target['role'])) {
+            set_flash('danger', 'System administrators already have access to every department.');
+        } elseif (!isset(department_permission_modules()[$department]) || !in_array($departmentRole, ['manager', 'user'], true)) {
+            set_flash('danger', 'Choose a valid department and role.');
+        } elseif (strtolower((string) ($target['department'] ?? '')) === $department) {
+            set_flash('danger', 'That is already this user\'s main department. Change it with Save access.');
+        } else {
+            ensure_extra_departments_schema();
+            $pdo->prepare("INSERT INTO user_extra_departments(user_id, department, department_role) VALUES(?,?,?) ON DUPLICATE KEY UPDATE department_role = VALUES(department_role)")
+                ->execute([$id, $department, $departmentRole]);
+            log_activity('update', 'settings', $id, "Extra department for {$target['username']}: " . ucfirst($departmentRole) . ' · ' . $department);
+            set_flash('success', 'Department added for this user.');
+        }
+        header('Location: users.php');
+        exit;
+    }
+
+    if ($action === 'remove_extra_department') {
+        $id = (int) ($_POST['user_id'] ?? 0);
+        $department = trim($_POST['department'] ?? '');
+        ensure_extra_departments_schema();
+        $pdo->prepare("DELETE FROM user_extra_departments WHERE user_id = ? AND department = ?")->execute([$id, $department]);
+        log_activity('update', 'settings', $id, "Extra department removed: {$department}");
+        set_flash('success', 'Department removed.');
+        header('Location: users.php');
+        exit;
+    }
+
     if ($action === 'update_status') {
         $id = (int) ($_POST['user_id'] ?? 0);
         $status = (int) ($_POST['status'] ?? 0) === 1 ? 1 : 0;
@@ -199,15 +236,15 @@ require_once "../partials/header.php";
     @media (max-width: 980px) { .user-grid { grid-template-columns: 1fr; } }
     .kpi-row { display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:14px; margin-bottom:20px; }
     @media (max-width: 900px) { .kpi-row { grid-template-columns: repeat(2, minmax(0,1fr)); } }
-    .kpi-card { background:#fff; border:1px solid #e2e8f0; border-left:4px solid #246a73; border-radius:10px; padding:14px 16px; box-shadow:0 4px 14px rgba(15,23,42,.05); }
+    .kpi-card { background:#fff; border:1px solid #e2e8f0; border-left:4px solid #b8481b; border-radius:10px; padding:14px 16px; box-shadow:0 4px 14px rgba(15,23,42,.05); }
     .kpi-card span { display:block; color:#64748b; font-size:.78rem; text-transform:uppercase; letter-spacing:.04em; }
-    .kpi-card strong { display:block; margin-top:4px; color:#183b56; font-size:1.35rem; }
+    .kpi-card strong { display:block; margin-top:4px; color:#1f2933; font-size:1.35rem; }
     .user-form label { margin-top:12px; }
     .user-form .hint { color:#64748b; font-size:.78rem; margin-top:4px; }
     .access-form { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
     .access-form select { min-width:104px; }
     .row-actions { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
-    .reset-box summary { cursor:pointer; color:#246a73; font-weight:600; font-size:.82rem; }
+    .reset-box summary { cursor:pointer; color:#b8481b; font-weight:600; font-size:.82rem; }
     .reset-box form { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; align-items:center; }
     .reset-box input { max-width:150px; }
     @media print { .no-print { display:none !important; } body { background:#fff; } .kpi-card, .panel { box-shadow:none; } }
@@ -302,6 +339,7 @@ require_once "../partials/header.php";
                     <?php if (!$users): ?>
                     <tr><td colspan="6">No users match the selected filters.</td></tr>
                     <?php endif; ?>
+                    <?php $extraDeptMap = user_extra_department_map(); ?>
                     <?php foreach ($users as $user): ?>
                     <?php $isSelf = (int) $user['id'] === (int) $_SESSION['user_id']; ?>
                     <tr>
@@ -317,6 +355,9 @@ require_once "../partials/header.php";
                             <?php else: ?>
                                 <span class="badge badge-muted"><?= e(ucfirst($user['department_role'] ?? 'User')) ?></span>
                                 <div style="color:#64748b;font-size:.76rem;"><?= e($departments[$user['department'] ?? ''] ?? 'No department') ?></div>
+                                <?php foreach ($extraDeptMap[(int) $user['id']] ?? [] as $x): ?>
+                                <div style="color:#64748b;font-size:.76rem;">+ <?= e($departments[$x['department']] ?? $x['department']) ?> (<?= e(ucfirst($x['department_role'])) ?>)</div>
+                                <?php endforeach; ?>
                             <?php endif; ?>
                         </td>
                         <td><span class="badge <?= $user['status'] ? 'badge-success' : 'badge-danger' ?>"><?= $user['status'] ? 'Active' : 'Inactive' ?></span></td>
@@ -341,6 +382,34 @@ require_once "../partials/header.php";
                                     </select>
                                     <button type="submit" class="btn btn-sm">Save access</button>
                                 </form>
+                                <?php if (!user_is_admin_role($user['role'])): ?>
+                                <details class="reset-box">
+                                    <summary>More departments</summary>
+                                    <?php foreach ($extraDeptMap[(int) $user['id']] ?? [] as $x): ?>
+                                    <form method="post" style="display:flex;gap:6px;align-items:center;margin:6px 0;">
+                                        <input type="hidden" name="action" value="remove_extra_department">
+                                        <input type="hidden" name="user_id" value="<?= (int) $user['id'] ?>">
+                                        <input type="hidden" name="department" value="<?= e($x['department']) ?>">
+                                        <span><?= e($departments[$x['department']] ?? $x['department']) ?> (<?= e(ucfirst($x['department_role'])) ?>)</span>
+                                        <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+                                    </form>
+                                    <?php endforeach; ?>
+                                    <form method="post" class="access-form">
+                                        <input type="hidden" name="action" value="add_extra_department">
+                                        <input type="hidden" name="user_id" value="<?= (int) $user['id'] ?>">
+                                        <select name="department_role" required>
+                                            <option value="user">User</option>
+                                            <option value="manager">Manager</option>
+                                        </select>
+                                        <select name="department" required>
+                                            <?php foreach ($departments as $key => $label): ?>
+                                            <option value="<?= e($key) ?>"><?= e($label) ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                        <button type="submit" class="btn btn-sm">Add</button>
+                                    </form>
+                                </details>
+                                <?php endif; ?>
                                 <form method="post">
                                     <input type="hidden" name="action" value="update_status">
                                     <input type="hidden" name="user_id" value="<?= (int) $user['id'] ?>">
