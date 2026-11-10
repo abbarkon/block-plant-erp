@@ -146,7 +146,9 @@ try {
     $dLab = round($laborCost - $oldLabor, 2);
     $dOv = round($overheadCost - $oldOverhead, 2);
     $dCost = round($dMat + $dLab + $dOv, 2);
-    $suffix = '-ADJ-' . date('YmdHis') . random_int(10, 99);
+    // Keep adjustment entry numbers within journal_entries.entry_no limits:
+    // production_no (21) + suffix (18) + '-COMPLETE' (9) = 48 characters.
+    $suffix = '-ADJ' . date('ymdHis') . random_int(10, 99);
     if ($dMat != 0.0 || $dLab != 0.0 || $dOv != 0.0) {
         post_accounting_journal($productionNo . $suffix . '-ISSUE', date('Y-m-d'), 'Adjustment: production ' . $productionNo . ' edited (costs issued to WIP)', $productionNo, [
             ['1140', max($dCost, 0), max(-$dCost, 0), 'WIP adjustment'],

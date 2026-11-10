@@ -39,6 +39,7 @@ foreach ($lines as $l) {
 }
 
 $pageTitle = 'Edit ' . $p['production_no'];
+$flash = get_flash();
 require_once "../partials/header.php";
 ?>
 
@@ -46,6 +47,10 @@ require_once "../partials/header.php";
     <h1>Edit <?= e($p['production_no']) ?></h1>
     <a href="view.php?id=<?= (int) $p['id'] ?>" class="btn btn-secondary"><?= t('cancel') ?></a>
 </div>
+
+<?php if ($flash): ?>
+<div class="flash <?= $flash['type'] === 'error' ? 'flash-error' : 'flash-success' ?>"><?= e($flash['message']) ?></div>
+<?php endif; ?>
 
 <div class="panel" style="max-width:900px;">
     <p style="background:#fff8e1;border:1px solid #ffe082;padding:10px;border-radius:8px;font-size:.88rem;">

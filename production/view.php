@@ -37,6 +37,7 @@ $qual = $p['produced_quantity'] > 0 ? ($p['good_quantity'] / $p['produced_quanti
 $unitCost = (int) $p['good_quantity'] > 0 ? (float) $p['production_cost'] / (int) $p['good_quantity'] : 0;
 
 $pageTitle = 'Production ' . $p['production_no'];
+$flash = get_flash();
 require_once "../partials/header.php";
 ?>
 
@@ -50,6 +51,10 @@ require_once "../partials/header.php";
         <a href="index.php" class="btn btn-secondary">← All runs</a>
     </div>
 </div>
+
+<?php if ($flash): ?>
+<div class="flash <?= $flash['type'] === 'error' ? 'flash-error' : 'flash-success' ?>"><?= e($flash['message']) ?></div>
+<?php endif; ?>
 
 <div class="stats-grid">
     <div class="stat-card"><div class="stat-icon" style="background:#3498db;">📅</div><div><div class="stat-value"><?= format_date($p['production_date']) ?></div><div class="stat-label">Date</div></div></div>

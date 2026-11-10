@@ -87,6 +87,7 @@ $exportQuery = $_GET;
 $exportQuery['export'] = 'csv';
 $exportUrl = 'index.php?' . http_build_query($exportQuery);
 
+$flash = get_flash();
 require_once "../partials/header.php";
 ?>
 
@@ -109,6 +110,10 @@ require_once "../partials/header.php";
         <a href="analytics.php" class="btn btn-secondary">Analytics</a>
     </div>
 </div>
+
+<?php if ($flash): ?>
+<div class="flash <?= $flash['type'] === 'error' ? 'flash-error' : 'flash-success' ?>"><?= e($flash['message']) ?></div>
+<?php endif; ?>
 
 <div class="stats-grid no-print">
     <div class="stat-card">

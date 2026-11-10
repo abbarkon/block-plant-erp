@@ -71,6 +71,7 @@ foreach ($materials as $m) {
     $matJson[] = ['id' => (int) $m['id'], 'name' => $m['name'], 'unit_cost' => (float) $m['unit_cost'], 'unit' => $m['unit'] ?? ''];
 }
 
+$flash = get_flash();
 require_once "../partials/header.php";
 ?>
 
@@ -78,6 +79,10 @@ require_once "../partials/header.php";
     <h1>New Production Run</h1>
     <a href="index.php" class="btn btn-secondary"><?= t('cancel') ?></a>
 </div>
+
+<?php if ($flash): ?>
+<div class="flash <?= $flash['type'] === 'error' ? 'flash-error' : 'flash-success' ?>"><?= e($flash['message']) ?></div>
+<?php endif; ?>
 
 <div class="panel" style="max-width:900px;">
     <form method="post" action="save.php" id="prodForm">
