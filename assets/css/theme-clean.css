@@ -70,9 +70,9 @@ body.theme-advanced::before, body.theme-advanced::after { display: none !importa
 
 /* ---- Top bar ---- */
 .theme-advanced .topbar {
-    background: linear-gradient(90deg, #a93f15 0%, #8f3414 100%) !important;
+    background: linear-gradient(90deg, #3c4a78 0%, #2f3b62 100%) !important;
     -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
-    box-shadow: 0 4px 16px rgba(143, 52, 20, .22) !important;
+    box-shadow: 0 4px 16px rgba(47, 59, 98, .2) !important;
     border-bottom: 0 !important;
 }
 
