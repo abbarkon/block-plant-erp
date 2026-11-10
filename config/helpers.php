@@ -1210,7 +1210,7 @@ function ensure_manufacturing_costing_schema() {
     }
 
     $pdo->exec("CREATE TABLE IF NOT EXISTS journal_entries (
-        id INT AUTO_INCREMENT PRIMARY KEY, entry_no VARCHAR(50) UNIQUE NOT NULL,
+        id INT AUTO_INCREMENT PRIMARY KEY, entry_no VARCHAR(100) UNIQUE NOT NULL,
         entry_date DATE NOT NULL, description VARCHAR(255), reference_no VARCHAR(60),
         total_debit DECIMAL(14,2) DEFAULT 0, total_credit DECIMAL(14,2) DEFAULT 0,
         status VARCHAR(20) DEFAULT 'draft', posted_by INT, posted_at TIMESTAMP NULL,
@@ -1223,6 +1223,13 @@ function ensure_manufacturing_costing_schema() {
         description VARCHAR(255), FOREIGN KEY(entry_id) REFERENCES journal_entries(id) ON DELETE CASCADE,
         FOREIGN KEY(account_id) REFERENCES chart_of_accounts(id)
     )");
+    // Widen entry_no on databases created by older versions: adjustment entries
+    // posted when a production order is edited can exceed 50 characters.
+    try {
+        $pdo->exec("ALTER TABLE journal_entries MODIFY entry_no VARCHAR(100) NOT NULL");
+    } catch (PDOException $e) {
+        // The column is already wide enough or the database user cannot alter it.
+    }
 
     $parents = [];
     foreach (['1100', '2000'] as $parentCode) {
