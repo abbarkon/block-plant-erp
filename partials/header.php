@@ -74,6 +74,7 @@ if ($hasSysNotifTable) {
     <link rel="stylesheet" href="/block_plant/assets/css/mobile.css?v=<?= filemtime(__DIR__ . '/../assets/css/mobile.css') ?>">
     <link rel="stylesheet" href="/block_plant/assets/css/sidebar.css?v=<?= filemtime(__DIR__ . '/../assets/css/sidebar.css') ?>">
     <link rel="stylesheet" href="/block_plant/assets/css/theme-clean.css?v=<?= filemtime(__DIR__ . '/../assets/css/theme-clean.css') ?>">
+    <link rel="stylesheet" href="/block_plant/assets/css/dark-theme.css?v=<?= filemtime(__DIR__ . '/../assets/css/dark-theme.css') ?>">
     <style>
         :root {
             --bp-primary: <?= htmlspecialchars($brand['primary']) ?>;
@@ -242,13 +243,15 @@ if ($hasSysNotifTable) {
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const btn = document.getElementById('themeToggle');
-            if (localStorage.getItem('theme') === 'dark') {
-                document.body.classList.add('dark-theme');
-            }
+            const syncThemeIcon = () => {
+                if (btn) btn.textContent = document.body.classList.contains('dark-theme') ? '☀️' : '🌙';
+            };
+            syncThemeIcon();
             if (btn) {
                 btn.addEventListener('click', () => {
                     document.body.classList.toggle('dark-theme');
                     localStorage.setItem('theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
+                    syncThemeIcon();
                 });
             }
 
@@ -288,6 +291,14 @@ if ($hasSysNotifTable) {
     </script>
 </head>
 <body class="theme-advanced">
+<script>
+try {
+    var bpTheme = localStorage.getItem('theme');
+    if (bpTheme === 'dark' || (!bpTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.body.classList.add('dark-theme');
+    }
+} catch (e) {}
+</script>
     <div class="topbar">
         <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-label="<?= e(t('toggle_navigation')) ?>" aria-controls="appSidebar" aria-expanded="false">☰</button>
         <div class="logo" style="display:flex;align-items:center;gap:10px;">
