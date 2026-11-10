@@ -98,15 +98,15 @@ require_once "../partials/header.php";
 <style>
     .exp-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin-bottom:20px; }
     @media (max-width: 950px) { .exp-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } }
-    .exp-kpi { background:#fff; border:1px solid #e2e8f0; border-left:4px solid #b8481b; border-radius:10px; padding:14px 16px; box-shadow:0 4px 14px rgba(15,23,42,.05); }
+    .exp-kpi { background:#fff; border:1px solid #e2e8f0; border-left:4px solid #4f4fc9; border-radius:10px; padding:14px 16px; box-shadow:0 4px 14px rgba(15,23,42,.05); }
     .exp-kpi span { display:block; color:#64748b; font-size:.76rem; text-transform:uppercase; letter-spacing:.04em; }
-    .exp-kpi strong { display:block; margin-top:4px; color:#1f2933; font-size:1.3rem; }
+    .exp-kpi strong { display:block; margin-top:4px; color:#1c2250; font-size:1.3rem; }
     .exp-kpi.pending { border-left-color:#b45309; }
-    .exp-kpi.approved { border-left-color:#d9742f; }
+    .exp-kpi.approved { border-left-color:#7a5cd6; }
     .exp-desc { max-width:340px; }
     .pager { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:14px; }
-    .pager a, .pager span { padding:6px 10px; border-radius:6px; border:1px solid #e2e8f0; background:#fff; color:#1f2933; text-decoration:none; font-size:.82rem; }
-    .pager span.current { background:#1f2933; color:#fff; border-color:#1f2933; }
+    .pager a, .pager span { padding:6px 10px; border-radius:6px; border:1px solid #e2e8f0; background:#fff; color:#1c2250; text-decoration:none; font-size:.82rem; }
+    .pager span.current { background:#1c2250; color:#fff; border-color:#1c2250; }
     @media print { .no-print { display:none !important; } body { background:#fff; } .exp-kpi, .table-container { box-shadow:none; } }
 </style>
 

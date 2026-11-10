@@ -78,10 +78,10 @@ require_once "../partials/header.php";
 <style>
     .dep-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin-bottom:20px; }
     @media (max-width: 950px) { .dep-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } }
-    .dep-kpi { background:#fff; border:1px solid #e2e8f0; border-left:4px solid #b8481b; border-radius:10px; padding:14px 16px; box-shadow:0 4px 14px rgba(15,23,42,.05); }
+    .dep-kpi { background:#fff; border:1px solid #e2e8f0; border-left:4px solid #4f4fc9; border-radius:10px; padding:14px 16px; box-shadow:0 4px 14px rgba(15,23,42,.05); }
     .dep-kpi span { display:block; color:#64748b; font-size:.76rem; text-transform:uppercase; letter-spacing:.04em; }
-    .dep-kpi strong { display:block; margin-top:4px; color:#1f2933; font-size:1.3rem; }
-    .dep-kpi.book { border-left-color:#d9742f; }
+    .dep-kpi strong { display:block; margin-top:4px; color:#1c2250; font-size:1.3rem; }
+    .dep-kpi.book { border-left-color:#7a5cd6; }
     .dep-kpi.warn { border-left-color:#b45309; }
     .dep-note { color:#64748b; font-size:.8rem; margin-top:10px; }
     .variance-pos { color:#166534; }

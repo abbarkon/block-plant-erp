@@ -27,8 +27,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $currency = strtoupper(trim($_POST['currency'] ?? 'ETB'));
     $currencySymbol = trim($_POST['currency_symbol'] ?? 'Br');
     $locale = $_POST['locale_default'] ?? 'en';
-    $primary = strtolower(trim($_POST['primary_color'] ?? '#b8481b'));
-    $secondary = strtolower(trim($_POST['secondary_color'] ?? '#7c2d12'));
+    $primary = strtolower(trim($_POST['primary_color'] ?? '#4f4fc9'));
+    $secondary = strtolower(trim($_POST['secondary_color'] ?? '#6a4cc4'));
     $commissionRaw = trim($_POST['default_commission_rate'] ?? '0');
     $removeLogo = !empty($_POST['remove_logo']);
 
@@ -153,7 +153,7 @@ require_once "../partials/header.php";
 <style>
     .brand-preview { display:flex; gap:18px; align-items:center; padding:20px; border:1px dashed #cbd5e1; border-radius:12px; background:#f8fafc; margin-bottom:6px; }
     .brand-preview__logo { width:72px; height:72px; border-radius:14px; object-fit:contain; background:#fff; border:1px solid #e2e8f0; display:grid; place-items:center; font-size:1.8rem; font-weight:800; color:#fff; flex:0 0 auto; }
-    .brand-preview__name { font-size:1.25rem; font-weight:800; color:#1f2933; margin:0; }
+    .brand-preview__name { font-size:1.25rem; font-weight:800; color:#1c2250; margin:0; }
     .brand-preview__tagline { color:#64748b; margin:3px 0 0; font-size:.88rem; }
     .brand-swatches { display:flex; gap:8px; margin-top:8px; }
     .brand-swatches span { display:inline-flex; align-items:center; gap:6px; font-size:.75rem; color:#475569; }
@@ -289,7 +289,7 @@ require_once "../partials/header.php";
 function resetBrandColors() {
     var primary = document.querySelector('input[name="primary_color"]');
     var secondary = document.querySelector('input[name="secondary_color"]');
-    primary.value = '#b8481b';
+    primary.value = '#4f4fc9';
     secondary.value = '#2f7d4f';
     primary.dispatchEvent(new Event('input'));
     secondary.dispatchEvent(new Event('input'));

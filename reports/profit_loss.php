@@ -51,10 +51,10 @@ require_once "../partials/header.php";
 <style>
     .pl-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin-bottom:20px; }
     @media (max-width:950px) { .pl-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } }
-    .pl-kpi { background:#fff; border:1px solid #e2e8f0; border-left:4px solid #b8481b; border-radius:10px; padding:14px 16px; box-shadow:0 4px 14px rgba(15,23,42,.05); }
+    .pl-kpi { background:#fff; border:1px solid #e2e8f0; border-left:4px solid #4f4fc9; border-radius:10px; padding:14px 16px; box-shadow:0 4px 14px rgba(15,23,42,.05); }
     .pl-kpi span { display:block; color:#64748b; font-size:.76rem; text-transform:uppercase; letter-spacing:.04em; }
-    .pl-kpi strong { display:block; margin-top:4px; color:#1f2933; font-size:1.3rem; }
-    .pl-kpi.good { border-left-color:#d9742f; }
+    .pl-kpi strong { display:block; margin-top:4px; color:#1c2250; font-size:1.3rem; }
+    .pl-kpi.good { border-left-color:#7a5cd6; }
     .pl-kpi.bad { border-left-color:#b91c1c; }
     .amount-pos { color:#166534; }
     .amount-neg { color:#991b1b; }

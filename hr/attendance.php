@@ -371,7 +371,7 @@ require_once "../partials/header.php";
 @keyframes latePop{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
 .late-modal-head{display:flex;gap:12px;align-items:center;padding:18px 20px;background:linear-gradient(135deg,#fff7ed,#ffedd5);border-bottom:1px solid #fed7aa}
 .late-modal-badge{width:42px;height:42px;border-radius:12px;background:#ea580c;color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.25rem;flex:none;box-shadow:0 6px 14px rgba(234,88,12,.35)}
-.late-modal-heading h2{margin:0;font-size:1.05rem;color:#7c2d12}
+.late-modal-heading h2{margin:0;font-size:1.05rem;color:#6a4cc4}
 .late-modal-heading p{margin:2px 0 0;font-size:.85rem;color:#9a3412}
 .late-modal-x{margin-left:auto;border:0;background:transparent;font-size:1.5rem;line-height:1;color:#9a3412;cursor:pointer;padding:4px 8px;border-radius:8px}
 .late-modal-x:hover{background:rgba(154,52,18,.1)}

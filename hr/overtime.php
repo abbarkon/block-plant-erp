@@ -110,20 +110,20 @@ $summary = $pdo->query("SELECT
 <!-- Summary Cards -->
 <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:15px; margin-bottom:20px;">
     <div class="panel" style="margin-bottom:0; text-align:center;">
-        <div style="font-size:2rem; font-weight:bold; color:#e8a33d;"><?= number_format($summary['pending']) ?></div>
-        <div style="color:#6a6259; font-size:0.85rem;">Pending Requests</div>
+        <div style="font-size:2rem; font-weight:bold; color:#22b8cf;"><?= number_format($summary['pending']) ?></div>
+        <div style="color:#646b8c; font-size:0.85rem;">Pending Requests</div>
     </div>
     <div class="panel" style="margin-bottom:0; text-align:center;">
-        <div style="font-size:2rem; font-weight:bold; color:#d9742f;"><?= number_format($summary['approved']) ?></div>
-        <div style="color:#6a6259; font-size:0.85rem;">Approved (30 days)</div>
+        <div style="font-size:2rem; font-weight:bold; color:#7a5cd6;"><?= number_format($summary['approved']) ?></div>
+        <div style="color:#646b8c; font-size:0.85rem;">Approved (30 days)</div>
     </div>
     <div class="panel" style="margin-bottom:0; text-align:center;">
-        <div style="font-size:2rem; font-weight:bold; color:#1f2933;"><?= number_format($summary['total_approved_hours'], 1) ?></div>
-        <div style="color:#6a6259; font-size:0.85rem;">Total Hours (30 days)</div>
+        <div style="font-size:2rem; font-weight:bold; color:#1c2250;"><?= number_format($summary['total_approved_hours'], 1) ?></div>
+        <div style="color:#646b8c; font-size:0.85rem;">Total Hours (30 days)</div>
     </div>
     <div class="panel" style="margin-bottom:0; text-align:center;">
         <div style="font-size:2rem; font-weight:bold; color:#64748b;"><?= number_format($summary['rejected']) ?></div>
-        <div style="color:#6a6259; font-size:0.85rem;">Rejected (30 days)</div>
+        <div style="color:#646b8c; font-size:0.85rem;">Rejected (30 days)</div>
     </div>
 </div>
 

@@ -1,7 +1,7 @@
 <script>
 (function () {
     if (typeof Chart === 'undefined') return;
-    const primary = getComputedStyle(document.documentElement).getPropertyValue('--bp-primary').trim() || '#b8481b';
+    const primary = getComputedStyle(document.documentElement).getPropertyValue('--bp-primary').trim() || '#4f4fc9';
     const accent = getComputedStyle(document.documentElement).getPropertyValue('--bp-accent').trim() || '#2f7d4f';
 
     fetch('/block_plant/api/inventory_charts_data.php')

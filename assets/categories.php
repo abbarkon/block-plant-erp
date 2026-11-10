@@ -132,16 +132,16 @@ require_once "../partials/header.php";
     .cat-grid { display:grid; grid-template-columns:360px 1fr; gap:20px; align-items:start; }
     @media (max-width: 900px) { .cat-grid { grid-template-columns:1fr; } }
     .cat-card { background:#fff; border:1px solid #e2e8f0; border-radius:12px; box-shadow:0 8px 24px rgba(15,23,42,.06); padding:22px; }
-    .cat-card h3 { margin:0 0 14px; color:#1f2933; }
+    .cat-card h3 { margin:0 0 14px; color:#1c2250; }
     .cat-card label { display:block; font-weight:600; font-size:.84rem; color:#334155; margin:12px 0 5px; }
     .cat-card input { width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:8px; font:inherit; }
-    .cat-card input:focus { outline:none; border-color:#d9742f; box-shadow:0 0 0 3px rgba(42,157,143,.15); }
+    .cat-card input:focus { outline:none; border-color:#7a5cd6; box-shadow:0 0 0 3px rgba(42,157,143,.15); }
     .cat-actions { display:flex; gap:5px; flex-wrap:wrap; }
     .cat-actions form { margin:0; }
     .cat-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-bottom:16px; }
-    .cat-kpis div { background:#f4efe8; border-radius:8px; padding:10px 12px; }
+    .cat-kpis div { background:#eef0fa; border-radius:8px; padding:10px 12px; }
     .cat-kpis span { display:block; color:#64748b; font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; }
-    .cat-kpis strong { color:#1f2933; font-size:1.05rem; }
+    .cat-kpis strong { color:#1c2250; font-size:1.05rem; }
 </style>
 
 <div class="page-header">

@@ -30,7 +30,7 @@ require_once "../partials/header.php";
 
 <div class="module-kpis">
     <div class="module-kpi">
-        <div class="stat-icon" style="background:#b8481b;">🧱</div>
+        <div class="stat-icon" style="background:#4f4fc9;">🧱</div>
         <div><div class="stat-value"><?= currency_symbol() . money($rawValue) ?></div><div class="stat-label">Raw materials (at cost)</div></div>
     </div>
     <div class="module-kpi">
@@ -38,15 +38,15 @@ require_once "../partials/header.php";
         <div><div class="stat-value"><?= currency_symbol() . money($finishedCost) ?></div><div class="stat-label">Finished goods (at cost)</div></div>
     </div>
     <div class="module-kpi">
-        <div class="stat-icon" style="background:#1f2933;">🧾</div>
+        <div class="stat-icon" style="background:#1c2250;">🧾</div>
         <div><div class="stat-value"><?= currency_symbol() . money($totalCost) ?></div><div class="stat-label">Total inventory at cost</div></div>
     </div>
     <div class="module-kpi">
-        <div class="stat-icon" style="background:#e8a33d;">🏷</div>
+        <div class="stat-icon" style="background:#22b8cf;">🏷</div>
         <div><div class="stat-value"><?= currency_symbol() . money($finishedRetail) ?></div><div class="stat-label">Finished goods at retail</div></div>
     </div>
     <div class="module-kpi">
-        <div class="stat-icon" style="background:#d9742f;">📈</div>
+        <div class="stat-icon" style="background:#7a5cd6;">📈</div>
         <div><div class="stat-value"><?= currency_symbol() . money($potentialMargin) ?></div><div class="stat-label">Unrealised margin (<?= number_format($marginPct, 1) ?>%)</div></div>
     </div>
 </div>
@@ -69,9 +69,9 @@ require_once "../partials/header.php";
 
 <style>
 .module-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin-bottom:24px}
-.module-kpi{display:flex;align-items:center;gap:14px;padding:19px;background:#fff;border:1px solid #e3ddd4;border-radius:14px;box-shadow:0 8px 22px rgba(24,59,86,.07);border-top:4px solid #d9742f}
+.module-kpi{display:flex;align-items:center;gap:14px;padding:19px;background:#fff;border:1px solid #dde1f0;border-radius:14px;box-shadow:0 8px 22px rgba(24,59,86,.07);border-top:4px solid #7a5cd6}
 .module-kpi .stat-icon{width:46px;height:46px;border-radius:13px;font-size:1.2rem;display:flex;align-items:center;justify-content:center;color:#fff}
-.module-kpi .stat-value{font-size:1.4rem;color:#1f2933}
+.module-kpi .stat-value{font-size:1.4rem;color:#1c2250}
 .module-kpi .stat-label{font-size:.78rem;color:#64748b}
 </style>
 

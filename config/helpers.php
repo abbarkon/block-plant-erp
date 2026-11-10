@@ -1770,7 +1770,7 @@ function company_tagline() {
 /** Colours saved by older versions (the previous defaults) are replaced by the new brand palette. */
 function brand_color_or_default($stored, $default) {
     $stored = strtolower(trim((string) $stored));
-    $legacy = ['', '#3949ab', '#00897b', '#0e6a78', '#0f3340', '#246a73', '#183b56', '#2a9d8f', '#b8481b', '#2f7d4f'];
+    $legacy = ['', '#3949ab', '#00897b', '#0e6a78', '#0f3340', '#246a73', '#183b56', '#2a9d8f', '#b8481b', '#7c2d12', '#2f7d4f', '#4f4fc9'];
     if (!preg_match('/^#[0-9a-f]{6}$/', $stored) || in_array($stored, $legacy, true)) {
         return $default;
     }
@@ -1780,8 +1780,8 @@ function brand_color_or_default($stored, $default) {
 function brand_colors() {
     $c = company_settings();
     return [
-        'primary' => brand_color_or_default($c['primary_color'] ?? '', '#b8481b'),
-        'secondary' => brand_color_or_default($c['secondary_color'] ?? '', '#7c2d12'),
+        'primary' => brand_color_or_default($c['primary_color'] ?? '', '#4f4fc9'),
+        'secondary' => brand_color_or_default($c['secondary_color'] ?? '', '#6a4cc4'),
     ];
 }
 
@@ -3904,7 +3904,7 @@ function render_attendance_warning_revoked($revocation, $employee, $from, $to, $
         .revoked-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-bottom: 20px; }
         .revoked-field { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 9px; padding: 10px 12px; }
         .revoked-field span { display: block; color: #64748b; font-size: .74rem; text-transform: uppercase; letter-spacing: .03em; margin-bottom: 3px; }
-        .revoked-field strong { color: #1f2933; font-weight: 600; overflow-wrap: anywhere; }
+        .revoked-field strong { color: #1c2250; font-weight: 600; overflow-wrap: anywhere; }
         .revoked-actions { display: flex; gap: 10px; flex-wrap: wrap; }
         .button { display: inline-block; padding: 10px 16px; border-radius: 8px; background: #475569; color: #fff; text-decoration: none; font-weight: 600; }
         .button:hover { opacity: .9; }
@@ -4423,7 +4423,6 @@ function leave_status_label($status) {
     $label = t($key);
     return $label !== $key ? $label : ucfirst($status);
 }
-
 
 // ---- Multiple departments per user ----
 function ensure_extra_departments_schema() {

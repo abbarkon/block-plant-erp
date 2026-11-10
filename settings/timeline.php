@@ -96,7 +96,7 @@ require_once "../partials/header.php";
 
 <style>
     .timeline-kpis { display:flex; gap:10px 22px; flex-wrap:wrap; color:#475569; font-size:.86rem; margin:0 0 16px; }
-    .timeline-kpis strong { color:#1f2933; }
+    .timeline-kpis strong { color:#1c2250; }
     .timeline-summary { color:#64748b; font-size:.84rem; margin:0 0 10px; }
     @media print { .no-print { display:none !important; } body { background:#fff; } .timeline { box-shadow:none; } }
 </style>

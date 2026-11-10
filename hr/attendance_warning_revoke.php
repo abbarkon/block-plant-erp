@@ -210,7 +210,7 @@ require_once "../partials/header.php";
     .revoke-employee { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 14px 0 18px; }
     .revoke-field { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; }
     .revoke-field span { display: block; color: #64748b; font-size: .75rem; text-transform: uppercase; letter-spacing: .03em; }
-    .revoke-field strong { color: #1f2933; }
+    .revoke-field strong { color: #1c2250; }
     .revoke-dates { color: #475569; font-size: .9rem; line-height: 1.65; }
     .revoke-note { border-left: 4px solid #dc2626; background: #fef2f2; color: #7f1d1d; padding: 12px 14px; border-radius: 8px; margin: 16px 0; }
     .revoke-warning-note { border-left: 4px solid #d97706; background: #fffbeb; color: #78350f; padding: 12px 14px; border-radius: 8px; margin: 16px 0; }
@@ -273,7 +273,7 @@ require_once "../partials/header.php";
                 <?php foreach ($revocationEvidence as $evidenceFile): ?>
                 <div style="display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap; align-items:center; padding:10px 14px; border:1px solid #e2e8f0; border-radius:10px; background:#f8fafc;">
                     <div>
-                        <div style="font-weight:600; color:#1f2933;"><?= e($evidenceFile['original_name']) ?></div>
+                        <div style="font-weight:600; color:#1c2250;"><?= e($evidenceFile['original_name']) ?></div>
                         <div style="color:#64748b; font-size:.85rem;">
                             <?= e(format_bytes((int) $evidenceFile['file_size'])) ?>
                             <?php if (!empty($evidenceFile['uploaded_by_name'])): ?>· <?= e($wt('uploaded_by')) ?>: <?= e($evidenceFile['uploaded_by_name']) ?><?php endif; ?>

@@ -1,19 +1,19 @@
-/* Soft peach sidebar - light, calm and easy on the eyes. Loaded after glass.css / mobile.css. Markup is unchanged. */
+/* Soft mist sidebar - light, calm and easy on the eyes. Loaded after glass.css / mobile.css. Markup is unchanged. */
 .theme-advanced {
     --sidebar-w: 268px;
-    --sb-top: #fff4ec; --sb-bottom: #ffe5d3;
-    --sb-text: #4a4256; --sb-muted: #7b7086;
-    --sb-line: #f1cdb6; --sb-chip: rgba(255,255,255,.85);
-    --sb-accent: #4f5d95; --sb-accent-soft: #e9ecf8;
+    --sb-top: #f7f8ff; --sb-bottom: #e8ebfb;
+    --sb-text: #2f3555; --sb-muted: #6b7194;
+    --sb-line: #d5daf2; --sb-chip: rgba(255,255,255,.85);
+    --sb-accent: #4f4fc9; --sb-accent-soft: #e6e8fb;
 }
 
 .theme-advanced .navbar {
     background: linear-gradient(180deg, var(--sb-top) 0%, var(--sb-bottom) 100%) !important;
-    border-right: 1px solid #f3d6c2 !important;
-    box-shadow: 6px 0 28px rgba(190, 120, 80, .12);
+    border-right: 1px solid #dfe3f5 !important;
+    box-shadow: 6px 0 28px rgba(79, 79, 201, .12);
     padding: 18px 14px 48px !important;
     scrollbar-width: thin;
-    scrollbar-color: rgba(150, 100, 80, .3) transparent;
+    scrollbar-color: rgba(79, 79, 201, .3) transparent;
 }
 
 /* ---- Brand ---- */
@@ -28,7 +28,7 @@
     font-weight: 800;
     letter-spacing: .01em;
     color: var(--sb-text);
-    box-shadow: 0 4px 14px rgba(190, 120, 80, .12);
+    box-shadow: 0 4px 14px rgba(79, 79, 201, .12);
 }
 .theme-advanced .sidebar-brand img { height: 38px; width: 38px; object-fit: cover; border-radius: 11px; background: #fff; padding: 2px; }
 .theme-advanced .sidebar-brand span { overflow: hidden; text-overflow: ellipsis; line-height: 1.25; }
@@ -55,7 +55,7 @@
     background: #fff !important;
     color: var(--sb-accent) !important;
     font-weight: 800;
-    box-shadow: 0 6px 18px rgba(190, 120, 80, .2) !important;
+    box-shadow: 0 6px 18px rgba(79, 79, 201, .2) !important;
 }
 .theme-advanced .navbar > ul > li > a.active::after {
     content: ""; position: absolute; left: -14px; top: 9px; bottom: 9px; width: 4px;
@@ -75,7 +75,7 @@
     width: 34px; height: 34px;
     border-radius: 11px;
     background: var(--sb-chip);
-    box-shadow: 0 2px 6px rgba(190, 120, 80, .12);
+    box-shadow: 0 2px 6px rgba(79, 79, 201, .12);
     font-size: 1.05rem; line-height: 1;
     transition: background .2s ease, transform .2s ease;
 }
@@ -134,7 +134,7 @@
     background: #fff !important;
     color: var(--sb-accent) !important;
     font-weight: 800;
-    box-shadow: 0 3px 10px rgba(190, 120, 80, .15);
+    box-shadow: 0 3px 10px rgba(79, 79, 201, .15);
 }
 .theme-advanced .navbar .dropdown-menu a.active::before {
     content: ""; position: absolute; left: -17px; top: 50%; width: 9px; height: 9px;
@@ -157,7 +157,7 @@
     border-radius: 999px;
     background: var(--sb-accent); color: #fff;
     font-size: .72rem; font-weight: 800; line-height: 1;
-    box-shadow: 0 3px 8px rgba(79, 93, 149, .35);
+    box-shadow: 0 3px 8px rgba(79, 79, 201, .35);
 }
 .theme-advanced .navbar .dropdown > a { padding-right: 12px !important; }
 
@@ -189,19 +189,19 @@
 @media (max-width: 900px) {
     .bottom-bar {
         display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 8000;
-        background: linear-gradient(90deg, #fff4ec, #ffe5d3);
-        border-top: 1px solid #f3d6c2;
+        background: linear-gradient(90deg, #f7f8ff, #e8ebfb);
+        border-top: 1px solid #dfe3f5;
         padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
-        box-shadow: 0 -6px 20px rgba(190, 120, 80, .15);
+        box-shadow: 0 -6px 20px rgba(79, 79, 201, .15);
     }
     .bottom-bar a, .bottom-bar button {
         flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
-        padding: 6px 2px; border: 0; background: transparent; color: #7b7086;
+        padding: 6px 2px; border: 0; background: transparent; color: #6b7194;
         text-decoration: none; font: inherit; cursor: pointer; border-radius: 12px;
     }
     .bottom-bar .bb-ico { font-size: 1.25rem; line-height: 1; }
     .bottom-bar .bb-txt { font-size: .68rem; font-weight: 700; }
-    .bottom-bar a.active { color: #4f5d95; background: #fff; box-shadow: 0 3px 10px rgba(190, 120, 80, .18); }
+    .bottom-bar a.active { color: #4f4fc9; background: #fff; box-shadow: 0 3px 10px rgba(79, 79, 201, .18); }
     body.theme-advanced { padding-bottom: 72px; }
     .fab-wrap { bottom: 84px !important; }
 }

@@ -101,9 +101,9 @@ require_once "../partials/header.php";
     .table-picker { max-height:340px; overflow:auto; border:1px solid #e2e8f0; border-radius:10px; }
     .table-picker table { margin:0; }
     .table-picker th { position:sticky; top:0; z-index:1; }
-    .table-picker tr.is-selected { background:#f4efe8; }
+    .table-picker tr.is-selected { background:#eef0fa; }
     .backup-stat { display:flex; gap:10px 22px; flex-wrap:wrap; color:#475569; font-size:.86rem; margin:12px 0 0; }
-    .backup-stat strong { color:#1f2933; }
+    .backup-stat strong { color:#1c2250; }
     @media print { .no-print { display:none !important; } body { background:#fff; } }
 </style>
 

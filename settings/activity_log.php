@@ -99,9 +99,9 @@ require_once "../partials/header.php";
 <style>
     .kpi-row { display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:14px; margin-bottom:20px; }
     @media (max-width: 900px) { .kpi-row { grid-template-columns: repeat(2, minmax(0,1fr)); } }
-    .kpi-card { background:#fff; border:1px solid #e2e8f0; border-left:4px solid #b8481b; border-radius:10px; padding:14px 16px; box-shadow:0 4px 14px rgba(15,23,42,.05); }
+    .kpi-card { background:#fff; border:1px solid #e2e8f0; border-left:4px solid #4f4fc9; border-radius:10px; padding:14px 16px; box-shadow:0 4px 14px rgba(15,23,42,.05); }
     .kpi-card span { display:block; color:#64748b; font-size:.78rem; text-transform:uppercase; letter-spacing:.04em; }
-    .kpi-card strong { display:block; margin-top:4px; color:#1f2933; font-size:1.35rem; }
+    .kpi-card strong { display:block; margin-top:4px; color:#1c2250; font-size:1.35rem; }
     .log-desc { max-width:420px; }
     .filter-form .date-input { min-width:140px; }
     @media print { .no-print { display:none !important; } body { background:#fff; } .kpi-card, .panel { box-shadow:none; } }

@@ -212,7 +212,7 @@ $loans = $pdo->query("SELECT el.*, e.name as employee_name, e.employee_code, e.b
         <span style="font-size: 1.2rem;">ℹ️</span>
         <div>
             <strong>Loan Eligibility Policy</strong>
-            <div style="color: #6a6259; margin-top: 4px; font-size: 0.9rem;">
+            <div style="color: #646b8c; margin-top: 4px; font-size: 0.9rem;">
                 • Employee must work for at least <strong>2 months</strong> before requesting a loan<br>
                 • <strong>One loan at a time</strong> - no active or pending loans allowed<br>
                 • Maximum loan amount: <strong>2 months basic salary</strong><br>
@@ -246,12 +246,12 @@ $loans = $pdo->query("SELECT el.*, e.name as employee_name, e.employee_code, e.b
                     <option value="<?= $emp['id'] ?>" data-salary="<?= $emp['basic_salary'] ?>" <?= $disabled ?>><?= $label ?></option>
                     <?php endforeach; ?>
                 </select>
-                <small style="color:#6a6259; display:block; margin-top:5px;">📋 Employees with ⚠️ are not eligible for loans. Click on disabled options to see reasons.</small>
+                <small style="color:#646b8c; display:block; margin-top:5px;">📋 Employees with ⚠️ are not eligible for loans. Click on disabled options to see reasons.</small>
             </div>
             <div style="margin-bottom:15px;">
                 <label>Loan Amount:</label>
                 <input type="number" step="0.01" name="loan_amount" id="loanAmount" required placeholder="Enter loan amount" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px;">
-                <small style="color:#6a6259;">Maximum: <span id="maxLoanDisplay">-</span></small>
+                <small style="color:#646b8c;">Maximum: <span id="maxLoanDisplay">-</span></small>
             </div>
             <div style="margin-bottom:15px;">
                 <label>Duration (Months):</label>
@@ -364,15 +364,15 @@ foreach($loans as $loan) {
 <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:15px; margin-top:20px;">
     <div style="text-align:center; padding:15px; background:#fff3cd; border-radius:8px;">
         <div style="font-size:1.3rem; font-weight:bold; color:#f59e0b;"><?= number_format($totalPendingLoans) ?></div>
-        <div style="color:#6a6259; font-size:0.85rem;">Pending Requests</div>
+        <div style="color:#646b8c; font-size:0.85rem;">Pending Requests</div>
     </div>
     <div style="text-align:center; padding:15px; background:#d1fae5; border-radius:8px;">
         <div style="font-size:1.3rem; font-weight:bold; color:#10b981;"><?= number_format($totalActiveLoans) ?></div>
-        <div style="color:#6a6259; font-size:0.85rem;">Active Loans</div>
+        <div style="color:#646b8c; font-size:0.85rem;">Active Loans</div>
     </div>
     <div style="text-align:center; padding:15px; background:#eff6ff; border-radius:8px;">
         <div style="font-size:1.3rem; font-weight:bold; color:#3b82f6;"><?= e(currency_symbol()) . number_format($totalOutstanding, 2) ?></div>
-        <div style="color:#6a6259; font-size:0.85rem;">Total Outstanding</div>
+        <div style="color:#646b8c; font-size:0.85rem;">Total Outstanding</div>
     </div>
 </div>
 

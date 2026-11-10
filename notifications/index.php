@@ -116,22 +116,22 @@ require_once __DIR__ . '/../partials/header.php';
 
 <style>
 .notif-filters{display:flex;gap:8px;margin:16px 0;flex-wrap:wrap}
-.notif-chip{padding:7px 14px;border-radius:999px;border:1px solid #e3ddd4;background:#fff;color:#475569;text-decoration:none;font-size:.85rem;font-weight:600;transition:all .15s}
-.notif-chip:hover{border-color:#d9742f;color:#d9742f}
-.notif-chip.active{background:#1f2933;color:#fff;border-color:#1f2933}
+.notif-chip{padding:7px 14px;border-radius:999px;border:1px solid #dde1f0;background:#fff;color:#475569;text-decoration:none;font-size:.85rem;font-weight:600;transition:all .15s}
+.notif-chip:hover{border-color:#7a5cd6;color:#7a5cd6}
+.notif-chip.active{background:#1c2250;color:#fff;border-color:#1c2250}
 .notif-list{padding:0;overflow:hidden;max-width:860px}
 .notif-item{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding:15px 18px;border-bottom:1px solid #eef2f4}
 .notif-item:last-child{border-bottom:0}
-.notif-item.unread{background:#f2fbf9;border-left:4px solid #d9742f}
+.notif-item.unread{background:#f2fbf9;border-left:4px solid #7a5cd6}
 .notif-item.read{border-left:4px solid transparent}
 .notif-body{flex:1;min-width:0}
 .notif-msg{display:block;color:#1e293b;font-size:.95rem;text-decoration:none;word-wrap:break-word}
-a.notif-msg:hover{color:#d9742f;text-decoration:underline}
+a.notif-msg:hover{color:#7a5cd6;text-decoration:underline}
 .notif-item.read .notif-msg{color:#64748b}
 .notif-time{color:#94a3b8;font-size:.78rem;margin-top:5px}
 .notif-actions{display:flex;gap:6px;flex-shrink:0}
 .notif-btn{border:1px solid #cbd5e1;background:#fff;color:#475569;border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:.85rem;line-height:1}
-.notif-btn:hover{border-color:#d9742f;color:#d9742f}
+.notif-btn:hover{border-color:#7a5cd6;color:#7a5cd6}
 .notif-btn.danger:hover{border-color:#b91c1c;color:#b91c1c}
 .notif-empty{text-align:center;padding:50px 20px;color:#94a3b8}
 </style>

@@ -42,7 +42,7 @@ require_once "../partials/header.php";
 
 <div class="stats-grid">
     <div class="stat-card">
-        <div class="stat-icon" style="background:#b8481b;">🏭</div>
+        <div class="stat-icon" style="background:#4f4fc9;">🏭</div>
         <div><div class="stat-value"><?= (int) $stats['runs'] ?></div><div class="stat-label">Runs (30d)</div></div>
     </div>
     <div class="stat-card">

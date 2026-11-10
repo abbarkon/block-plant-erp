@@ -33,7 +33,7 @@ $materials = $pdo->query("SELECT * FROM raw_materials WHERE status=1")->fetchAll
 
 <div class="stats-grid">
     <div class="stat-card">
-        <div class="stat-icon" style="background:#b8481b;">📦</div>
+        <div class="stat-icon" style="background:#4f4fc9;">📦</div>
         <div><div class="stat-value"><?= number_format(array_sum(array_column($stock, 'quantity'))) ?></div><div class="stat-label">Finished stock</div></div>
     </div>
     <div class="stat-card">

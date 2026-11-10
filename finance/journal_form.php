@@ -284,23 +284,23 @@ $cur = currency_symbol();
 
 <style>
 .jl-header p{color:#64748b;margin:6px 0 0}
-.jl-eyebrow{font-size:.68rem;font-weight:800;letter-spacing:.13em;color:#b8481b}
+.jl-eyebrow{font-size:.68rem;font-weight:800;letter-spacing:.13em;color:#4f4fc9}
 .jl-bar{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:14px}
 .jl-bar h3{margin:0}
-.jl-totals{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:.85rem;color:#6a6259}
-.jl-totals strong{display:inline-block;margin-left:5px;color:#1f2933;font-size:1rem;font-variant-numeric:tabular-nums}
-.jl-state{padding:5px 12px;border-radius:20px;font-size:.76rem;font-weight:800;background:#fdeee9;color:#b3452f}
+.jl-totals{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:.85rem;color:#646b8c}
+.jl-totals strong{display:inline-block;margin-left:5px;color:#1c2250;font-size:1rem;font-variant-numeric:tabular-nums}
+.jl-state{padding:5px 12px;border-radius:20px;font-size:.76rem;font-weight:800;background:#fdeee9;color:#c2364a}
 .jl-state.is-balanced{background:#e6f4ec;color:#1d7a4f}
 .jl-table th.jl-num,.jl-table td.jl-num{text-align:right}
 .jl-table td.jl-num input{text-align:right;font-variant-numeric:tabular-nums}
 .jl-table select{min-width:210px}
 .jl-remove-col{width:44px;text-align:center}
-.jl-remove{width:28px;height:28px;border:1px solid #e6c4ba;border-radius:8px;background:#fff;color:#b3452f;font-size:1.05rem;line-height:1;cursor:pointer;transition:.15s}
-.jl-remove:hover{background:#b3452f;border-color:#b3452f;color:#fff}
+.jl-remove{width:28px;height:28px;border:1px solid #e6c4ba;border-radius:8px;background:#fff;color:#c2364a;font-size:1.05rem;line-height:1;cursor:pointer;transition:.15s}
+.jl-remove:hover{background:#c2364a;border-color:#c2364a;color:#fff}
 .jl-row-invalid td{background:#fff6f4}
 .jl-row-invalid select,.jl-row-invalid input{border-color:#e08b76}
 .jl-actions{display:flex;justify-content:space-between;gap:12px;margin-top:16px;flex-wrap:wrap}
-.jl-hint{margin:12px 0 0;font-size:.82rem;color:#6a6259}
+.jl-hint{margin:12px 0 0;font-size:.82rem;color:#646b8c}
 @media(max-width:700px){.jl-bar{align-items:flex-start;flex-direction:column}.jl-actions{flex-direction:column-reverse}.jl-actions .btn{width:100%}}
 @media print {
     .no-print, .jl-actions, .jl-remove-col { display: none !important; }

@@ -465,26 +465,26 @@ require_once "../partials/header.php";
 <style>
     .maint-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin-bottom:20px; }
     @media (max-width: 950px) { .maint-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } }
-    .maint-kpi { background:#fff; border:1px solid #e2e8f0; border-left:4px solid #b8481b; border-radius:10px; padding:14px 16px; box-shadow:0 4px 14px rgba(15,23,42,.05); }
+    .maint-kpi { background:#fff; border:1px solid #e2e8f0; border-left:4px solid #4f4fc9; border-radius:10px; padding:14px 16px; box-shadow:0 4px 14px rgba(15,23,42,.05); }
     .maint-kpi span { display:block; color:#64748b; font-size:.76rem; text-transform:uppercase; letter-spacing:.04em; }
-    .maint-kpi strong { display:block; margin-top:4px; color:#1f2933; font-size:1.3rem; }
+    .maint-kpi strong { display:block; margin-top:4px; color:#1c2250; font-size:1.3rem; }
     .maint-kpi.alert { border-left-color:#b45309; }
     .maint-card { background:#fff; border:1px solid #e2e8f0; border-radius:12px; box-shadow:0 8px 24px rgba(15,23,42,.06); padding:22px; margin-bottom:20px; }
-    .maint-card h3 { margin:0 0 16px; color:#1f2933; }
+    .maint-card h3 { margin:0 0 16px; color:#1c2250; }
     .maint-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
     @media (max-width: 780px) { .maint-grid { grid-template-columns:1fr; } }
     .maint-grid .full { grid-column:1 / -1; }
     .maint-card label { display:block; font-weight:600; font-size:.82rem; color:#334155; margin-bottom:5px; }
     .maint-card input, .maint-card select, .maint-card textarea { width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:8px; font:inherit; background:#fff; }
-    .maint-card input:focus, .maint-card select:focus, .maint-card textarea:focus { outline:none; border-color:#d9742f; box-shadow:0 0 0 3px rgba(42,157,143,.15); }
+    .maint-card input:focus, .maint-card select:focus, .maint-card textarea:focus { outline:none; border-color:#7a5cd6; box-shadow:0 0 0 3px rgba(42,157,143,.15); }
     .maint-actions { display:flex; gap:5px; flex-wrap:wrap; }
     .maint-actions form { margin:0; }
     .modal-backdrop { display:none; position:fixed; inset:0; background:rgba(15,23,42,.55); z-index:9999; align-items:center; justify-content:center; padding:16px; }
     .modal-card { background:#fff; border-radius:14px; max-width:560px; width:100%; padding:26px; max-height:92vh; overflow:auto; box-shadow:0 24px 60px rgba(0,0,0,.3); }
-    .modal-card h2 { margin:0 0 18px; color:#1f2933; }
+    .modal-card h2 { margin:0 0 18px; color:#1c2250; }
     .modal-card label { display:block; font-weight:600; font-size:.82rem; color:#334155; margin:12px 0 5px; }
     .modal-card input, .modal-card textarea { width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:8px; font:inherit; }
-    .modal-card input:focus, .modal-card textarea:focus { outline:none; border-color:#d9742f; box-shadow:0 0 0 3px rgba(42,157,143,.15); }
+    .modal-card input:focus, .modal-card textarea:focus { outline:none; border-color:#7a5cd6; box-shadow:0 0 0 3px rgba(42,157,143,.15); }
     @media print { .no-print { display:none !important; } body { background:#fff; } .maint-kpi, .maint-card, .table-container { box-shadow:none; } }
 </style>
 
@@ -698,7 +698,7 @@ require_once "../partials/header.php";
             <h2>Complete maintenance</h2>
             <button type="button" onclick="closeCompleteModal()" style="background:none;border:none;font-size:1.6rem;line-height:1;cursor:pointer;color:#64748b;">&times;</button>
         </div>
-        <p style="color:#64748b;margin:0 0 8px;">Asset: <strong id="completeAssetName" style="color:#1f2933;"></strong></p>
+        <p style="color:#64748b;margin:0 0 8px;">Asset: <strong id="completeAssetName" style="color:#1c2250;"></strong></p>
         <form method="post">
             <input type="hidden" name="action" value="complete">
             <input type="hidden" name="maintenance_id" id="completeMaintenanceId">

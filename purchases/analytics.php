@@ -27,7 +27,7 @@ require_once "../partials/header.php";
 </div>
 
 <div class="stats-grid">
-    <div class="stat-card"><div class="stat-icon" style="background:#b8481b;">📦</div><div><div class="stat-value"><?= (int) $stats['orders'] ?></div><div class="stat-label">POs (30d)</div></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:#4f4fc9;">📦</div><div><div class="stat-value"><?= (int) $stats['orders'] ?></div><div class="stat-label">POs (30d)</div></div></div>
     <div class="stat-card"><div class="stat-icon" style="background:#2f7d4f;">💰</div><div><div class="stat-value"><?= currency_symbol() . money($stats['spend']) ?></div><div class="stat-label">Spend</div></div></div>
     <div class="stat-card"><div class="stat-icon" style="background:#e74c3c;">📮</div><div><div class="stat-value"><?= currency_symbol() . money($stats['balance']) ?></div><div class="stat-label">Open payables (30d POs)</div></div></div>
 </div>

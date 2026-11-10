@@ -121,7 +121,7 @@ $lang = app_lang();
         .course.off { margin-left: 26px; }
         .brick {
             width: 50px; height: 24px; border-radius: 4px;
-            background: #f08a52;
+            background: #8c93ff;
             box-shadow: inset 0 -4px 0 rgba(0, 0, 0, .16);
             opacity: 0; transform: translateY(-40px);
             animation: lay .5s cubic-bezier(.3, 1.4, .5, 1) forwards;

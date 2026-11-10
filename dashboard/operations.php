@@ -57,7 +57,7 @@ require_once "../partials/header.php";
         content: ''; position: absolute; top: 0; left: 0; width: 5px; height: 100%;
         background: var(--card-color, #e2e8f0);
     }
-    .ops-card.c-prod { --card-color: #b8481b; }
+    .ops-card.c-prod { --card-color: #4f4fc9; }
     .ops-card.c-sales { --card-color: #43a047; }
     .ops-card.c-purch { --card-color: #fb8c00; }
     .ops-card.c-exp { --card-color: #e53935; }
@@ -83,7 +83,7 @@ require_once "../partials/header.php";
     .alert-box:hover { background: #f1f5f9; }
     .alert-box.danger .num { color: #e53935; }
     .alert-box.warn .num { color: #fb8c00; }
-    .alert-box.info .num { color: #b8481b; }
+    .alert-box.info .num { color: #4f4fc9; }
     .alert-box .title { font-size: 0.9rem; color: #475569; font-weight: 600; }
     .alert-box .num { font-size: 1.5rem; font-weight: 800; }
     
@@ -156,7 +156,7 @@ require_once "../partials/header.php";
     </div>
     <div class="ops-card c-prod">
         <h3>💳 Receivables</h3>
-        <div class="value" style="color:#b8481b"><?= number_format((float) $totals['receivables'], 2) ?></div>
+        <div class="value" style="color:#4f4fc9"><?= number_format((float) $totals['receivables'], 2) ?></div>
         <div class="label">From Customers</div>
     </div>
     <div class="ops-card c-exp">
@@ -178,7 +178,7 @@ require_once "../partials/header.php";
                 <?php foreach ($productionByType as $row): ?>
                 <tr>
                     <td style="font-weight: 500;"><?= e($row['name'] . ' ' . $row['size']) ?></td>
-                    <td><span style="background: rgba(57,73,171,0.1); color: #b8481b; padding: 4px 10px; border-radius: 20px; font-weight:600; font-size:0.85rem;"><?= number_format((float) $row['qty']) ?></span></td>
+                    <td><span style="background: rgba(57,73,171,0.1); color: #4f4fc9; padding: 4px 10px; border-radius: 20px; font-weight:600; font-size:0.85rem;"><?= number_format((float) $row['qty']) ?></span></td>
                 </tr>
                 <?php endforeach; ?>
             </tbody>

@@ -259,8 +259,8 @@ require_once "../partials/header.php";
 <?php
 $expiringDocs = $pdo->query("SELECT ed.*, e.name as employee_name, e.employee_code FROM employee_documents ed JOIN employees e ON ed.employee_id = e.id WHERE ed.expiry_date IS NOT NULL AND ed.expiry_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY) ORDER BY ed.expiry_date ASC LIMIT 10")->fetchAll();
 if($expiringDocs): ?>
-<div class="panel" style="margin-top:20px; border-left:4px solid #e8a33d;">
-    <h3 style="color:#e8a33d;">⚠️ Expiring Documents (Next 30 Days)</h3>
+<div class="panel" style="margin-top:20px; border-left:4px solid #22b8cf;">
+    <h3 style="color:#22b8cf;">⚠️ Expiring Documents (Next 30 Days)</h3>
     <ul style="margin-top:10px;">
         <?php foreach($expiringDocs as $doc): ?>
         <li style="margin-bottom:8px;">

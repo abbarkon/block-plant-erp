@@ -332,7 +332,7 @@ if($overallStatus === 'transferred') {
     <div style="display:flex; justify-content:space-between; align-items:center;">
         <div>
             <strong style="font-size:1.1rem;"><?= $statusTitle ?></strong>
-            <div style="color:#6a6259; font-size:0.9rem; margin-top:4px;"><?= $statusMessage ?></div>
+            <div style="color:#646b8c; font-size:0.9rem; margin-top:4px;"><?= $statusMessage ?></div>
         </div>
         <?php if($overallStatus === 'rejected'): ?>
         <form method="post" style="display:inline;">
@@ -560,32 +560,32 @@ foreach($employees as $emp) {
     <h3><?= t('payroll_summary_for') ?> <?= e(format_app_month_year($month, $year)) ?></h3>
     <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:15px; margin-top:15px;">
         <div style="text-align:center; padding:15px; background:#f8fafc; border-radius:8px;">
-            <div style="font-size:1.3rem; font-weight:bold; color:#1f2933;"><?= e(currency_symbol()) . number_format($totalBasic, 2) ?></div>
-            <div style="color:#6a6259; font-size:0.85rem;"><?= t('total_basic_salary') ?></div>
+            <div style="font-size:1.3rem; font-weight:bold; color:#1c2250;"><?= e(currency_symbol()) . number_format($totalBasic, 2) ?></div>
+            <div style="color:#646b8c; font-size:0.85rem;"><?= t('total_basic_salary') ?></div>
         </div>
         <div style="text-align:center; padding:15px; background:#f0fdf4; border-radius:8px;">
             <div style="font-size:1.3rem; font-weight:bold; color:#10b981;"><?= e(currency_symbol()) . number_format($totalAllowances, 2) ?></div>
-            <div style="color:#6a6259; font-size:0.85rem;"><?= t('total_allowances') ?></div>
+            <div style="color:#646b8c; font-size:0.85rem;"><?= t('total_allowances') ?></div>
         </div>
         <div style="text-align:center; padding:15px; background:#e6f7ff; border-radius:8px;">
             <div style="font-size:1.3rem; font-weight:bold; color:#1890ff;"><?= e(currency_symbol()) . number_format($totalOvertimePayment, 2) ?></div>
-            <div style="color:#6a6259; font-size:0.85rem;"><?= t('total_overtime_payment') ?></div>
+            <div style="color:#646b8c; font-size:0.85rem;"><?= t('total_overtime_payment') ?></div>
         </div>
         <div style="text-align:center; padding:15px; background:#fef2f2; border-radius:8px;">
             <div style="font-size:1.3rem; font-weight:bold; color:#ef4444;"><?= e(currency_symbol()) . number_format($totalDeductions, 2) ?></div>
-            <div style="color:#6a6259; font-size:0.85rem;"><?= t('total_other_deductions') ?></div>
+            <div style="color:#646b8c; font-size:0.85rem;"><?= t('total_other_deductions') ?></div>
         </div>
         <div style="text-align:center; padding:15px; background:#fff3cd; border-radius:8px;">
             <div style="font-size:1.3rem; font-weight:bold; color:#f59e0b;"><?= e(currency_symbol()) . number_format($totalLoanDeductions, 2) ?></div>
-            <div style="color:#6a6259; font-size:0.85rem;"><?= t('total_loan_deductions') ?></div>
+            <div style="color:#646b8c; font-size:0.85rem;"><?= t('total_loan_deductions') ?></div>
         </div>
         <div style="text-align:center; padding:15px; background:#fef2f2; border-radius:8px;">
             <div style="font-size:1.3rem; font-weight:bold; color:#dc2626;"><?= e(currency_symbol()) . number_format($totalAttendanceDeductions, 2) ?></div>
-            <div style="color:#6a6259; font-size:0.85rem;"><?= t('attendance_deduction') ?> (<?= number_format($totalUnpaidDays, 1) ?> <?= e(t('unpaid_days')) ?>)</div>
+            <div style="color:#646b8c; font-size:0.85rem;"><?= t('attendance_deduction') ?> (<?= number_format($totalUnpaidDays, 1) ?> <?= e(t('unpaid_days')) ?>)</div>
         </div>
         <div style="text-align:center; padding:15px; background:#eff6ff; border-radius:8px;">
             <div style="font-size:1.3rem; font-weight:bold; color:#3b82f6;"><?= e(currency_symbol()) . number_format($totalNet, 2) ?></div>
-            <div style="color:#6a6259; font-size:0.85rem;"><?= t('total_net_payroll') ?></div>
+            <div style="color:#646b8c; font-size:0.85rem;"><?= t('total_net_payroll') ?></div>
         </div>
     </div>
 </div>

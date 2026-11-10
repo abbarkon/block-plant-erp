@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_reject'])) {
 $pageTitle = 'Reject / Hold Vehicle';
 require_once __DIR__ . '/../partials/header.php';
 ?>
-<div class="panel" style="max-width:620px;margin:40px auto;border-top:5px solid #e8a33d;">
+<div class="panel" style="max-width:620px;margin:40px auto;border-top:5px solid #22b8cf;">
     <h1>Reject / hold this clearance?</h1>
     <p>Use this when the vehicle, products, or payment do not match, or the exit should be blocked. A reason is required and the salesperson will be notified.</p>
     <div class="grid-2">

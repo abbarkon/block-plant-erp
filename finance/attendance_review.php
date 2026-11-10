@@ -267,7 +267,7 @@ $periodLabel = format_app_month_year($selectedMonth, $selectedYear);
 </div>
 
 <style>
-.ar-hero{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:22px;padding:28px 32px;border-radius:18px;background:linear-gradient(120deg,#1f2933,#b8481b 65%,#d9742f);color:#fff;box-shadow:0 14px 34px rgba(24,59,86,.16)}
+.ar-hero{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:22px;padding:28px 32px;border-radius:18px;background:linear-gradient(120deg,#1c2250,#4f4fc9 65%,#7a5cd6);color:#fff;box-shadow:0 14px 34px rgba(24,59,86,.16)}
 .ar-hero h1{margin:4px 0;color:#fff;font-size:2.05rem}
 .ar-hero p{margin:0;color:rgba(255,255,255,.76)}
 .ar-eyebrow{font-size:.68rem;font-weight:800;letter-spacing:.13em;color:#bce6df}
@@ -277,38 +277,38 @@ $periodLabel = format_app_month_year($selectedMonth, $selectedYear);
 .ar-filter label{display:block;margin:0 0 5px}
 .ar-filter select{margin:0}
 .ar-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:0 0 18px}
-.ar-summary div{padding:15px 17px;background:#fff;border:1px solid #e3ddd4;border-radius:11px;box-shadow:0 5px 16px rgba(24,59,86,.05)}
-.ar-summary span{display:block;font-size:.76rem;color:#6a6259}
-.ar-summary strong{display:block;margin-top:5px;font-size:1.3rem;color:#1f2933}
+.ar-summary div{padding:15px 17px;background:#fff;border:1px solid #dde1f0;border-radius:11px;box-shadow:0 5px 16px rgba(24,59,86,.05)}
+.ar-summary span{display:block;font-size:.76rem;color:#646b8c}
+.ar-summary strong{display:block;margin-top:5px;font-size:1.3rem;color:#1c2250}
 .ar-summary strong.ar-ok{color:#1d7a4f}
 .ar-summary strong.ar-warn{color:#a86a12}
-.ar-summary strong.ar-bad{color:#b3452f}
+.ar-summary strong.ar-bad{color:#c2364a}
 .ar-panel{margin-bottom:18px}
 .ar-panel-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:10px}
 .ar-panel-head h3{margin:0}
-.ar-count{font-size:.8rem;color:#6a6259;font-weight:700}
+.ar-count{font-size:.8rem;color:#646b8c;font-weight:700}
 .ar-table th.ar-num,.ar-table td.ar-num{text-align:right;font-variant-numeric:tabular-nums}
 .ar-status{display:inline-block;padding:3px 9px;border-radius:20px;font-size:.74rem;font-weight:800;background:#eef2f5;color:#4a5f6b}
 .ar-status-pending{background:#fff4e0;color:#a86a12}
 .ar-status-approved,.ar-status-present{background:#e6f4ec;color:#1d7a4f}
-.ar-status-rejected,.ar-status-absent{background:#fdeee9;color:#b3452f}
+.ar-status-rejected,.ar-status-absent{background:#fdeee9;color:#c2364a}
 .ar-status-late,.ar-status-leave,.ar-status-half_day{background:#eef3ff;color:#35558f}
 .ar-actions{display:flex;gap:6px;align-items:center}
 .ar-inline{display:inline;margin:0}
 .ar-approve{background:#1d7a4f!important}
-.ar-done{font-size:.8rem;font-weight:700;color:#6a6259}
+.ar-done{font-size:.8rem;font-weight:700;color:#646b8c}
 .ar-done-ok{color:#1d7a4f}
-.ar-done-bad{color:#b3452f}
+.ar-done-bad{color:#c2364a}
 .ar-code{color:#8b98a1;font-size:.78rem;margin-left:4px}
-.ar-empty{text-align:center;padding:34px!important;color:#6a6259}
-.ar-help{margin-top:4px;padding:20px;background:#f4f7f8;border:1px solid #e3ddd4;border-radius:12px}
+.ar-empty{text-align:center;padding:34px!important;color:#646b8c}
+.ar-help{margin-top:4px;padding:20px;background:#f4f7f8;border:1px solid #dde1f0;border-radius:12px}
 .ar-help h3{margin:0 0 8px}
 .ar-help p{margin:0;color:#5b6b73;line-height:1.6}
 @media(max-width:850px){.ar-summary{grid-template-columns:repeat(2,1fr)}.ar-filter{grid-template-columns:1fr 1fr}}
 @media(max-width:600px){.ar-hero{align-items:flex-start;flex-direction:column;padding:24px 20px}.ar-hero h1{font-size:1.75rem}.ar-summary{grid-template-columns:1fr 1fr;gap:8px}.ar-filter{grid-template-columns:1fr}}
 @media print {
     .no-print, .ar-hero-actions, .ar-filter, .ar-help { display: none !important; }
-    .ar-hero { background: #1f2933 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; box-shadow: none; }
+    .ar-hero { background: #1c2250 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; box-shadow: none; }
     .ar-table { min-width: 0; }
     .table-container { overflow: visible; }
 }

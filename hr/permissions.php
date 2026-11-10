@@ -129,12 +129,12 @@ require_once "../partials/header.php";
 <style>
     .perm-actions { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
     .perm-table td:not(:first-child), .perm-table th:not(:first-child) { text-align:center; width:110px; }
-    .perm-table tr.is-granted td:first-child { border-left:3px solid #d9742f; }
+    .perm-table tr.is-granted td:first-child { border-left:3px solid #7a5cd6; }
     .perm-summary { display:flex; gap:10px 22px; flex-wrap:wrap; color:#475569; font-size:.86rem; margin-bottom:14px; }
-    .perm-summary strong { color:#1f2933; }
-    .perm-note { border-left:4px solid #b8481b; background:#f4efe8; color:#1f2933; padding:12px 14px; border-radius:8px; margin-bottom:16px; font-size:.88rem; }
+    .perm-summary strong { color:#1c2250; }
+    .perm-note { border-left:4px solid #4f4fc9; background:#eef0fa; color:#1c2250; padding:12px 14px; border-radius:8px; margin-bottom:16px; font-size:.88rem; }
     .perm-note.warn { border-left-color:#b45309; background:#fffbeb; color:#78350f; }
-    .perm-locked { color:#d9742f; font-weight:700; }
+    .perm-locked { color:#7a5cd6; font-weight:700; }
     @media print { .no-print { display:none !important; } body { background:#fff; } }
 </style>
 

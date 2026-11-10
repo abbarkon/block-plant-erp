@@ -107,20 +107,20 @@ require_once "../partials/header.php";
     .profile-grid { display:grid; grid-template-columns: minmax(280px, 1fr) minmax(0, 2fr); gap:20px; align-items:start; }
     @media (max-width: 900px) { .profile-grid { grid-template-columns: 1fr; } }
     .profile-card { text-align:center; }
-    .avatar { width:108px; height:108px; border-radius:50%; margin:0 auto 16px; display:grid; place-items:center; font-size:2.4rem; font-weight:800; color:#fff; background:linear-gradient(135deg,#1f2933,#d9742f); box-shadow:0 10px 26px rgba(24,59,86,.22); }
-    .profile-card h2 { margin:0 0 4px; color:#1f2933; }
+    .avatar { width:108px; height:108px; border-radius:50%; margin:0 auto 16px; display:grid; place-items:center; font-size:2.4rem; font-weight:800; color:#fff; background:linear-gradient(135deg,#1c2250,#7a5cd6); box-shadow:0 10px 26px rgba(24,59,86,.22); }
+    .profile-card h2 { margin:0 0 4px; color:#1c2250; }
     .profile-card .handle { color:#64748b; margin:0 0 12px; }
     .profile-meta { border-top:1px solid #e2e8f0; border-bottom:1px solid #e2e8f0; padding:14px 0; margin:14px 0; text-align:left; display:grid; gap:8px; font-size:.86rem; color:#475569; }
-    .profile-meta strong { color:#1f2933; }
+    .profile-meta strong { color:#1c2250; }
     .stat-grid { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; text-align:left; }
     .stat-grid div { background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; }
     .stat-grid span { display:block; color:#64748b; font-size:.74rem; }
-    .stat-grid strong { color:#1f2933; font-size:1.05rem; }
+    .stat-grid strong { color:#1c2250; font-size:1.05rem; }
     .profile-form h3 { margin-top:0; }
     .profile-form label { margin-top:12px; }
     .profile-form .hint { color:#64748b; font-size:.78rem; margin-top:4px; }
     .chip-row { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
-    .chip { display:inline-block; padding:4px 9px; border-radius:999px; background:#f4efe8; color:#b8481b; font-size:.76rem; font-weight:600; }
+    .chip { display:inline-block; padding:4px 9px; border-radius:999px; background:#eef0fa; color:#4f4fc9; font-size:.76rem; font-weight:600; }
     .activity-list { list-style:none; margin:0; padding:0; }
     .activity-list li { display:flex; gap:10px; padding:9px 0; border-bottom:1px solid #eef2f7; font-size:.86rem; }
     .activity-list li:last-child { border-bottom:none; }
@@ -156,14 +156,14 @@ require_once "../partials/header.php";
             <?php endif; ?>
             <div><strong>Last activity</strong><br><?= e($lastActiveAt ? format_datetime($lastActiveAt) : 'No activity yet') ?></div>
         </div>
-        <h4 style="margin:0 0 8px;text-align:left;color:#1f2933;">Activity summary</h4>
+        <h4 style="margin:0 0 8px;text-align:left;color:#1c2250;">Activity summary</h4>
         <div class="stat-grid">
             <?php foreach ($stats as $label => $value): ?>
             <div><span><?= e($label) ?></span><strong><?= number_format($value) ?></strong></div>
             <?php endforeach; ?>
         </div>
         <div style="text-align:left;margin-top:16px;">
-            <h4 style="margin:0 0 4px;color:#1f2933;">Module access</h4>
+            <h4 style="margin:0 0 4px;color:#1c2250;">Module access</h4>
             <?php if ($isAdmin): ?>
                 <p style="color:#64748b;font-size:.84rem;margin:0;">Full access to every module as a system administrator.</p>
             <?php elseif ($visibleModules): ?>

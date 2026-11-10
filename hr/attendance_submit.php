@@ -217,7 +217,7 @@ if ($submission && $submission['status'] === 'pending') {
 ?>
 <div style="margin-bottom:20px; padding:15px 20px; border-radius:12px; border-left:5px solid <?= $statusColor ?>; background:#fff;">
     <strong style="font-size:1.1rem;"><?= $statusTitle ?></strong>
-    <div style="color:#6a6259; font-size:0.9rem; margin-top:4px;"><?= $statusMessage ?></div>
+    <div style="color:#646b8c; font-size:0.9rem; margin-top:4px;"><?= $statusMessage ?></div>
 </div>
 
 <!-- Attendance summary for period -->
@@ -226,35 +226,35 @@ if ($submission && $submission['status'] === 'pending') {
     <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-top:15px;">
         <div style="text-align:center; padding:12px; background:#f8fafc; border-radius:8px;">
             <div style="font-size:1.2rem; font-weight:bold;"><?= $recordCount ?></div>
-            <div style="color:#6a6259; font-size:0.85rem;">Records</div>
+            <div style="color:#646b8c; font-size:0.85rem;">Records</div>
         </div>
         <div style="text-align:center; padding:12px; background:#f8fafc; border-radius:8px;">
             <div style="font-size:1.2rem; font-weight:bold;"><?= $employeeCount ?></div>
-            <div style="color:#6a6259; font-size:0.85rem;">Employees</div>
+            <div style="color:#646b8c; font-size:0.85rem;">Employees</div>
         </div>
         <div style="text-align:center; padding:12px; background:#f8fafc; border-radius:8px;">
             <div style="font-size:1.2rem; font-weight:bold;"><?= $dayCount ?></div>
-            <div style="color:#6a6259; font-size:0.85rem;">Days Covered</div>
+            <div style="color:#646b8c; font-size:0.85rem;">Days Covered</div>
         </div>
         <div style="text-align:center; padding:12px; background:#f0fdf4; border-radius:8px;">
             <div style="font-size:1.2rem; font-weight:bold; color:#10b981;"><?= $summary['present'] ?></div>
-            <div style="color:#6a6259; font-size:0.85rem;">Present</div>
+            <div style="color:#646b8c; font-size:0.85rem;">Present</div>
         </div>
         <div style="text-align:center; padding:12px; background:#fff7ed; border-radius:8px;">
             <div style="font-size:1.2rem; font-weight:bold; color:#ea580c;"><?= $summary['late'] ?></div>
-            <div style="color:#6a6259; font-size:0.85rem;">Late</div>
+            <div style="color:#646b8c; font-size:0.85rem;">Late</div>
         </div>
         <div style="text-align:center; padding:12px; background:#fff3cd; border-radius:8px;">
             <div style="font-size:1.2rem; font-weight:bold; color:#f59e0b;"><?= $summary['half-day'] ?></div>
-            <div style="color:#6a6259; font-size:0.85rem;">Half Day</div>
+            <div style="color:#646b8c; font-size:0.85rem;">Half Day</div>
         </div>
         <div style="text-align:center; padding:12px; background:#e0f2fe; border-radius:8px;">
             <div style="font-size:1.2rem; font-weight:bold; color:#0284c7;"><?= $summary['leave'] ?></div>
-            <div style="color:#6a6259; font-size:0.85rem;">Leave</div>
+            <div style="color:#646b8c; font-size:0.85rem;">Leave</div>
         </div>
         <div style="text-align:center; padding:12px; background:#fef2f2; border-radius:8px;">
             <div style="font-size:1.2rem; font-weight:bold; color:#ef4444;"><?= $summary['absent'] ?></div>
-            <div style="color:#6a6259; font-size:0.85rem;">Absent</div>
+            <div style="color:#646b8c; font-size:0.85rem;">Absent</div>
         </div>
     </div>
     <p style="color:#475569; background:#f8fafc; padding:10px 14px; border-radius:8px; margin-top:15px; font-size:0.88rem;">

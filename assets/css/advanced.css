@@ -1,13 +1,13 @@
 :root {
-    --bp-primary: #1f2933;
-    --bp-primary-light: #b8481b;
-    --bp-accent: #e8a33d;
+    --bp-primary: #1c2250;
+    --bp-primary-light: #4f4fc9;
+    --bp-accent: #22b8cf;
     --bp-accent-hover: #c9573d;
     --bp-surface: #ffffff;
     --bp-bg: #f3f6f4;
     --bp-text: #19323c;
-    --bp-muted: #6a6259;
-    --bp-border: #e3ddd4;
+    --bp-muted: #646b8c;
+    --bp-border: #dde1f0;
     --bp-radius: 12px;
     --bp-shadow: 0 8px 24px rgba(24, 59, 86, 0.08);
 }
@@ -20,7 +20,7 @@ body.theme-advanced {
 }
 
 .theme-advanced .topbar {
-    background: linear-gradient(110deg, #1f2933 0%, #b8481b 68%, #d9742f 100%);
+    background: linear-gradient(110deg, #1c2250 0%, #4f4fc9 68%, #7a5cd6 100%);
     box-shadow: var(--bp-shadow);
     min-height: 70px;
 }
@@ -32,7 +32,7 @@ body.theme-advanced {
 
 .theme-advanced .navbar a:hover,
 .theme-advanced .navbar .dropdown-menu {
-    background: #b8481b;
+    background: #4f4fc9;
 }
 
 .theme-advanced .navbar .dropdown-menu a {
@@ -150,7 +150,7 @@ body.theme-advanced {
 .theme-advanced select:focus,
 .theme-advanced textarea:focus {
     outline: none;
-    border-color: #d9742f;
+    border-color: #7a5cd6;
     background: #fff;
     box-shadow: 0 0 0 3px rgba(42,157,143,.15);
 }
@@ -250,7 +250,7 @@ body.theme-advanced {
 }
 
 .btn-danger {
-    background: #b3452f !important;
+    background: #c2364a !important;
 }
 
 .btn-danger:hover {
@@ -553,7 +553,7 @@ body.theme-advanced {
 }
 
 .theme-advanced table:not(.data-table) th {
-    background: #f4efe8;
+    background: #eef0fa;
     color: var(--bp-primary);
     font-size: .82rem;
     text-transform: uppercase;

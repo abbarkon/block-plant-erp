@@ -112,7 +112,7 @@ require_once "../partials/header.php";
 
 <div class="stats-grid no-print">
     <div class="stat-card">
-        <div class="stat-icon" style="background:#b8481b;">🏭</div>
+        <div class="stat-icon" style="background:#4f4fc9;">🏭</div>
         <div><div class="stat-value"><?= number_format(count($rows)) ?></div><div class="stat-label">Runs shown</div></div>
     </div>
     <div class="stat-card">

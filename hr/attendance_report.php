@@ -80,7 +80,7 @@ require_once "../partials/header.php";
         margin-bottom: 18px;
     }
     .attendance-report-head h1 { margin: 0 0 4px; }
-    .attendance-report-company { font-size: 1.15rem; font-weight: 700; color: #1f2933; }
+    .attendance-report-company { font-size: 1.15rem; font-weight: 700; color: #1c2250; }
     .attendance-report-meta { color: #64748b; font-size: .88rem; margin-top: 4px; }
     .attendance-report-actions { display: flex; gap: 8px; flex-wrap: wrap; }
     .attendance-report-filters { padding: 18px; margin-bottom: 18px; }
@@ -107,7 +107,7 @@ require_once "../partials/header.php";
         text-align: center;
         box-shadow: 0 2px 8px rgba(0,0,0,.05);
     }
-    .attendance-kpi strong { display: block; font-size: 1.45rem; color: #1f2933; }
+    .attendance-kpi strong { display: block; font-size: 1.45rem; color: #1c2250; }
     .attendance-kpi span { color: #64748b; font-size: .78rem; }
     .attendance-kpi.kpi-present { border-top-color: #15803d; }
     .attendance-kpi.kpi-absent { border-top-color: #dc2626; }

@@ -2,38 +2,38 @@
    Replaces the earlier theme-clean.css (same file name, so no other change is needed). */
 
 body.theme-advanced {
-    --bp-primary: #b8481b;
-    --bp-primary-dark: #983a14;
-    --bp-primary-soft: #fbeee7;
-    --bp-accent: #e8a33d;
-    --bp-bg: #f4f1ec;
+    --bp-primary: #4f4fc9;
+    --bp-primary-dark: #3d3dab;
+    --bp-primary-soft: #eceefb;
+    --bp-accent: #22b8cf;
+    --bp-bg: #f1f3fa;
     --bp-surface: #ffffff;
-    --bp-surface-2: #f8f5f0;
-    --bp-border: #e3ddd4;
-    --bp-ink: #1f2933;
-    --bp-text: #3b4651;
-    --bp-muted: #6a6259;
-    --bp-ok: #2f7d4f;     --bp-ok-bg: #e0f3e6;
-    --bp-bad: #b42318;    --bp-bad-bg: #fde8e6;
-    --bp-warn: #8a5a00;   --bp-warn-bg: #fff3cc;
-    --bp-info: #1d5fa8;   --bp-info-bg: #e1edfb;
+    --bp-surface-2: #f6f7fd;
+    --bp-border: #dde1f0;
+    --bp-ink: #1c2240;
+    --bp-text: #3a4260;
+    --bp-muted: #646b8c;
+    --bp-ok: #1f8f5f;     --bp-ok-bg: #dff5ea;
+    --bp-bad: #c2364a;    --bp-bad-bg: #fde6ea;
+    --bp-warn: #8a6200;   --bp-warn-bg: #fff4d1;
+    --bp-info: #1d6fb8;   --bp-info-bg: #e0eefb;
     --bp-radius: 14px;
-    --bp-shadow: 0 1px 2px rgba(31, 41, 51, .06), 0 6px 18px rgba(31, 41, 51, .05);
+    --bp-shadow: 0 1px 2px rgba(28, 34, 64, .06), 0 6px 18px rgba(28, 34, 64, .05);
 }
 body.theme-advanced.dark-theme {
-    --bp-primary: #f08a52;
-    --bp-primary-dark: #e07638;
-    --bp-primary-soft: #3a2218;
-    --bp-bg: #14171a;
-    --bp-surface: #1e2327;
-    --bp-surface-2: #252b30;
-    --bp-border: #36404a;
-    --bp-ink: #f3efe9;
-    --bp-text: #d9d3ca;
-    --bp-muted: #a39b90;
-    --bp-ok: #5fd08f;   --bp-ok-bg: #153523;
-    --bp-bad: #ff8f84;  --bp-bad-bg: #40201d;
-    --bp-warn: #ffc65c; --bp-warn-bg: #3b2f10;
+    --bp-primary: #8c93ff;
+    --bp-primary-dark: #7078f0;
+    --bp-primary-soft: #232a54;
+    --bp-bg: #111429;
+    --bp-surface: #1a1f3d;
+    --bp-surface-2: #202649;
+    --bp-border: #333a68;
+    --bp-ink: #eef0ff;
+    --bp-text: #d3d7f0;
+    --bp-muted: #9aa1c9;
+    --bp-ok: #5fd0a0;   --bp-ok-bg: #123a2c;
+    --bp-bad: #ff8fa0;  --bp-bad-bg: #40202a;
+    --bp-warn: #ffd16a; --bp-warn-bg: #3a3012;
     --bp-info: #82bbff; --bp-info-bg: #14304f;
     --bp-shadow: 0 1px 2px rgba(0, 0, 0, .35), 0 6px 18px rgba(0, 0, 0, .25);
 }
@@ -70,9 +70,9 @@ body.theme-advanced::before, body.theme-advanced::after { display: none !importa
 
 /* ---- Top bar ---- */
 .theme-advanced .topbar {
-    background: linear-gradient(90deg, #3c4a78 0%, #2f3b62 100%) !important;
+    background: linear-gradient(90deg, #2a3270 0%, #1c2250 100%) !important;
     -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
-    box-shadow: 0 4px 16px rgba(47, 59, 98, .2) !important;
+    box-shadow: 0 4px 16px rgba(28, 34, 80, .22) !important;
     border-bottom: 0 !important;
 }
 
@@ -118,7 +118,7 @@ body.theme-advanced::before, body.theme-advanced::after { display: none !importa
 .theme-advanced .btn-danger { background: var(--bp-bad) !important; color: #fff !important; border: 1px solid var(--bp-bad) !important; }
 .theme-advanced .btn-danger:hover { filter: brightness(.92); }
 .theme-advanced .dash-hero .dh-btn { border: 1px solid rgba(255,255,255,.28) !important; }
-.theme-advanced .dash-hero .dh-btn.solid { background: #fff !important; color: var(--d-p, #b8481b) !important; }
+.theme-advanced .dash-hero .dh-btn.solid { background: #fff !important; color: var(--d-p, #4f4fc9) !important; }
 
 /* ---- Forms ---- */
 .theme-advanced :is(input:not([type=checkbox]):not([type=radio]), select, textarea) {
@@ -130,7 +130,7 @@ body.theme-advanced::before, body.theme-advanced::after { display: none !importa
     padding: 9px 12px;
     transition: border-color .15s ease, box-shadow .15s ease;
 }
-.theme-advanced :is(input, select, textarea)::placeholder { color: #9a9288; }
+.theme-advanced :is(input, select, textarea)::placeholder { color: #8a90b3; }
 .theme-advanced :is(input:not([type=checkbox]):not([type=radio]), select, textarea):focus {
     outline: none;
     border-color: var(--bp-primary) !important;

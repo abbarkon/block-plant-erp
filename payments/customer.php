@@ -158,7 +158,7 @@ require_once "../partials/header.php";
     .pay-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.7fr); gap:20px; align-items:start; }
     @media (max-width: 950px) { .pay-grid { grid-template-columns:1fr; } }
     .pay-card { background:#fff; padding:22px; border-radius:14px; border:1px solid #e2e8f0; box-shadow:0 8px 24px rgba(15,23,42,.05); }
-    .pay-card h2 { margin:0 0 16px; color:#1f2933; font-size:1.2rem; }
+    .pay-card h2 { margin:0 0 16px; color:#1c2250; font-size:1.2rem; }
     .pay-field { margin-bottom:14px; }
     .pay-field label { display:block; margin-bottom:6px; font-weight:600; color:#475569; font-size:.86rem; }
     .pay-field input, .pay-field select, .pay-field textarea { width:100%; box-sizing:border-box; }

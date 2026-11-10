@@ -181,7 +181,7 @@ require_once "../partials/header.php";
     .asset-form-grid .full { grid-column:1 / -1; }
     .asset-form-card label { display:block; font-weight:600; font-size:.84rem; color:#334155; margin-bottom:5px; }
     .asset-form-card input[type=text], .asset-form-card input[type=number], .asset-form-card input[type=date], .asset-form-card select, .asset-form-card textarea { width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:8px; font:inherit; background:#fff; color:#0f172a; }
-    .asset-form-card input:focus, .asset-form-card select:focus, .asset-form-card textarea:focus { outline:none; border-color:#d9742f; box-shadow:0 0 0 3px rgba(42,157,143,.15); }
+    .asset-form-card input:focus, .asset-form-card select:focus, .asset-form-card textarea:focus { outline:none; border-color:#7a5cd6; box-shadow:0 0 0 3px rgba(42,157,143,.15); }
     .asset-form-hint { color:#64748b; font-size:.78rem; margin-top:5px; }
     .asset-errors { border-left:4px solid #b91c1c; background:#fef2f2; color:#7f1d1d; padding:12px 16px; border-radius:8px; margin-bottom:18px; }
     .asset-errors ul { margin:6px 0 0 18px; padding:0; }
@@ -189,7 +189,7 @@ require_once "../partials/header.php";
     @media (max-width: 780px) { .asset-meta { grid-template-columns:1fr 1fr; } }
     .asset-meta div { background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px; }
     .asset-meta span { display:block; color:#64748b; font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; }
-    .asset-meta strong { color:#1f2933; font-size:.95rem; }
+    .asset-meta strong { color:#1c2250; font-size:.95rem; }
 </style>
 
 <div class="asset-form-wrap">

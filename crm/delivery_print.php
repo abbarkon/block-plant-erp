@@ -31,8 +31,8 @@ $co = company_settings();
     <title>Delivery <?= e($d['delivery_no']) ?></title>
     <style>
         body { font-family: Arial, sans-serif; margin: 40px; color: #222; }
-        .head { display: flex; justify-content: space-between; border-bottom: 3px solid <?= e($co['primary_color'] ?? '#b8481b') ?>; padding-bottom: 16px; }
-        h1 { margin: 0; color: <?= e($co['primary_color'] ?? '#b8481b') ?>; }
+        .head { display: flex; justify-content: space-between; border-bottom: 3px solid <?= e($co['primary_color'] ?? '#4f4fc9') ?>; padding-bottom: 16px; }
+        h1 { margin: 0; color: <?= e($co['primary_color'] ?? '#4f4fc9') ?>; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
         th { background: #f1f5f9; }

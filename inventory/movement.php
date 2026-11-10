@@ -127,11 +127,11 @@ require_once "../partials/header.php";
 <div class="stats-grid" style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:20px;">
     <div style="flex:1; min-width:180px; background:#fff; border-left:4px solid #28a745; padding:16px 18px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,.08);">
         <div style="font-size:.8rem; color:#64748b;">In (period)</div>
-        <div style="font-size:1.4rem; font-weight:700; color:#1f2933;"><?= number_format((float) $totalIn, 2) ?></div>
+        <div style="font-size:1.4rem; font-weight:700; color:#1c2250;"><?= number_format((float) $totalIn, 2) ?></div>
     </div>
     <div style="flex:1; min-width:180px; background:#fff; border-left:4px solid #dc3545; padding:16px 18px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,.08);">
         <div style="font-size:.8rem; color:#64748b;">Out (period)</div>
-        <div style="font-size:1.4rem; font-weight:700; color:#1f2933;"><?= number_format((float) $totalOut, 2) ?></div>
+        <div style="font-size:1.4rem; font-weight:700; color:#1c2250;"><?= number_format((float) $totalOut, 2) ?></div>
     </div>
 </div>
 

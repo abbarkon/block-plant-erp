@@ -418,11 +418,11 @@ foreach($assets as $asset) {
 <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:15px; margin-top:20px;">
     <div style="text-align:center; padding:15px; background:#d1fae5; border-radius:8px;">
         <div style="font-size:1.3rem; font-weight:bold; color:#10b981;"><?= number_format($totalIssued) ?></div>
-        <div style="color:#6a6259; font-size:0.85rem;">Currently Issued</div>
+        <div style="color:#646b8c; font-size:0.85rem;">Currently Issued</div>
     </div>
     <div style="text-align:center; padding:15px; background:#e0e7ff; border-radius:8px;">
         <div style="font-size:1.3rem; font-weight:bold; color:#6366f1;"><?= number_format($totalReturned) ?></div>
-        <div style="color:#6a6259; font-size:0.85rem;">Returned</div>
+        <div style="color:#646b8c; font-size:0.85rem;">Returned</div>
     </div>
 </div>
 
