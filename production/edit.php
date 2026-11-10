@@ -55,7 +55,10 @@ require_once "../partials/header.php";
 <div class="panel" style="max-width:900px;">
     <p style="background:#fff8e1;border:1px solid #ffe082;padding:10px;border-radius:8px;font-size:.88rem;">
         Saving reverses this run's raw-material and finished-stock effects and applies the new figures.
-        Cost changes are posted as adjustment journal entries. The block type cannot be changed. Change the produced quantity and the material lines update from the BOM; each line shows your stock before and after saving.
+        Cost changes are posted as adjustment journal entries. The block type cannot be changed.
+        Quantities are linked with the BOM both ways: change the produced quantity and the material lines update,
+        or type a material quantity (for example cement) and the produced quantity is recalculated.
+        Each line shows your stock before and after saving.
     </p>
     <form method="post" action="update.php">
         <input type="hidden" name="id" value="<?= (int) $p['id'] ?>">
@@ -132,7 +135,7 @@ function addRow(mid = '', qty = '', cost = '') {
         </div>
         <small class="stockInfo" style="display:block;margin:2px 0 0 4px;"></small>`;
     div.querySelector('select').addEventListener('change', () => refreshRow(div));
-    div.querySelector('.mq').addEventListener('input', e => { e.target.dataset.manual = '1'; refreshRow(div); });
+    div.querySelector('.mq').addEventListener('input', e => { e.target.dataset.manual = '1'; refreshRow(div); syncProducedFromRow(div); });
     document.getElementById('materialRows').appendChild(div);
     refreshRow(div);
     return div;
@@ -156,6 +159,23 @@ function applyBom(force) {
         const q = row.querySelector('.mq');
         if (force || q.dataset.manual !== '1') { q.value = value; q.dataset.manual = ''; refreshRow(row); }
     });
+}
+// Typing a material quantity (for example cement) recalculates the produced
+// quantity from the BOM, like the New Production page's cement calculator.
+// The line you typed in keeps your exact figure; the other BOM lines follow
+// the new produced quantity.
+function syncProducedFromRow(div) {
+    const mid = parseInt(div.querySelector('select').value, 10);
+    const qty = parseFloat(div.querySelector('.mq').value) || 0;
+    const line = bom.find(l => l.material_id === mid && parseFloat(l.qty_per_block) > 0);
+    if (!line || !(qty > 0)) return;
+    const produced = Math.floor(qty / parseFloat(line.qty_per_block));
+    if (produced < 1) return;
+    const producedInput = document.getElementById('producedQty');
+    if ((parseInt(producedInput.value, 10) || 0) === produced) return;
+    producedInput.value = produced;
+    updateGood();
+    applyBom(false);
 }
 function updateGood() {
     const p = parseInt(document.getElementById('producedQty').value, 10) || 0;
