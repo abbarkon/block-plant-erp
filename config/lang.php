@@ -775,6 +775,7 @@ return [
         'sales_trend' => 'የሽያጭ ፍጥነት (6 ወራት)',
         'production_chart' => 'ምርት (7 ቀናት)',
         'top_products' => 'ከፍተኛ ምርቶች (30 ቀን)',
+        'pending_deliveries' => 'በመጠባበቅ ላይ ያሉ ርክክቦች',
         'commission_due' => 'የሚከፈል ኮሚሽን',
         'export_pdf' => 'ወደ PDF ላክ',
         'export_excel' => 'ወደ Excel ላክ',
