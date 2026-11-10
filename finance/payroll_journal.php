@@ -23,7 +23,7 @@ $canPost = has_permission('finance', 'create');
 
 $pdo->exec("CREATE TABLE IF NOT EXISTS journal_entries (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    entry_no VARCHAR(50) UNIQUE NOT NULL,
+    entry_no VARCHAR(100) UNIQUE NOT NULL,
     entry_date DATE NOT NULL,
     description VARCHAR(255),
     reference_no VARCHAR(60),
