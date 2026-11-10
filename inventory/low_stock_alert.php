@@ -27,6 +27,47 @@ $no_reorder = $pdo->query("
 ")->fetchAll();
 
 $total_reorder_value = array_sum(array_column($low_stock, 'reorder_value'));
+
+// Order quantity and best supplier for each low material, so the buttons open a ready purchase order.
+$bestSupplier = [];
+try {
+    foreach ($pdo->query("SELECT p.material_id, p.supplier_id FROM supplier_material_prices p JOIN suppliers s ON s.id = p.supplier_id WHERE s.status = 1 ORDER BY p.unit_price ASC")->fetchAll() as $r) {
+        if (!isset($bestSupplier[(int) $r['material_id']])) {
+            $bestSupplier[(int) $r['material_id']] = (int) $r['supplier_id'];
+        }
+    }
+} catch (PDOException $e) {
+}
+try {
+    foreach ($pdo->query("SELECT pi.material_id, p.supplier_id FROM purchase_items pi JOIN purchases p ON p.id = pi.purchase_id WHERE (p.approval_status IS NULL OR p.approval_status <> 'rejected') ORDER BY p.purchase_date DESC, p.id DESC")->fetchAll() as $r) {
+        if (!isset($bestSupplier[(int) $r['material_id']])) {
+            $bestSupplier[(int) $r['material_id']] = (int) $r['supplier_id'];
+        }
+    }
+} catch (PDOException $e) {
+}
+$orderQty = [];
+$allItems = [];
+$suppliersInList = [];
+foreach ($low_stock as $m) {
+    $q = (float) $m['reorder_quantity'];
+    if ((float) $m['max_level'] > 0) {
+        $q = max($q, (float) $m['max_level'] - (float) $m['current_stock']);
+    }
+    if ($q <= 0) {
+        $q = max(0, (float) $m['reorder_point'] * 2 - (float) $m['current_stock']);
+    }
+    $q = round($q, 2);
+    $orderQty[(int) $m['id']] = $q;
+    if ($q > 0) {
+        $allItems[] = (int) $m['id'] . ':' . $q;
+        $suppliersInList[$bestSupplier[(int) $m['id']] ?? 0] = true;
+    }
+}
+$allUrl = '../purchases/create.php?items=' . urlencode(implode(',', $allItems));
+if (count($suppliersInList) === 1 && key($suppliersInList) > 0) {
+    $allUrl .= '&supplier_id=' . (int) key($suppliersInList);
+}
 ?>
 
 <h1>⚠️ Low Stock Alert System</h1>
@@ -46,7 +87,12 @@ $total_reorder_value = array_sum(array_column($low_stock, 'reorder_value'));
         <div class="header-actions">
             <a href="../purchases/planning.php" class="btn btn-accent">Purchase planning</a>
             <?php if ($canPurchase): ?>
-            <a href="../purchases/create.php" class="btn" style="background: #dc3545;">Create PO</a>
+            <?php if ($allItems): ?>
+            <a href="<?= e($allUrl) ?>" class="btn" style="background: #dc3545;color:#fff;">Create PO for all <?= count($allItems) ?> materials</a>
+            <a href="reorder_list.php" class="btn btn-secondary">Order by supplier</a>
+            <?php else: ?>
+            <a href="../purchases/create.php" class="btn" style="background: #dc3545;color:#fff;">Create PO</a>
+            <?php endif; ?>
             <?php endif; ?>
         </div>
     </div>
@@ -98,7 +144,7 @@ $total_reorder_value = array_sum(array_column($low_stock, 'reorder_value'));
                 </td>
                 <td>
                     <?php if ($canPurchase): ?>
-                    <a href="../purchases/create.php?material=<?= (int) $mat['id'] ?>" class="btn btn-sm">Order Now</a>
+                    <a href="../purchases/create.php?material_id=<?= (int) $mat['id'] ?>&qty=<?= e($orderQty[(int) $mat['id']] ?? 0) ?><?= !empty($bestSupplier[(int) $mat['id']]) ? '&supplier_id=' . (int) $bestSupplier[(int) $mat['id']] : '' ?>" class="btn btn-sm">Order <?= number_format($orderQty[(int) $mat['id']] ?? 0, 2) ?> <?= e($mat['unit']) ?></a>
                     <?php else: ?>
                     <span style="color:#94a3b8;font-size:.8rem;">—</span>
                     <?php endif; ?>
