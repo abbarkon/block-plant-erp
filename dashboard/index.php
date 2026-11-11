@@ -183,7 +183,7 @@ $canReports = has_permission('reports', 'view');
 $brandDash = brand_colors();
 $dashHour = (int) date('G');
 $greet = (function_exists('app_lang') && app_lang() === 'am')
-    ? ($dashHour < 12 ? 'ደህና ጠዋት' : ($dashHour < 18 ? 'ደህና ከሰዓት' : 'ደህና ማታ'))
+    ? ($dashHour < 12 ? 'እንደምን አደሩ' : ($dashHour < 18 ? 'እንደምን ዋሉ' : 'እንደምን አመሹ'))
     : ($dashHour < 12 ? 'Good morning' : ($dashHour < 18 ? 'Good afternoon' : 'Good evening'));
 $moreLabel = (function_exists('app_lang') && app_lang() === 'am') ? 'ተጨማሪ' : 'More';
 $laborDue = null;
