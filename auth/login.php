@@ -121,14 +121,14 @@ $lang = app_lang();
         .course.off { margin-left: 26px; }
         .brick {
             width: 50px; height: 24px; border-radius: 4px;
-            background: #8c93ff;
+            background: #b4b9ff;
             box-shadow: inset 0 -4px 0 rgba(0, 0, 0, .16);
             opacity: 0; transform: translateY(-40px);
             animation: lay .5s cubic-bezier(.3, 1.4, .5, 1) forwards;
             animation-delay: calc(var(--i) * 55ms + .35s);
         }
-        .brick:nth-child(3n) { background: #e0a93a; }
-        .brick:nth-child(3n+1) { background: #f7d17a; }
+        .brick:nth-child(3n) { background: #9a88ee; }
+        .brick:nth-child(3n+1) { background: #d3d6ff; }
         @keyframes lay { to { opacity: 1; transform: none; } }
         .points { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; position: relative; z-index: 1; }
         .points li { display: flex; align-items: center; gap: 10px; font-size: .92rem; opacity: .95; }
@@ -182,9 +182,49 @@ $lang = app_lang();
             .panel { padding: 26px 24px 28px; justify-content: flex-start; }
         }
         @media (prefers-reduced-motion: reduce) { .shell, .brick, .err { animation: none; opacity: 1; transform: none; } }
+
+        /* ---- Dark mode (saved choice, or the device setting) ---- */
+        body.dark-theme { --ink: #eef0ff; --muted: #9aa1c9; --line: #3a4272; background: #111429; color: #d3d7f0; color-scheme: dark; }
+        body.dark-theme .shell { background: #1a1f3d; box-shadow: 0 30px 80px rgba(0,0,0,.55); }
+        body.dark-theme .panel h2 { color: #eef0ff; }
+        body.dark-theme label { color: #d3d7f0; }
+        body.dark-theme input { background: #141836; color: #eef0ff; }
+        body.dark-theme input:focus { background: #181d42; }
+        body.dark-theme .eye:hover { background: #262d5c; }
+        body.dark-theme .eye svg, body.dark-theme .field svg.ic { stroke: #9aa1c9; }
+        body.dark-theme .lang { background: #141836; }
+        body.dark-theme .lang a.active { background: #262d5c; color: #fff; box-shadow: none; }
+        body.dark-theme .err { background: #40202a; color: #ffb3bf; border-color: #6a2d3a; }
+        @media (max-width: 760px) { body.dark-theme { background: #1a1f3d; } }
+        .theme-btn {
+            position: fixed; top: 14px; right: 14px; z-index: 10;
+            width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--line);
+            background: #fff; cursor: pointer; font-size: 1.1rem; line-height: 1;
+            box-shadow: 0 6px 18px rgba(28, 34, 80, .18);
+        }
+        body.dark-theme .theme-btn { background: #262d5c; border-color: #3a4272; }
+        .pk-or { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: .8rem; margin: 18px 0 12px; }
+        .pk-or::before, .pk-or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+        .pk-btn {
+            width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
+            padding: 13px; border-radius: 12px; cursor: pointer; font-size: 1rem; font-weight: 700;
+            border: 1.5px solid var(--p); color: var(--p); background: transparent;
+            transition: background .18s;
+        }
+        .pk-btn:hover { background: color-mix(in srgb, var(--p) 10%, transparent); }
+        .pk-btn:disabled { opacity: .6; cursor: progress; }
     </style>
 </head>
 <body>
+    <script>
+        try {
+            var t = localStorage.getItem('theme');
+            if (t === 'dark' || (!t && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.body.classList.add('dark-theme');
+            }
+        } catch (e) {}
+    </script>
+    <button type="button" class="theme-btn" id="themeBtn" aria-label="Dark mode" title="Dark mode">🌙</button>
     <main class="shell">
         <section class="brand">
             <div>
@@ -232,9 +272,63 @@ $lang = app_lang();
                 </div>
                 <button type="submit" class="go" id="go"><?= t('sign_in') ?></button>
             </form>
+            <div id="pkBox" style="display:none;">
+                <div class="pk-or"><span><?= $lang === 'am' ? 'ወይም' : 'or' ?></span></div>
+                <button type="button" class="pk-btn" id="pkBtn">
+                    <span style="font-size:1.25rem;">🔐</span>
+                    <span><?= $lang === 'am' ? 'በጣት አሻራ ወይም በፊት ግባ' : 'Sign in with fingerprint / face' ?></span>
+                </button>
+                <div class="err" id="pkErr" style="display:none;margin-top:10px;"></div>
+            </div>
             <div class="foot">© <?= date('Y') ?> <?= htmlspecialchars(company_display_name()) ?></div>
         </section>
     </main>
+    <script>
+        (function () {
+            if (!window.PublicKeyCredential || !navigator.credentials) return;
+            var box = document.getElementById('pkBox'), btn = document.getElementById('pkBtn'), err = document.getElementById('pkErr');
+            box.style.display = '';
+            function b64d(s) { s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; var bin = atob(s), a = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i); return a.buffer; }
+            function b64e(buf) { var a = new Uint8Array(buf), s = ''; for (var i = 0; i < a.length; i++) s += String.fromCharCode(a[i]); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+            function fail(m) { err.textContent = m; err.style.display = ''; btn.disabled = false; }
+            function api(action, body) {
+                return fetch('passkey_api.php?action=' + action, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) })
+                    .then(function (r) { return r.json(); });
+            }
+            btn.addEventListener('click', function () {
+                err.style.display = 'none'; btn.disabled = true;
+                api('login_options').then(function (o) {
+                    if (o.error) throw new Error(o.error);
+                    o.challenge = b64d(o.challenge);
+                    return navigator.credentials.get({ publicKey: o });
+                }).then(function (cred) {
+                    return api('login_finish', {
+                        id: b64e(cred.rawId),
+                        clientDataJSON: b64e(cred.response.clientDataJSON),
+                        authenticatorData: b64e(cred.response.authenticatorData),
+                        signature: b64e(cred.response.signature)
+                    });
+                }).then(function (res) {
+                    if (res.error) throw new Error(res.error);
+                    window.location.href = res.redirect || '../dashboard/';
+                }).catch(function (e) {
+                    fail(e && e.name === 'NotAllowedError' ? 'Cancelled or not recognised. Try again or use your password.' : (e.message || 'Could not sign in.'));
+                });
+            });
+        })();
+    </script>
+    <script>
+        (function () {
+            var b = document.getElementById('themeBtn');
+            function icon() { b.textContent = document.body.classList.contains('dark-theme') ? '☀️' : '🌙'; }
+            icon();
+            b.addEventListener('click', function () {
+                document.body.classList.toggle('dark-theme');
+                try { localStorage.setItem('theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light'); } catch (e) {}
+                icon();
+            });
+        })();
+    </script>
     <script>
         (function () {
             var pw = document.getElementById('pw'), eye = document.getElementById('eye');
