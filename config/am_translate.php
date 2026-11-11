@@ -24,9 +24,11 @@ function am_dictionary(): array {
 function am_lookup(string $text, array $map): ?string {
     $trim = trim($text);
     if ($trim === '' || !preg_match('/[A-Za-z]/', $trim)) return null;
-    $key = mb_strtolower($trim);
-    if (isset($map[$key])) return $map[$key];
-    if (substr($key, -1) === ':' && isset($map[rtrim($key, ': ')])) return $map[rtrim($key, ': ')] . ':';
+    foreach ([$trim, preg_replace('/\s+/u', ' ', $trim)] as $cand) {
+        $key = mb_strtolower($cand);
+        if (isset($map[$key])) return $map[$key];
+        if (substr($key, -1) === ':' && isset($map[rtrim($key, ': ')])) return $map[rtrim($key, ': ')] . ':';
+    }
     return null;
 }
 
