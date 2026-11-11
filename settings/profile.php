@@ -207,6 +207,78 @@ require_once "../partials/header.php";
             </form>
         </div>
 
+        <?php
+        require_once '../config/webauthn.php';
+        wa_ensure_schema();
+        $pkStmt = $pdo->prepare("SELECT id, label, created_at, last_used_at FROM user_passkeys WHERE user_id = ? ORDER BY id");
+        $pkStmt->execute([(int) $_SESSION['user_id']]);
+        $myPasskeys = $pkStmt->fetchAll();
+        ?>
+        <div class="panel profile-form no-print" style="margin-bottom:20px;" id="pkPanel">
+            <h3>Fingerprint / face login</h3>
+            <p class="hint">Sign in with the fingerprint or face unlock of this phone or computer. Your password keeps working as a backup.</p>
+            <?php if ($myPasskeys): ?>
+            <table class="data-table" style="margin:10px 0;">
+                <thead><tr><th>Device</th><th>Added</th><th>Last used</th><th></th></tr></thead>
+                <tbody>
+                <?php foreach ($myPasskeys as $k): ?>
+                    <tr><td><?= e($k['label']) ?></td><td><?= e(format_datetime($k['created_at'])) ?></td><td><?= $k['last_used_at'] ? e(format_datetime($k['last_used_at'])) : '—' ?></td>
+                        <td><button type="button" class="btn-sm pk-del" data-id="<?= (int) $k['id'] ?>" style="background:#c2364a;color:#fff;border:0;cursor:pointer;">Remove</button></td></tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+            <?php endif; ?>
+            <div id="pkSupported" style="display:none;">
+                <input type="text" id="pkLabel" placeholder="Name this device, for example: My phone" style="max-width:340px;">
+                <button type="button" class="btn btn-accent" id="pkAdd" style="margin-top:10px;">Enable on this device</button>
+            </div>
+            <p class="hint" id="pkUnsupported" style="display:none;">This browser or device does not support fingerprint / face login.</p>
+            <div class="flash flash-error" id="pkMsg" style="display:none;margin-top:12px;"></div>
+        </div>
+        <script>
+        (function () {
+            var supported = window.PublicKeyCredential && navigator.credentials;
+            document.getElementById(supported ? 'pkSupported' : 'pkUnsupported').style.display = '';
+            if (!supported) return;
+            function b64d(s) { s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; var bin = atob(s), a = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i); return a.buffer; }
+            function b64e(buf) { var a = new Uint8Array(buf), s = ''; for (var i = 0; i < a.length; i++) s += String.fromCharCode(a[i]); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+            var msg = document.getElementById('pkMsg');
+            function fail(m) { msg.textContent = m; msg.style.display = ''; document.getElementById('pkAdd').disabled = false; }
+            function api(action, body) {
+                return fetch('../auth/passkey_api.php?action=' + action, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) })
+                    .then(function (r) { return r.json(); });
+            }
+            document.getElementById('pkAdd').addEventListener('click', function () {
+                msg.style.display = 'none'; this.disabled = true;
+                var label = document.getElementById('pkLabel').value;
+                api('register_options').then(function (o) {
+                    if (o.error) throw new Error(o.error);
+                    o.challenge = b64d(o.challenge);
+                    o.user.id = b64d(o.user.id);
+                    (o.excludeCredentials || []).forEach(function (c) { c.id = b64d(c.id); });
+                    return navigator.credentials.create({ publicKey: o });
+                }).then(function (cred) {
+                    return api('register_finish', {
+                        label: label,
+                        clientDataJSON: b64e(cred.response.clientDataJSON),
+                        attestationObject: b64e(cred.response.attestationObject)
+                    });
+                }).then(function (res) {
+                    if (res.error) throw new Error(res.error);
+                    window.location.reload();
+                }).catch(function (e) {
+                    fail(e && e.name === 'NotAllowedError' ? 'Cancelled. Try again and approve with your fingerprint or face.' : (e.message || 'Could not enable.'));
+                });
+            });
+            document.querySelectorAll('.pk-del').forEach(function (b) {
+                b.addEventListener('click', function () {
+                    if (!confirm('Remove this device? You can still sign in with your password.')) return;
+                    api('delete', { id: parseInt(b.dataset.id, 10) }).then(function () { window.location.reload(); });
+                });
+            });
+        })();
+        </script>
+
         <div class="panel">
             <h3>Recent activity</h3>
             <?php if (!$recentActivity): ?>
