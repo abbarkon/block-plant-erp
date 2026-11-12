@@ -13,6 +13,10 @@ if (has_permission('purchases', 'view')) {
     $n = $bpCount("SELECT COUNT(*) FROM purchases WHERE COALESCE(approval_status, 'pending') = 'pending'");
     if ($n > 0) $bpBadges[] = ['href' => '/purchases/index.php', 'text' => (string) $n, 'title' => 'Purchases waiting for approval'];
 }
+if (has_permission('sales', 'view')) {
+    $n = $bpCount("SELECT COUNT(*) FROM online_orders WHERE status = 'pending'");
+    if ($n > 0) $bpBadges[] = ['href' => '/sales/online_orders.php', 'text' => (string) $n, 'title' => 'New online orders'];
+}
 if (has_permission('inventory', 'view')) {
     $n = $bpCount("SELECT COUNT(*) FROM raw_materials rm JOIN reorder_levels rl ON rm.id = rl.material_id WHERE rm.current_stock <= rl.reorder_point AND rm.status = 1");
     if ($n > 0) $bpBadges[] = ['href' => '/inventory/overview.php', 'text' => (string) $n, 'title' => 'Materials below reorder level'];

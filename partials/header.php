@@ -425,6 +425,8 @@ try {
                     <?php if (has_permission('sales', 'view')): ?>
                     <a href="/block_plant/quotations/index.php"><?= t('quotations') ?></a>
                     <a href="/block_plant/sales/index.php"><?= t('sales_invoices') ?></a>
+                    <a href="/block_plant/sales/online_orders.php"><?= app_lang() === 'am' ? 'የመስመር ላይ ትዕዛዞች' : 'Online Orders' ?></a>
+                    <a href="/block_plant/shop/index.php" target="_blank" rel="noopener"><?= app_lang() === 'am' ? 'መሸጫውን ክፈት' : 'Open Shop' ?></a>
                     <?php endif; ?>
                     <?php if (has_permission('crm', 'view')): ?>
                     <a href="/block_plant/crm/delivery.php"><?= t('delivery_notes') ?></a>
