@@ -3,11 +3,14 @@ session_start();
 require_once "../config/database.php";
 require_once "../config/helpers.php";
 require_permission('inventory', 'view');
+ensure_production_curing_schema();
 
 $pageTitle = 'Inventory Overview';
 
 $rawValue = (float) $pdo->query("SELECT COALESCE(SUM(current_stock * unit_cost),0) FROM raw_materials WHERE status=1")->fetchColumn();
 $finishedQty = (int) $pdo->query("SELECT COALESCE(SUM(fs.quantity),0) FROM finished_stock fs JOIN block_types bt ON fs.block_type_id=bt.id WHERE bt.status=1")->fetchColumn();
+$curingQty = finished_curing_quantity();
+$readyQty = max(0, $finishedQty - $curingQty);
 // Cost basis — must match the valuation doughnut fed by inventory_charts_data.php
 $finishedValue = (float) $pdo->query("SELECT COALESCE(SUM(fs.quantity * fs.average_unit_cost),0) FROM finished_stock fs JOIN block_types bt ON fs.block_type_id=bt.id WHERE bt.status=1")->fetchColumn();
 $finishedRetail = (float) $pdo->query("SELECT COALESCE(SUM(fs.quantity * bt.selling_price),0) FROM finished_stock fs JOIN block_types bt ON fs.block_type_id=bt.id WHERE bt.status=1")->fetchColumn();
@@ -41,7 +44,7 @@ require_once "../partials/header.php";
     </div>
     <div class="module-kpi">
         <div class="stat-icon" style="background:#f39c12;">🔢</div>
-        <div><div class="stat-value"><?= number_format($finishedQty) ?></div><div class="stat-label">Blocks in stock</div></div>
+        <div><div class="stat-value"><?= number_format($readyQty) ?></div><div class="stat-label">Ready to sell · <?= number_format($curingQty) ?> curing</div></div>
     </div>
     <div class="module-kpi">
         <div class="stat-icon" style="background:#e74c3c;">⚠</div>

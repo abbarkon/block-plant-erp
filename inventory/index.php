@@ -4,9 +4,11 @@ require_once "../config/database.php";
 require_once "../config/helpers.php";
 require_login();
 require_permission('inventory', 'view');
+ensure_production_curing_schema();
 
 $pageTitle = "Finished Stock";
 $canProduce = has_permission('production', 'create');
+$canAdjust = has_permission('inventory', 'edit');
 
 // Get finished stock with block type details
 $stmt = $pdo->query("
@@ -24,28 +26,44 @@ $stmt = $pdo->query("
 ");
 $finished_stock = $stmt->fetchAll();
 
-// Calculate totals: retail = what it would sell for, cost = what it cost us to make
-$total_quantity = array_sum(array_column($finished_stock, 'quantity'));
-$total_value = array_sum(array_column($finished_stock, 'stock_value'));
-$total_cost = array_sum(array_column($finished_stock, 'cost_value'));
+// Curing blocks are part of physical stock but cannot be sold until their
+// ready date. Ready = total physical stock - curing.
+$total_quantity = 0;
+$total_curing = 0;
+$total_ready = 0;
+$total_value = 0.0;
+$total_cost = 0.0;
+foreach ($finished_stock as &$stock) {
+    $curing = finished_curing_quantity((int) $stock['block_type_id']);
+    $stock['curing_quantity'] = $curing;
+    $stock['ready_quantity'] = max(0, (int) $stock['quantity'] - $curing);
+    $total_quantity += (int) $stock['quantity'];
+    $total_curing += $curing;
+    $total_ready += (int) $stock['ready_quantity'];
+    $total_value += (float) $stock['stock_value'];
+    $total_cost += (float) $stock['cost_value'];
+}
+unset($stock);
 
 // Inline CSV export, same convention as sales/production/purchases
 if (($_GET['export'] ?? '') === 'csv') {
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename="finished_stock_' . date('Ymd_His') . '.csv"');
     $fh = fopen('php://output', 'w');
-    fputcsv($fh, ['Block Type', 'Size', 'Quantity', 'Unit Price (retail)', 'Value (retail)', 'Unit Cost', 'Value (cost)']);
+    fputcsv($fh, ['Block Type', 'Size', 'Total Quantity', 'Curing (not ready)', 'Ready to Sell', 'Unit Price (retail)', 'Value (retail)', 'Unit Cost', 'Value (cost)']);
     foreach ($finished_stock as $stock) {
         fputcsv($fh, [
-            $stock['block_name'], $stock['size'], $stock['quantity'],
+            $stock['block_name'], $stock['size'], $stock['quantity'], $stock['curing_quantity'], $stock['ready_quantity'],
             $stock['selling_price'], $stock['stock_value'],
             $stock['average_unit_cost'], $stock['cost_value'],
         ]);
     }
-    fputcsv($fh, ['TOTAL', '', $total_quantity, '', $total_value, '', $total_cost]);
+    fputcsv($fh, ['TOTAL', '', $total_quantity, $total_curing, $total_ready, '', $total_value, '', $total_cost]);
     fclose($fh);
     exit;
 }
+
+$curingBatches = finished_curing_batches();
 
 require_once "../partials/header.php";
 ?>
@@ -66,6 +84,9 @@ require_once "../partials/header.php";
         <?php if ($canProduce): ?>
         <a href="../production/create.php" class="btn">+ New Production</a>
         <?php endif; ?>
+        <?php if ($canAdjust): ?>
+        <a href="opening_stock.php" class="btn" style="background: #6f42c1;">Opening Stock</a>
+        <?php endif; ?>
         <a href="movement.php" class="btn" style="background: #17a2b8;">Stock Movement</a>
         <button type="button" class="btn btn-secondary" onclick="window.print()">Print</button>
         <a href="?export=csv" class="btn btn-secondary">Export CSV</a>
@@ -82,9 +103,21 @@ require_once "../partials/header.php";
     <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
         <h3 style="margin: 0 0 10px 0; color: #666; font-size: 14px;">Total Quantity</h3>
         <div style="font-size: 32px; font-weight: bold; color: #28a745;"><?= number_format($total_quantity) ?></div>
-        <div style="font-size: 12px; color: #999;">blocks in stock</div>
+        <div style="font-size: 12px; color: #999;">blocks physically in stock</div>
     </div>
-    
+
+    <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <h3 style="margin: 0 0 10px 0; color: #666; font-size: 14px;">Ready to Sell</h3>
+        <div style="font-size: 32px; font-weight: bold; color: #28a745;"><?= number_format($total_ready) ?></div>
+        <div style="font-size: 12px; color: #999;">cured and available for sale</div>
+    </div>
+
+    <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <h3 style="margin: 0 0 10px 0; color: #666; font-size: 14px;">Curing (Not Ready)</h3>
+        <div style="font-size: 32px; font-weight: bold; color: #f39c12;"><?= number_format($total_curing) ?></div>
+        <div style="font-size: 12px; color: #999;">still drying</div>
+    </div>
+
     <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
         <h3 style="margin: 0 0 10px 0; color: #666; font-size: 14px;">Value at Cost</h3>
         <div style="font-size: 32px; font-weight: bold; color: #17a2b8;"><?= number_format($total_cost, 2) ?></div>
@@ -107,7 +140,9 @@ require_once "../partials/header.php";
             <tr>
                 <th>Block Type</th>
                 <th>Size</th>
-                <th>Quantity in Stock</th>
+                <th>Total Quantity</th>
+                <th>Curing (not ready)</th>
+                <th>Ready to Sell</th>
                 <th>Unit Price</th>
                 <th>Value (retail)</th>
                 <th>Unit Cost</th>
@@ -118,17 +153,19 @@ require_once "../partials/header.php";
         <tbody>
             <?php foreach ($finished_stock as $stock): ?>
             <?php
-                $status_color = $stock['quantity'] > 100 ? '#28a745' : ($stock['quantity'] > 50 ? '#ffc107' : '#dc3545');
-                $status_text = $stock['quantity'] > 100 ? 'Good' : ($stock['quantity'] > 50 ? 'Low' : 'Critical');
+                $status_color = $stock['ready_quantity'] > 100 ? '#28a745' : ($stock['ready_quantity'] > 50 ? '#ffc107' : '#dc3545');
+                $status_text = $stock['ready_quantity'] > 100 ? 'Good' : ($stock['ready_quantity'] > 50 ? 'Low' : 'Critical');
             ?>
             <tr>
                 <td>
                     <strong><?= htmlspecialchars($stock['block_name']) ?></strong>
                 </td>
                 <td><?= htmlspecialchars($stock['size']) ?></td>
+                <td><?= number_format($stock['quantity']) ?></td>
+                <td style="color:#b45309;font-weight:600;"><?= number_format($stock['curing_quantity']) ?></td>
                 <td>
                     <strong style="font-size: 18px; color: <?= $status_color ?>;">
-                        <?= number_format($stock['quantity']) ?>
+                        <?= number_format($stock['ready_quantity']) ?>
                     </strong>
                 </td>
                 <td><?= number_format($stock['selling_price'], 2) ?></td>
@@ -145,8 +182,8 @@ require_once "../partials/header.php";
             
             <?php if (empty($finished_stock)): ?>
             <tr>
-                <td colspan="8" style="text-align: center; color: #888; padding: 30px;">
-                    No finished goods in stock. Start production to add stock.
+                <td colspan="10" style="text-align: center; color: #888; padding: 30px;">
+                    No finished goods in stock. Start production or enter opening stock.
                 </td>
             </tr>
             <?php endif; ?>
@@ -157,6 +194,8 @@ require_once "../partials/header.php";
             <tr>
                 <td colspan="2">TOTAL</td>
                 <td><?= number_format($total_quantity) ?></td>
+                <td style="color:#b45309;"><?= number_format($total_curing) ?></td>
+                <td style="color:#28a745;"><?= number_format($total_ready) ?></td>
                 <td></td>
                 <td><?= number_format($total_value, 2) ?></td>
                 <td></td>
@@ -168,10 +207,46 @@ require_once "../partials/header.php";
     </table>
 </div>
 
+<div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-top: 20px;">
+    <h2 style="margin: 0 0 6px 0;">⏳ Blocks Curing (Not Ready to Sell)</h2>
+    <p style="color:#666;margin:0 0 15px 0;font-size:.9rem;">These production batches are still drying. They move to ready stock automatically on their ready date.</p>
+    <table>
+        <thead>
+            <tr>
+                <th>Production #</th>
+                <th>Block Type</th>
+                <th>Production Date</th>
+                <th>Good Qty</th>
+                <th>Curing Days</th>
+                <th>Ready Date</th>
+                <th>Days Left</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php if (!$curingBatches): ?>
+            <tr><td colspan="7" style="text-align:center;color:#888;padding:20px;">No blocks are curing right now.</td></tr>
+            <?php endif; ?>
+            <?php foreach ($curingBatches as $batch): ?>
+            <tr>
+                <td><a href="../production/view.php?id=<?= (int) $batch['id'] ?>"><strong><?= e($batch['production_no']) ?></strong></a></td>
+                <td><?= e($batch['block_name'] . ' ' . $batch['size']) ?></td>
+                <td><?= format_date($batch['production_date']) ?></td>
+                <td><?= number_format((int) $batch['good_quantity']) ?></td>
+                <td><span><?= (int) $batch['curing_days'] ?></span> <span>days</span></td>
+                <td><?= format_date($batch['ready_date'] ?: $batch['production_date']) ?></td>
+                <td><strong style="color:#b45309;"><span><?= (int) $batch['days_remaining'] ?></span> <span>days</span></strong></td>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+</div>
+
 <div style="background: #e7f3ff; padding: 20px; border-radius: 8px; margin-top: 20px;">
     <h3 style="margin: 0 0 10px 0;">💡 Stock Management Tips</h3>
     <ul style="margin: 0; padding-left: 20px; line-height: 1.8;">
         <li>Monitor stock levels daily to avoid stockouts</li>
+        <li>Only <strong>ready</strong> blocks are available in sales and the online shop; curing blocks become ready automatically on their ready date</li>
+        <li>Use <strong>Opening Stock</strong> once to enter blocks that existed before you started using the system</li>
         <li>Use <strong>Production Planning</strong> to maintain optimal stock levels</li>
         <li>Check <strong>Stock Movement</strong> for complete transaction history</li>
         <li>Stock is automatically updated when you record production or sales</li>

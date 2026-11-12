@@ -4,6 +4,7 @@ require_once "../config/database.php";
 require_once "../config/helpers.php";
 require_permission('inventory', 'edit');
 ensure_finished_stock_transaction_schema();
+ensure_production_curing_schema();
 
 $pageTitle = 'Finished Stock Adjustment';
 
@@ -29,8 +30,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($delta < 0) {
                 $chk = $pdo->prepare("SELECT quantity FROM finished_stock WHERE block_type_id=? FOR UPDATE");
                 $chk->execute([$bid]);
-                if ((int) $chk->fetchColumn() < $qty) {
-                    throw new Exception('Insufficient finished stock.');
+                $ready = max(0, (int) $chk->fetchColumn() - finished_curing_quantity($bid));
+                if ($ready < $qty) {
+                    throw new Exception('Only ' . number_format($ready) . ' finished blocks are ready to sell. Curing blocks cannot be reduced until they are ready.');
                 }
             }
             $pdo->prepare("INSERT INTO finished_stock(block_type_id, quantity) VALUES(?,?) ON DUPLICATE KEY UPDATE quantity=quantity+VALUES(quantity)")
@@ -50,6 +52,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $blocks = $pdo->query("SELECT bt.id, bt.name, bt.size, COALESCE(fs.quantity,0) AS qty FROM block_types bt LEFT JOIN finished_stock fs ON fs.block_type_id=bt.id WHERE bt.status=1 ORDER BY bt.name")->fetchAll();
+foreach ($blocks as &$block) {
+    $block['curing'] = finished_curing_quantity((int) $block['id']);
+    $block['ready'] = max(0, (int) $block['qty'] - (int) $block['curing']);
+}
+unset($block);
 
 require_once "../partials/header.php";
 ?>
@@ -66,7 +73,7 @@ require_once "../partials/header.php";
         <label>Block type</label>
         <select name="block_type_id" required>
             <?php foreach ($blocks as $b): ?>
-            <option value="<?= (int) $b['id'] ?>"><?= e($b['name'] . ' ' . $b['size']) ?> (stock: <?= (int) $b['qty'] ?>)</option>
+            <option value="<?= (int) $b['id'] ?>"><?= e($b['name'] . ' ' . $b['size']) ?> (ready: <?= (int) $b['ready'] ?>, curing: <?= (int) $b['curing'] ?>)</option>
             <?php endforeach; ?>
         </select>
         <label>Date</label>
