@@ -8,6 +8,8 @@ if ($path === $prefix || strpos($path, $prefix . '/') === 0) {
     $path = substr($path, strlen($prefix)) ?: '/';
     $stripped = true;
 }
+// The public shop is a customer-facing storefront: skip the staff splash screen.
+$isShop = $stripped && ($path === '/shop' || strpos($path, '/shop/') === 0);
 
 // Never serve sensitive files
 if (preg_match('#(^|/)\.#', $path)
@@ -30,7 +32,7 @@ if (substr($file, -4) === '.php') {
     chdir(dirname($file));
 
     // Add the "install as app" tags and the animated name splash to every HTML page.
-    ob_start(function ($html) use ($prefix) {
+    ob_start(function ($html) use ($prefix, $isShop) {
         $isHtml = false;
         foreach (headers_list() as $h) {
             if (stripos($h, 'content-type:') === 0 && stripos($h, 'text/html') !== false) $isHtml = true;
@@ -89,7 +91,7 @@ if (substr($file, -4) === '.php') {
                 . '<script>(function(){var s=document.getElementById("mbSplash");if(!s)return;'
                 . 'try{if(sessionStorage.getItem("mbSplash")){s.remove();return;}sessionStorage.setItem("mbSplash","1");}catch(e){}'
                 . 'setTimeout(function(){s.classList.add("mb-out");},3400);setTimeout(function(){s.remove();},4100);})();</script>';
-        if (stripos($html, '<body') !== false) {
+        if (!$isShop && stripos($html, '<body') !== false) {
             $html = preg_replace('#(<body[^>]*>)#i', '$1' . $splash, $html, 1);
         }
         return $html;
