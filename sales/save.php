@@ -2,12 +2,15 @@
 session_start();
 require_once "../config/database.php";
 require_once __DIR__ . "/../config/helpers.php";
+require_once __DIR__ . "/../shop/bootstrap.php";
 require_login();
 require_permission('sales', 'create');
+ensure_shop_schema();
 ensure_logistics_cost_columns();
 ensure_gate_schema();
 ensure_manufacturing_costing_schema();
 ensure_finished_stock_transaction_schema();
+ensure_production_curing_schema();
 
 $customerId = !empty($_POST['customer_id']) ? (int) $_POST['customer_id'] : null;
 $saleDate = $_POST['sale_date'] ?? date('Y-m-d');
@@ -22,6 +25,7 @@ $loadingCost = max(0, (float) ($_POST['loading_cost'] ?? 0));
 $unloadingCost = max(0, (float) ($_POST['unloading_cost'] ?? 0));
 $logisticsCost = $loadingCost + $unloadingCost;
 $quotationId = (int) ($_POST['quotation_id'] ?? 0);
+$onlineOrderId = (int) ($_POST['online_order_id'] ?? 0);
 
 // Line items: prefer the array posted by the multi-line form, fall back to the
 // legacy single-product fields for backward compatibility.
@@ -71,7 +75,22 @@ try {
 
     $pdo->beginTransaction();
 
-    $stockStmt = $pdo->prepare("SELECT COALESCE(quantity, 0) AS quantity, COALESCE(average_unit_cost, 0) AS average_unit_cost FROM finished_stock WHERE block_type_id = ? FOR UPDATE");
+    $onlineOrder = null;
+    if ($onlineOrderId > 0) {
+        $orderStmt = $pdo->prepare("SELECT id, status, order_no FROM online_orders WHERE id = ? FOR UPDATE");
+        $orderStmt->execute([$onlineOrderId]);
+        $onlineOrder = $orderStmt->fetch();
+        if (!$onlineOrder || in_array($onlineOrder['status'], ['completed', 'cancelled'], true)) {
+            throw new Exception('This online order is already completed or cancelled.');
+        }
+    }
+
+    $stockStmt = $pdo->prepare("SELECT fs.quantity, fs.average_unit_cost,
+            COALESCE((SELECT SUM(p.good_quantity) FROM production p
+                WHERE p.block_type_id = fs.block_type_id
+                  AND COALESCE(p.ready_date, p.production_date) > CURDATE()), 0) AS curing
+        FROM finished_stock fs
+        WHERE fs.block_type_id = ? FOR UPDATE");
 
     // Aggregate demand per block so repeated lines cannot overdraw the same stock.
     $needByBlock = [];
@@ -82,8 +101,11 @@ try {
     foreach ($needByBlock as $blockId => $need) {
         $stockStmt->execute([$blockId]);
         $finishedStock = $stockStmt->fetch();
-        if (!$finishedStock || (int) $finishedStock['quantity'] < $need) {
-            throw new Exception('Insufficient finished stock for one of the selected products.');
+        $ready = $finishedStock
+            ? max(0, (int) $finishedStock['quantity'] - (int) $finishedStock['curing'])
+            : 0;
+        if (!$finishedStock || $ready < $need) {
+            throw new Exception('Only ' . number_format($ready) . ' finished block(s) are ready to sell for one of the selected products. Curing stock cannot be invoiced until its ready date.');
         }
         $avgCostByBlock[$blockId] = (float) $finishedStock['average_unit_cost'];
     }
@@ -126,6 +148,14 @@ try {
         $itemStmt->execute([$saleId, $item['block_type_id'], $item['quantity'], $item['unit_price'], $lineSubtotal]);
         $updateStock->execute([$item['quantity'], $item['block_type_id']]);
         log_finished_stock_transaction($item['block_type_id'], -$item['quantity'], 'sale_issue', $invoiceNo, 'Sales invoice', $saleDate);
+    }
+
+    if ($onlineOrder) {
+        $pdo->prepare("UPDATE online_orders
+            SET status = 'completed', sale_id = ?, confirmed_by = COALESCE(confirmed_by, ?), confirmed_at = COALESCE(confirmed_at, NOW())
+            WHERE id = ?")
+            ->execute([$saleId, (int) $_SESSION['user_id'], $onlineOrderId]);
+        log_activity('update', 'sales', $onlineOrderId, 'Online order ' . $onlineOrder['order_no'] . ' converted to invoice ' . $invoiceNo);
     }
 
     if ($total > 0) {
@@ -192,6 +222,6 @@ try {
         $pdo->rollBack();
     }
     set_flash('error', $e->getMessage());
-    header('Location: create.php');
+    header('Location: ' . ($onlineOrderId > 0 ? 'create.php?order=' . $onlineOrderId : 'create.php'));
     exit;
 }

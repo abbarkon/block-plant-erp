@@ -6,9 +6,17 @@ require_login();
 require_permission('sales', 'create');
 ensure_logistics_cost_columns();
 ensure_gate_schema();
+ensure_production_curing_schema();
 
 $pageTitle = t('new_sale');
 $blocks = $pdo->query("SELECT b.*, COALESCE(f.quantity, 0) AS stock FROM block_types b LEFT JOIN finished_stock f ON f.block_type_id = b.id WHERE b.status = 1 ORDER BY b.name, b.size")->fetchAll();
+foreach ($blocks as &$block) {
+    $curing = finished_curing_quantity((int) $block['id']);
+    $block['total_stock'] = (int) $block['stock'];
+    $block['curing_stock'] = $curing;
+    $block['stock'] = max(0, (int) $block['stock'] - $curing);
+}
+unset($block);
 $customers = $pdo->query("SELECT id, name, phone FROM customers WHERE status = 1 ORDER BY name")->fetchAll();
 $company = company_settings();
 $flash = get_flash();
@@ -43,6 +51,39 @@ foreach ($quotationItems as $qi) {
         'unit_price' => (float) $qi['unit_price'],
     ];
 }
+// Pre-fill from an online order ("Create invoice" on the Online Orders screen).
+$onlineOrderId = (int) ($_GET['order'] ?? 0);
+$onlineOrder = null;
+if ($onlineOrderId > 0) {
+    require_once __DIR__ . '/../shop/bootstrap.php';
+    ensure_shop_schema();
+    $oStmt = $pdo->prepare("SELECT * FROM online_orders WHERE id = ?");
+    $oStmt->execute([$onlineOrderId]);
+    $onlineOrder = $oStmt->fetch() ?: null;
+    if ($onlineOrder && !in_array($onlineOrder['status'], ['completed', 'cancelled'], true)) {
+        $prefillCustomerId = (int) ($onlineOrder['customer_id'] ?? 0);
+        $oiStmt = $pdo->prepare("SELECT oi.*, bt.name AS block_name, bt.size
+            FROM online_order_items oi
+            JOIN block_types bt ON bt.id = oi.block_type_id
+            WHERE oi.order_id = ?
+            ORDER BY oi.id");
+        $oiStmt->execute([$onlineOrderId]);
+        $onlineItems = $oiStmt->fetchAll();
+        if ($onlineItems) {
+            $prefillItems = [];
+            foreach ($onlineItems as $oi) {
+                $prefillItems[] = [
+                    'block_type_id' => (int) $oi['block_type_id'],
+                    'quantity' => (int) $oi['quantity'],
+                    'unit_price' => (float) $oi['unit_price'],
+                ];
+            }
+        }
+    } else {
+        $onlineOrder = null;
+        $onlineOrderId = 0;
+    }
+}
 if (!$prefillItems) {
     $prefillItems[] = ['block_type_id' => 0, 'quantity' => 0, 'unit_price' => 0];
 }
@@ -50,7 +91,7 @@ $renderBlockOptions = function (int $selectedId) use ($blocks): string {
     $html = '<option value="">' . e(t('select_block_type')) . '</option>';
     foreach ($blocks as $block) {
         $selected = $selectedId === (int) $block['id'] ? ' selected' : '';
-        $html .= '<option value="' . (int) $block['id'] . '" data-stock="' . (int) $block['stock'] . '"' . $selected . '>'
+        $html .= '<option value="' . (int) $block['id'] . '" data-stock="' . (int) $block['stock'] . '" data-curing="' . (int) $block['curing_stock'] . '"' . $selected . '>'
             . e($block['name'] . ' ' . $block['size']) . '</option>';
     }
     return $html;
@@ -132,8 +173,17 @@ require_once "../partials/header.php";
 </div>
 <?php endif; ?>
 
+<?php if ($onlineOrder): ?>
+<div class="flash flash-info" style="display:block;">
+    <strong><?= e(shop_t('Online order')) ?> <?= e($onlineOrder['order_no']) ?></strong>
+    <?= e(shop_t('for')) ?> <?= e($onlineOrder['customer_name']) ?> · <?= e($onlineOrder['phone']) ?>.
+    <?= e(shop_t('The items and prices are pre-filled. Add the vehicle plate and payment details to issue the invoice.')) ?>
+</div>
+<?php endif; ?>
+
 <form method="post" action="save.php" id="saleForm">
     <input type="hidden" name="quotation_id" value="<?= $quotation ? (int) $quotation['id'] : 0 ?>">
+    <input type="hidden" name="online_order_id" value="<?= $onlineOrder ? (int) $onlineOrder['id'] : 0 ?>">
     <div class="sale-layout">
         <div class="sale-panel">
             <div class="sale-section">
@@ -343,8 +393,11 @@ require_once "../partials/header.php";
             selectedLines++;
             if (opt && opt.dataset.stock !== undefined) {
                 var available = Number(opt.dataset.stock);
+                var curing = Number(opt.dataset.curing || 0);
                 var label = available === 1 ? tAvailOne : tAvailMany;
-                stockEl.textContent = available.toLocaleString() + ' ' + label + (qty > available ? ' - ' + tExceeds : '');
+                stockEl.textContent = available.toLocaleString() + ' ' + label +
+                    (curing > 0 ? ' · ' + curing.toLocaleString() + ' curing' : '') +
+                    (qty > available ? ' - ' + tExceeds : '');
                 if (qty > available) { stockEl.className = 'line-stock warn'; issues++; }
             }
             if (qty > 0) { lineCount++; subtotal += qty * price; totalQty += qty; }
