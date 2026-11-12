@@ -4,6 +4,7 @@ require_once "../config/database.php";
 require_once "../config/helpers.php";
 require_login();
 require_permission('reports', 'view');
+ensure_production_curing_schema();
 
 $type = trim((string) ($_GET['type'] ?? 'sales'));
 $from = trim((string) ($_GET['from'] ?? date('Y-m-01')));
@@ -175,19 +176,20 @@ switch ($type) {
         break;
 
     case 'production':
-        $sql = "SELECT p.production_date, p.production_no, bt.name AS block_name, bt.size, p.planned_quantity, p.good_quantity, p.rejected_quantity, p.production_cost FROM production p JOIN block_types bt ON bt.id = p.block_type_id WHERE p.production_date BETWEEN ? AND ? ORDER BY p.production_date DESC LIMIT ?";
+        $sql = "SELECT p.production_date, p.production_no, bt.name AS block_name, bt.size, p.planned_quantity, p.good_quantity, p.rejected_quantity, p.curing_days, p.ready_date, p.production_cost FROM production p JOIN block_types bt ON bt.id = p.block_type_id WHERE p.production_date BETWEEN ? AND ? ORDER BY p.production_date DESC LIMIT ?";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$from, $to, $limit]);
         $rows = $stmt->fetchAll();
 
-        csv_row($fp, ['Date', 'Production No', 'Block Type', 'Size', 'Planned', 'Good Qty', 'Rejected Qty', 'Production Cost']);
+        csv_row($fp, ['Date', 'Production No', 'Block Type', 'Size', 'Planned', 'Good Qty', 'Rejected Qty', 'Curing Days', 'Ready Date', 'Status', 'Production Cost']);
         $totalCost = 0.0;
         foreach ($rows as $row) {
+            $readyDate = $row['ready_date'] ?: $row['production_date'];
             $totalCost += (float) $row['production_cost'];
-            csv_row($fp, [$row['production_date'], $row['production_no'], $row['block_name'], $row['size'], (int) $row['planned_quantity'], (int) $row['good_quantity'], (int) $row['rejected_quantity'], (float) $row['production_cost']]);
+            csv_row($fp, [$row['production_date'], $row['production_no'], $row['block_name'], $row['size'], (int) $row['planned_quantity'], (int) $row['good_quantity'], (int) $row['rejected_quantity'], (int) ($row['curing_days'] ?? production_default_curing_days()), $readyDate, $readyDate > date('Y-m-d') ? 'Curing' : 'Ready', (float) $row['production_cost']]);
         }
         csv_row($fp, []);
-        csv_row($fp, ['TOTAL', '', '', '', '', '', '', $totalCost]);
+        csv_row($fp, ['TOTAL', '', '', '', '', '', '', '', '', '', $totalCost]);
         break;
 
     case 'inventory':
@@ -204,21 +206,32 @@ switch ($type) {
         csv_row($fp, ['Total raw materials', '', '', '', $rawTotal]);
         csv_row($fp, []);
 
-        $fin = $pdo->query("SELECT bt.name, bt.size, fs.quantity, COALESCE(fs.average_unit_cost, 0) AS avg_cost, bt.selling_price FROM finished_stock fs JOIN block_types bt ON bt.id = fs.block_type_id ORDER BY bt.name LIMIT " . (int) $limit)->fetchAll();
+        $fin = $pdo->query("SELECT fs.block_type_id, bt.name, bt.size, fs.quantity, COALESCE(fs.average_unit_cost, 0) AS avg_cost, bt.selling_price FROM finished_stock fs JOIN block_types bt ON bt.id = fs.block_type_id ORDER BY bt.name LIMIT " . (int) $limit)->fetchAll();
+        $curingRows = $pdo->query("SELECT block_type_id, COALESCE(SUM(good_quantity), 0) AS curing FROM production WHERE COALESCE(ready_date, production_date) > CURDATE() GROUP BY block_type_id")->fetchAll();
+        $curingByBlock = [];
+        foreach ($curingRows as $curingRow) {
+            $curingByBlock[(int) $curingRow['block_type_id']] = (int) $curingRow['curing'];
+        }
         csv_row($fp, ['FINISHED GOODS']);
-        csv_row($fp, ['Block Type', 'Size', 'Quantity', 'Average Cost', 'Cost Value', 'Selling Price', 'Retail Value']);
+        csv_row($fp, ['Block Type', 'Size', 'Total Quantity', 'Curing (not ready)', 'Ready to Sell', 'Average Cost', 'Cost Value', 'Selling Price', 'Retail Value']);
         $costTotal = 0.0;
         $retailTotal = 0.0;
+        $curingTotal = 0;
+        $readyTotal = 0;
         foreach ($fin as $row) {
+            $curing = $curingByBlock[(int) $row['block_type_id']] ?? 0;
+            $ready = max(0, (int) $row['quantity'] - $curing);
             $costValue = round((float) $row['quantity'] * (float) $row['avg_cost'], 2);
             $retailValue = round((float) $row['quantity'] * (float) $row['selling_price'], 2);
             $costTotal += $costValue;
             $retailTotal += $retailValue;
-            csv_row($fp, [$row['name'], $row['size'], (float) $row['quantity'], (float) $row['avg_cost'], $costValue, (float) $row['selling_price'], $retailValue]);
+            $curingTotal += $curing;
+            $readyTotal += $ready;
+            csv_row($fp, [$row['name'], $row['size'], (float) $row['quantity'], $curing, $ready, (float) $row['avg_cost'], $costValue, (float) $row['selling_price'], $retailValue]);
         }
-        csv_row($fp, ['Total finished goods', '', '', '', $costTotal, '', $retailTotal]);
+        csv_row($fp, ['Total finished goods', '', '', $curingTotal, $readyTotal, '', $costTotal, '', $retailTotal]);
         csv_row($fp, []);
-        csv_row($fp, ['TOTAL INVENTORY AT COST', '', '', '', $rawTotal + $costTotal]);
+        csv_row($fp, ['TOTAL INVENTORY AT COST', '', '', '', '', '', $rawTotal + $costTotal]);
         break;
 
     case 'payroll':

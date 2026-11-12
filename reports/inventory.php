@@ -5,6 +5,7 @@ require_once "../config/helpers.php";
 require_login();
 require_permission('reports', 'view');
 ensure_manufacturing_costing_schema();
+ensure_production_curing_schema();
 
 $pageTitle = 'Inventory Reports';
 
@@ -22,13 +23,22 @@ foreach ($rawMaterials as $mat) {
 $totalFinishedCost = 0.0;
 $totalFinishedRetail = 0.0;
 $totalFinishedQty = 0.0;
-foreach ($finishedStock as $stock) {
+$totalCuringQty = 0.0;
+$totalReadyQty = 0.0;
+foreach ($finishedStock as &$stock) {
+    $curing = finished_curing_quantity((int) $stock['block_type_id']);
+    $stock['curing_qty'] = $curing;
+    $stock['ready_qty'] = max(0, (int) $stock['quantity'] - $curing);
     $totalFinishedCost += (float) $stock['quantity'] * (float) $stock['avg_cost'];
     $totalFinishedRetail += (float) $stock['quantity'] * (float) $stock['selling_price'];
     $totalFinishedQty += (float) $stock['quantity'];
+    $totalCuringQty += $curing;
+    $totalReadyQty += (int) $stock['ready_qty'];
 }
+unset($stock);
 $totalInventoryCost = $totalRawValue + $totalFinishedCost;
 $unrealisedMargin = $totalFinishedRetail - $totalFinishedCost;
+$curingBatches = finished_curing_batches();
 
 require_once "../partials/header.php";
 ?>
@@ -57,7 +67,7 @@ require_once "../partials/header.php";
 
 <div class="inv-kpis">
     <div class="inv-kpi cost"><span>Raw materials at cost</span><strong><?= e(currency_symbol()) . money($totalRawValue) ?></strong><small style="color:#64748b;"><?= number_format(count($rawMaterials)) ?> materials</small></div>
-    <div class="inv-kpi cost"><span>Finished goods at cost</span><strong><?= e(currency_symbol()) . money($totalFinishedCost) ?></strong><small style="color:#64748b;"><?= number_format($totalFinishedQty) ?> blocks</small></div>
+    <div class="inv-kpi cost"><span>Finished goods at cost</span><strong><?= e(currency_symbol()) . money($totalFinishedCost) ?></strong><small style="color:#64748b;"><?= number_format($totalReadyQty) ?> ready · <?= number_format($totalCuringQty) ?> curing</small></div>
     <div class="inv-kpi"><span>Total inventory at cost</span><strong><?= e(currency_symbol()) . money($totalInventoryCost) ?></strong></div>
     <div class="inv-kpi retail"><span>Finished goods retail value</span><strong><?= e(currency_symbol()) . money($totalFinishedRetail) ?></strong><small style="color:#64748b;"><?= e(currency_symbol()) . money($unrealisedMargin) ?> unrealised margin</small></div>
 </div>
@@ -85,14 +95,16 @@ require_once "../partials/header.php";
 <div class="panel">
     <h3>Finished goods stock</h3>
     <table class="data-table">
-        <thead><tr><th>Block type</th><th>Size</th><th style="text-align:right;">Quantity</th><th style="text-align:right;">Avg cost</th><th style="text-align:right;">Cost value</th><th style="text-align:right;">Selling price</th><th style="text-align:right;">Retail value</th></tr></thead>
+        <thead><tr><th>Block type</th><th>Size</th><th style="text-align:right;">Total Qty</th><th style="text-align:right;">Curing (not ready)</th><th style="text-align:right;">Ready to Sell</th><th style="text-align:right;">Avg cost</th><th style="text-align:right;">Cost value</th><th style="text-align:right;">Selling price</th><th style="text-align:right;">Retail value</th></tr></thead>
         <tbody>
-            <?php if (!$finishedStock): ?><tr><td colspan="7">No finished stock records.</td></tr><?php endif; ?>
+            <?php if (!$finishedStock): ?><tr><td colspan="9">No finished stock records.</td></tr><?php endif; ?>
             <?php foreach ($finishedStock as $stock): ?>
             <tr>
                 <td><?= e($stock['name']) ?></td>
                 <td><?= e($stock['size']) ?></td>
                 <td style="text-align:right;"><?= number_format((float) $stock['quantity']) ?></td>
+                <td style="text-align:right;color:#b45309;font-weight:600;"><?= number_format((int) $stock['curing_qty']) ?></td>
+                <td style="text-align:right;color:#166534;font-weight:700;"><?= number_format((int) $stock['ready_qty']) ?></td>
                 <td style="text-align:right;"><?= e(currency_symbol()) . money($stock['avg_cost']) ?></td>
                 <td style="text-align:right;"><strong><?= e(currency_symbol()) . money((float) $stock['quantity'] * (float) $stock['avg_cost']) ?></strong></td>
                 <td style="text-align:right;"><?= e(currency_symbol()) . money($stock['selling_price']) ?></td>
@@ -100,14 +112,40 @@ require_once "../partials/header.php";
             </tr>
             <?php endforeach; ?>
             <tr style="background:#f8f9fa;font-weight:bold;">
-                <td colspan="4">Total finished goods</td>
+                <td colspan="2">Total finished goods</td>
+                <td style="text-align:right;"><?= number_format($totalFinishedQty) ?></td>
+                <td style="text-align:right;color:#b45309;"><?= number_format($totalCuringQty) ?></td>
+                <td style="text-align:right;color:#166534;"><?= number_format($totalReadyQty) ?></td>
+                <td></td>
                 <td style="text-align:right;"><?= e(currency_symbol()) . money($totalFinishedCost) ?></td>
                 <td></td>
                 <td style="text-align:right;"><?= e(currency_symbol()) . money($totalFinishedRetail) ?></td>
             </tr>
         </tbody>
     </table>
-    <p style="color:#64748b;font-size:.78rem;margin-top:10px;">Cost value uses the weighted-average manufacturing cost stored on each finished-stock record. Retail value is the current selling price × quantity and is not the accounting inventory value.</p>
+    <p style="color:#64748b;font-size:.78rem;margin-top:10px;">Cost value uses the weighted-average manufacturing cost stored on each finished-stock record. Retail value is the current selling price × quantity and is not the accounting inventory value. Only the ready-to-sell quantity can be invoiced.</p>
+</div>
+
+<div class="panel" style="margin-top:20px;">
+    <h3>Blocks curing (not ready to sell)</h3>
+    <table class="data-table">
+        <thead><tr><th>Production No</th><th>Block type</th><th>Size</th><th>Production date</th><th style="text-align:right;">Good qty</th><th style="text-align:right;">Curing days</th><th>Ready date</th><th style="text-align:right;">Days left</th></tr></thead>
+        <tbody>
+            <?php if (!$curingBatches): ?><tr><td colspan="8">No blocks are curing right now.</td></tr><?php endif; ?>
+            <?php foreach ($curingBatches as $batch): ?>
+            <tr>
+                <td><a href="../production/view.php?id=<?= (int) $batch['id'] ?>"><?= e($batch['production_no']) ?></a></td>
+                <td><?= e($batch['block_name']) ?></td>
+                <td><?= e($batch['size']) ?></td>
+                <td><?= format_date($batch['production_date']) ?></td>
+                <td style="text-align:right;"><?= number_format((int) $batch['good_quantity']) ?></td>
+                <td style="text-align:right;"><span><?= (int) $batch['curing_days'] ?></span> <span>days</span></td>
+                <td><?= format_date($batch['ready_date'] ?: $batch['production_date']) ?></td>
+                <td style="text-align:right;color:#b45309;font-weight:600;"><span><?= (int) $batch['days_remaining'] ?></span> <span>days</span></td>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
 </div>
 
 <?php require_once "../partials/footer.php"; ?>

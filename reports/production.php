@@ -4,6 +4,7 @@ require_once "../config/database.php";
 require_once "../config/helpers.php";
 require_login();
 require_permission('reports', 'view');
+ensure_production_curing_schema();
 
 $from = trim((string) ($_GET['from'] ?? date('Y-m-01')));
 $to = trim((string) ($_GET['to'] ?? date('Y-m-d')));
@@ -28,6 +29,16 @@ $total_produced = array_sum(array_column($productions, 'produced_quantity'));
 $total_good = array_sum(array_column($productions, 'good_quantity'));
 $total_rejected = array_sum(array_column($productions, 'rejected_quantity'));
 $total_cost = array_sum(array_column($productions, 'production_cost'));
+$total_curing = 0;
+$total_ready = 0;
+foreach ($productions as $production) {
+    $readyDate = $production['ready_date'] ?: $production['production_date'];
+    if ($readyDate > date('Y-m-d')) {
+        $total_curing += (int) $production['good_quantity'];
+    } else {
+        $total_ready += (int) $production['good_quantity'];
+    }
+}
 
 $efficiency = $total_planned > 0 ? ($total_produced / $total_planned) * 100 : 0;
 $quality = $total_produced > 0 ? ($total_good / $total_produced) * 100 : 0;
@@ -51,7 +62,7 @@ $quality = $total_produced > 0 ? ($total_good / $total_produced) * 100 : 0;
     </div>
 </form>
 
-<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px;">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; margin-bottom: 20px;">
     <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
         <h3 style="color: #666; margin: 0 0 10px 0;">Total Produced</h3>
         <div style="font-size: 28px; font-weight: bold;"><?= number_format($total_produced) ?></div>
@@ -67,6 +78,14 @@ $quality = $total_produced > 0 ? ($total_good / $total_produced) * 100 : 0;
     <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
         <h3 style="color: #666; margin: 0 0 10px 0;">Quality Rate</h3>
         <div style="font-size: 28px; font-weight: bold; color: #17a2b8;"><?= number_format($quality, 1) ?>%</div>
+    </div>
+    <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <h3 style="color: #666; margin: 0 0 10px 0;">Ready to Sell</h3>
+        <div style="font-size: 28px; font-weight: bold; color: #28a745;"><?= number_format($total_ready) ?></div>
+    </div>
+    <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <h3 style="color: #666; margin: 0 0 10px 0;">Curing (Not Ready)</h3>
+        <div style="font-size: 28px; font-weight: bold; color: #f39c12;"><?= number_format($total_curing) ?></div>
     </div>
 </div>
 
@@ -89,12 +108,20 @@ $quality = $total_produced > 0 ? ($total_good / $total_produced) * 100 : 0;
                 <th>Produced</th>
                 <th>Good</th>
                 <th>Rejected</th>
+                <th>Curing Days</th>
+                <th>Ready Date</th>
+                <th>Status</th>
                 <th>Cost</th>
                 <th>Unit Cost</th>
             </tr>
         </thead>
         <tbody>
             <?php foreach($productions as $prod): ?>
+            <?php
+                $prodReadyDate = $prod['ready_date'] ?: $prod['production_date'];
+                $prodCuring = $prodReadyDate > date('Y-m-d');
+                $prodDaysLeft = $prodCuring ? max(0, (int) ((strtotime($prodReadyDate) - strtotime(date('Y-m-d'))) / 86400)) : 0;
+            ?>
             <tr>
                 <td><?= date('d M Y', strtotime($prod['production_date'])) ?></td>
                 <td><?= htmlspecialchars($prod['production_no']) ?></td>
@@ -103,6 +130,9 @@ $quality = $total_produced > 0 ? ($total_good / $total_produced) * 100 : 0;
                 <td><?= number_format($prod['produced_quantity']) ?></td>
                 <td><?= number_format($prod['good_quantity']) ?></td>
                 <td style="color: #dc3545;"><?= number_format($prod['rejected_quantity']) ?></td>
+                <td><span><?= (int) ($prod['curing_days'] ?? production_default_curing_days()) ?></span> <span>days</span></td>
+                <td><?= date('d M Y', strtotime($prodReadyDate)) ?></td>
+                <td style="font-weight:600;color:<?= $prodCuring ? '#b45309' : '#166534' ?>;"><?= $prodCuring ? '<span>Curing</span> (<span>' . $prodDaysLeft . '</span> <span>days</span>)' : '<span>Ready</span>' ?></td>
                 <td><?= number_format($prod['production_cost'], 2) ?></td>
                 <td><?= $prod['good_quantity'] > 0 ? number_format($prod['production_cost'] / $prod['good_quantity'], 2) : '0.00' ?></td>
             </tr>

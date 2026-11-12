@@ -5,6 +5,7 @@ require_once "../config/helpers.php";
 require_login();
 require_permission('reports', 'view');
 ensure_manufacturing_costing_schema();
+ensure_production_curing_schema();
 
 $date = $_GET['date'] ?? date('Y-m-d');
 if (!is_valid_date_string($date) || $date > date('Y-m-d')) {
@@ -37,8 +38,13 @@ $payables = (float) dc_val($pdo, "SELECT COALESCE(SUM(balance),0) FROM purchases
 
 $stock = [];
 try {
-    $stock = $pdo->query("SELECT bt.name, bt.size, COALESCE(fs.quantity,0) AS qty, COALESCE(fs.average_unit_cost,0) AS cost
+    $stock = $pdo->query("SELECT bt.id, bt.name, bt.size, COALESCE(fs.quantity,0) AS qty, COALESCE(fs.average_unit_cost,0) AS cost
         FROM block_types bt LEFT JOIN finished_stock fs ON fs.block_type_id=bt.id WHERE bt.status=1 ORDER BY bt.name, bt.size")->fetchAll();
+    foreach ($stock as &$stockRow) {
+        $stockRow['curing'] = finished_curing_quantity((int) $stockRow['id']);
+        $stockRow['ready'] = max(0, (int) $stockRow['qty'] - (int) $stockRow['curing']);
+    }
+    unset($stockRow);
 } catch (PDOException $e) {}
 $topSales = [];
 try {
@@ -88,11 +94,11 @@ $cs = currency_symbol();
     <div class="panel">
         <h3>Finished stock now</h3>
         <div class="table-container"><table class="data-table">
-            <thead><tr><th>Block</th><th style="text-align:right">Qty</th><th style="text-align:right">Value at cost</th></tr></thead>
+            <thead><tr><th>Block</th><th style="text-align:right">Ready</th><th style="text-align:right">Curing</th><th style="text-align:right">Value at cost</th></tr></thead>
             <tbody>
             <?php foreach ($stock as $s): ?>
-                <tr><td><?= e($s['name'] . ' ' . $s['size']) ?></td><td style="text-align:right"><?= number_format((int) $s['qty']) ?></td><td style="text-align:right"><?= $cs . money($s['qty'] * $s['cost']) ?></td></tr>
-            <?php endforeach; if (!$stock): ?><tr><td colspan="3">No block types.</td></tr><?php endif; ?>
+                <tr><td><?= e($s['name'] . ' ' . $s['size']) ?></td><td style="text-align:right;color:#166534;font-weight:600;"><?= number_format((int) $s['ready']) ?></td><td style="text-align:right;color:#b45309;"><?= number_format((int) $s['curing']) ?></td><td style="text-align:right"><?= $cs . money($s['qty'] * $s['cost']) ?></td></tr>
+            <?php endforeach; if (!$stock): ?><tr><td colspan="4">No block types.</td></tr><?php endif; ?>
             </tbody>
         </table></div>
         <p style="font-size:.85rem;color:#62767e;margin:10px 0 0;">Raw materials below reorder level: <strong><?= $lowStock ?></strong></p>
