@@ -1839,6 +1839,125 @@ function log_finished_stock_transaction($block_type_id, $quantity, $transaction_
 }
 
 /**
+ * Default number of days freshly produced blocks must dry before they can be sold.
+ * The value is stored per production run so an individual batch can be changed.
+ */
+function production_default_curing_days() {
+    return 8;
+}
+
+/**
+ * Add the curing fields to the production table on first use. Existing runs were
+ * already added to finished stock before this feature existed, so they are marked
+ * ready instead of suddenly moving back into curing.
+ */
+function ensure_production_curing_schema() {
+    static $checked = false;
+    if ($checked) {
+        return;
+    }
+    $checked = true;
+    global $pdo;
+
+    try {
+        $columns = $pdo->query("SHOW COLUMNS FROM production")->fetchAll(PDO::FETCH_COLUMN);
+        if (!$columns) {
+            return;
+        }
+        if (!in_array('curing_days', $columns, true)) {
+            $pdo->exec("ALTER TABLE production ADD COLUMN curing_days INT NOT NULL DEFAULT 8 AFTER production_date");
+        }
+        if (!in_array('ready_date', $columns, true)) {
+            $pdo->exec("ALTER TABLE production ADD COLUMN ready_date DATE NULL AFTER curing_days");
+            $pdo->exec("UPDATE production SET ready_date = production_date WHERE ready_date IS NULL");
+        }
+    } catch (PDOException $e) {
+        // Older databases may not have the production table yet.
+    }
+}
+
+/**
+ * Calculate the date a production batch becomes ready for sale.
+ */
+function production_ready_date($productionDate, $curingDays = null) {
+    $productionDate = trim((string) $productionDate);
+    if (!is_valid_date_string($productionDate)) {
+        $productionDate = date('Y-m-d');
+    }
+    $curingDays = $curingDays === null ? production_default_curing_days() : max(0, (int) $curingDays);
+    $timestamp = strtotime($productionDate . ' +' . $curingDays . ' days');
+    return $timestamp ? date('Y-m-d', $timestamp) : $productionDate;
+}
+
+/**
+ * Blocks that are still drying and therefore cannot be sold yet.
+ */
+function finished_curing_quantity($blockTypeId = null) {
+    global $pdo;
+    ensure_production_curing_schema();
+
+    try {
+        $sql = "SELECT COALESCE(SUM(good_quantity),0) FROM production
+                WHERE COALESCE(ready_date, production_date) > CURDATE()";
+        if ($blockTypeId !== null) {
+            $stmt = $pdo->prepare($sql . " AND block_type_id = ?");
+            $stmt->execute([(int) $blockTypeId]);
+            return (int) $stmt->fetchColumn();
+        }
+        return (int) $pdo->query($sql)->fetchColumn();
+    } catch (PDOException $e) {
+        return 0;
+    }
+}
+
+/**
+ * Blocks that are ready to sell for one block type (total physical stock minus
+ * blocks still curing).
+ */
+function finished_ready_quantity($blockTypeId) {
+    global $pdo;
+    $blockTypeId = (int) $blockTypeId;
+    if ($blockTypeId <= 0) {
+        return 0;
+    }
+
+    try {
+        $stmt = $pdo->prepare("SELECT COALESCE(quantity,0) FROM finished_stock WHERE block_type_id = ?");
+        $stmt->execute([$blockTypeId]);
+        $total = (int) $stmt->fetchColumn();
+        return max(0, $total - finished_curing_quantity($blockTypeId));
+    } catch (PDOException $e) {
+        return 0;
+    }
+}
+
+/**
+ * Production batches still curing, with the days remaining. Used by the
+ * finished-stock and production reports.
+ */
+function finished_curing_batches($blockTypeId = null) {
+    global $pdo;
+    ensure_production_curing_schema();
+
+    try {
+        $sql = "SELECT p.id, p.production_no, p.production_date, p.curing_days, p.ready_date,
+                       p.good_quantity, bt.name AS block_name, bt.size,
+                       GREATEST(0, DATEDIFF(COALESCE(p.ready_date, p.production_date), CURDATE())) AS days_remaining
+                FROM production p
+                JOIN block_types bt ON bt.id = p.block_type_id
+                WHERE COALESCE(p.ready_date, p.production_date) > CURDATE()";
+        if ($blockTypeId !== null) {
+            $stmt = $pdo->prepare($sql . " AND p.block_type_id = ? ORDER BY COALESCE(p.ready_date, p.production_date), p.id");
+            $stmt->execute([(int) $blockTypeId]);
+            return $stmt->fetchAll();
+        }
+        return $pdo->query($sql . " ORDER BY COALESCE(p.ready_date, p.production_date), p.id")->fetchAll();
+    } catch (PDOException $e) {
+        return [];
+    }
+}
+
+/**
  * Send an email notification (Mock implementation)
  */
 function send_email_notification($to, $subject, $message) {
