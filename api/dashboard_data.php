@@ -20,6 +20,7 @@ if (!has_permission('dashboard', 'view') || !has_permission('reports', 'view')) 
 
 ensure_expense_approval_schema();
 ensure_purchase_payment_schema();
+ensure_production_curing_schema();
 header('Content-Type: application/json');
 
 function v($p, $q, $a = []) {
@@ -34,6 +35,9 @@ $m = date('Y-m-01');
 $monthSales = (float) v($pdo, "SELECT COALESCE(SUM(total_amount),0) FROM sales WHERE sale_date >= ?", [$m]);
 $monthCogs = (float) v($pdo, "SELECT COALESCE(SUM(cogs_amount),0) FROM sales WHERE sale_date >= ?", [$m]);
 $monthExpenses = (float) v($pdo, "SELECT COALESCE(SUM(amount),0) FROM expenses WHERE expense_date >= ? AND approval_status = 'approved'", [$m]);
+$finishedTotal = (int) v($pdo, "SELECT COALESCE(SUM(quantity),0) FROM finished_stock");
+$curingStock = finished_curing_quantity();
+$readyStock = max(0, $finishedTotal - $curingStock);
 
 $data = [
     'today' => [
@@ -49,7 +53,8 @@ $data = [
         'prod_cost' => (float) v($pdo, "SELECT COALESCE(SUM(production_cost),0) FROM production WHERE production_date>=?", [$m]),
     ],
     'inventory' => [
-        'finished_stock' => (int) v($pdo, "SELECT COALESCE(SUM(quantity),0) FROM finished_stock"),
+        'finished_stock' => $readyStock,
+        'curing_stock' => $curingStock,
         'low_stock_count' => (int) v($pdo, "SELECT COUNT(*) FROM raw_materials rm JOIN reorder_levels rl ON rm.id=rl.material_id WHERE rm.current_stock<=rl.reorder_point"),
     ],
     'accounts' => [
