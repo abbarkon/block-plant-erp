@@ -29,9 +29,13 @@ switch ($dashboardDepartment) {
         $metric('Exited today', (int) $value("SELECT COUNT(*) FROM gate_clearances WHERE status = 'EXITED' AND DATE(exit_time) = ?", [$today]), 'Vehicles released');
         break;
     case 'production':
+        ensure_production_curing_schema();
+        $totalFinished = (int) $value('SELECT COALESCE(SUM(quantity), 0) FROM finished_stock');
+        $curingFinished = finished_curing_quantity();
         $metric('Produced today', (int) $value('SELECT COALESCE(SUM(good_quantity), 0) FROM production WHERE production_date = ?', [$today]), 'Good blocks');
         $metric('Scheduled today', (int) $value("SELECT COALESCE(SUM(target_quantity), 0) FROM production_schedules WHERE schedule_date = ? AND status IN ('planned', 'in_progress')", [$today]), 'Target quantity');
-        $metric('Finished stock', (int) $value('SELECT COALESCE(SUM(quantity), 0) FROM finished_stock'), 'Blocks ready for dispatch');
+        $metric('Ready to sell', max(0, $totalFinished - $curingFinished), 'Cured and available for sale');
+        $metric('Curing', $curingFinished, 'Still drying');
         $metric('Low stock materials', (int) $value('SELECT COUNT(*) FROM raw_materials rm JOIN reorder_levels rl ON rm.id = rl.material_id WHERE rm.current_stock <= rl.reorder_point'), 'At or below reorder level');
         break;
     case 'sales':

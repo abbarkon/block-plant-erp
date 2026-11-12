@@ -7,6 +7,9 @@ require_permission('dashboard', 'view');
 ensure_department_access_schema();
 ensure_expense_approval_schema();
 ensure_purchase_payment_schema();
+if (function_exists('ensure_production_curing_schema')) {
+    ensure_production_curing_schema();
+}
 $dashboardUser = current_user();
 $isSystemAdmin = is_system_admin();
 $dashboardDepartment = strtolower(trim((string) ($dashboardUser['department'] ?? '')));
@@ -42,8 +45,10 @@ $month_prod_cost=v($pdo,"SELECT COALESCE(SUM(production_cost),0) FROM production
 // spend is a manufacturing metric, not a second COGS charge.
 $month_profit = $month_sales - $month_cogs - $month_exp;
 
-// Stock and balances
-$stock=v($pdo,"SELECT COALESCE(SUM(quantity),0) FROM finished_stock");
+// Stock and balances. Only cured blocks can be sold; curing stock is shown separately.
+$stockTotal=(int) v($pdo,"SELECT COALESCE(SUM(quantity),0) FROM finished_stock");
+$curingStock = function_exists('finished_curing_quantity') ? (int) finished_curing_quantity() : 0;
+$stock=max(0, $stockTotal-$curingStock);
 $recv=v($pdo,"SELECT COALESCE(SUM(balance),0) FROM sales WHERE balance>0");
 // Rejected purchase orders are not liabilities.
 $pay=v($pdo,"SELECT COALESCE(SUM(balance),0) FROM purchases WHERE balance>0 AND (approval_status IS NULL OR approval_status <> 'rejected')");
@@ -421,7 +426,7 @@ $alertCount = ($low_stock > 0 ? 1 : 0) + ($low_production ? 1 : 0) + ($task_remi
     <div class="card" data-link="../inventory/index.php" title="<?= e(t('view_finished_stock')) ?>">
         <h3><span class="ic">🧱</span><?= t('finished_stock') ?></h3>
         <div class="value"><?= number_format($stock) ?></div>
-        <div class="label"><?= t('blocks_in_stock') ?></div>
+        <div class="label"><span>blocks ready to sell</span> · <span><?= number_format($curingStock) ?></span> <span>curing</span></div>
     </div>
     <div class="card" data-link="../hr/index.php" title="<?= e(t('view_employees')) ?>">
         <h3><span class="ic">👥</span><?= t('active_employees') ?></h3>
