@@ -4,6 +4,7 @@ require_once "../config/database.php";
 require_once "../config/helpers.php";
 require_permission('production', 'edit');
 ensure_manufacturing_costing_schema();
+ensure_production_curing_schema();
 
 $id = (int) ($_GET['id'] ?? 0);
 $stmt = $pdo->prepare("SELECT p.*, bt.name, bt.size FROM production p JOIN block_types bt ON p.block_type_id=bt.id WHERE p.id=?");
@@ -15,6 +16,10 @@ if (!$p) {
     require_once '../partials/footer.php';
     exit;
 }
+
+$currentCuringDays = (int) ($p['curing_days'] ?? production_default_curing_days());
+$currentReadyDate = $p['ready_date'] ?: $p['production_date'];
+$isReady = $currentReadyDate <= date('Y-m-d');
 
 $lineStmt = $pdo->prepare("SELECT pm.material_id, pm.quantity, pm.unit_cost FROM production_materials pm WHERE pm.production_id=?");
 $lineStmt->execute([$id]);
@@ -63,8 +68,18 @@ require_once "../partials/header.php";
     <form method="post" action="update.php">
         <input type="hidden" name="id" value="<?= (int) $p['id'] ?>">
 
-        <label>Date</label>
-        <input type="date" name="production_date" value="<?= e($p['production_date']) ?>" max="<?= date('Y-m-d') ?>" required>
+        <div class="grid-2">
+            <div><label>Date</label><input type="date" name="production_date" id="prodDate" value="<?= e($p['production_date']) ?>" max="<?= date('Y-m-d') ?>" required></div>
+            <div><label>Curing days before sale</label><input type="number" name="curing_days" id="curingDays" value="<?= $currentCuringDays ?>" min="0" max="365" required></div>
+        </div>
+        <p id="readyHint" title="Ready for sale on {date} ({days} days curing)." style="color:#2f7d4f;font-size:.88rem;font-weight:600;margin:4px 0 0;"></p>
+        <p style="color:#646b8c;font-size:.82rem;margin:2px 0 0;">
+            <?php if ($isReady): ?>
+            This batch is already ready for sale. Changing the curing days will not move it back into curing.
+            <?php else: ?>
+            This batch is still curing. The ready date is recalculated when you save.
+            <?php endif; ?>
+        </p>
 
         <label>Block type</label>
         <input type="text" value="<?= e($p['name'] . ' - ' . $p['size']) ?>" readonly style="background:#f1f5f9;">
@@ -191,6 +206,23 @@ if (fromBom) fromBom.addEventListener('click', () => applyBom(true));
 document.getElementById('producedQty').addEventListener('input', () => { updateGood(); applyBom(false); });
 document.getElementById('rejectedQty').addEventListener('input', updateGood);
 updateGood();
+
+function updateReadyHint() {
+    const dateInput = document.getElementById('prodDate');
+    const daysInput = document.getElementById('curingDays');
+    const hint = document.getElementById('readyHint');
+    if (!dateInput || !daysInput || !hint) return;
+    const d = dateInput.value;
+    const days = parseInt(daysInput.value, 10) || 0;
+    if (!d) { hint.textContent = ''; return; }
+    const dt = new Date(d + 'T00:00:00Z');
+    dt.setUTCDate(dt.getUTCDate() + days);
+    const template = hint.getAttribute('title') || 'Ready for sale on {date} ({days} days curing).';
+    hint.textContent = template.replace('{date}', dt.toISOString().slice(0, 10)).replace('{days}', days);
+}
+document.getElementById('prodDate').addEventListener('change', updateReadyHint);
+document.getElementById('curingDays').addEventListener('input', updateReadyHint);
+updateReadyHint();
 </script>
 
 <?php require_once "../partials/footer.php"; ?>

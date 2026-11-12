@@ -5,6 +5,7 @@ require_once __DIR__ . '/../config/helpers.php';
 
 ensure_manufacturing_costing_schema();
 ensure_finished_stock_transaction_schema();
+ensure_production_curing_schema();
 
 $action = $_POST['action'] ?? 'create';
 if ($action === 'delete') {
@@ -75,6 +76,7 @@ if ($action === 'update') {
     $good = $produced - $rejected;
     $laborCost = max(0, (float) ($_POST['labor_cost'] ?? 0));
     $overheadCost = max(0, (float) ($_POST['overhead_cost'] ?? 0));
+    $curingDays = min(365, max(0, (int) ($_POST['curing_days'] ?? production_default_curing_days())));
     $materialIds = $_POST['material_id'] ?? [];
     $materialQuantities = $_POST['material_quantity'] ?? [];
 
@@ -106,7 +108,7 @@ if ($action === 'update') {
 
     try {
         $pdo->beginTransaction();
-        $old = $pdo->prepare("SELECT production_no, good_quantity, production_cost, block_type_id FROM production WHERE id = ? FOR UPDATE");
+        $old = $pdo->prepare("SELECT production_no, production_date, ready_date, good_quantity, production_cost, block_type_id FROM production WHERE id = ? FOR UPDATE");
         $old->execute([$productionId]);
         $existing = $old->fetch();
         if (!$existing) {
@@ -114,6 +116,9 @@ if ($action === 'update') {
         }
 
         $oldGood = (int) $existing['good_quantity'];
+        $oldReadyDate = $existing['ready_date'] ?: $existing['production_date'];
+        // Once a batch is ready, editing it must not push it back into curing.
+        $readyDate = $oldReadyDate > date('Y-m-d') ? production_ready_date($date, $curingDays) : $oldReadyDate;
         $materialCost = 0.0;
         $materialLines = [];
         foreach ($requestedMaterials as $materialId => $quantity) {
@@ -131,8 +136,8 @@ if ($action === 'update') {
 
         $productionCost = round($materialCost + $laborCost + $overheadCost, 2);
         $unitCost = $good > 0 ? round($productionCost / $good, 4) : 0;
-        $pdo->prepare("UPDATE production SET production_date=?, block_type_id=?, planned_quantity=?, produced_quantity=?, rejected_quantity=?, good_quantity=?, production_cost=?, labor_cost=?, overhead_cost=?, notes=? WHERE id=?")
-            ->execute([$date, $blockTypeId, max(0, (int) ($_POST['planned_quantity'] ?? 0)), $produced, $rejected, $good, $productionCost, $laborCost, $overheadCost, trim($_POST['notes'] ?? ''), $productionId]);
+        $pdo->prepare("UPDATE production SET production_date=?, curing_days=?, ready_date=?, block_type_id=?, planned_quantity=?, produced_quantity=?, rejected_quantity=?, good_quantity=?, production_cost=?, labor_cost=?, overhead_cost=?, notes=? WHERE id=?")
+            ->execute([$date, $curingDays, $readyDate, $blockTypeId, max(0, (int) ($_POST['planned_quantity'] ?? 0)), $produced, $rejected, $good, $productionCost, $laborCost, $overheadCost, trim($_POST['notes'] ?? ''), $productionId]);
 
         $pdo->prepare("DELETE FROM production_materials WHERE production_id = ?")->execute([$productionId]);
         $materialInsert = $pdo->prepare("INSERT INTO production_materials(production_id,material_id,quantity,unit_cost,total_cost) VALUES(?,?,?,?,?)");
@@ -169,6 +174,7 @@ if ($action === 'update') {
 require_permission('production', 'create');
 ensure_manufacturing_costing_schema();
 ensure_finished_stock_transaction_schema();
+ensure_production_curing_schema();
 $date = $_POST['production_date'] ?? date('Y-m-d');
 $blockTypeId = (int) ($_POST['block_type_id'] ?? 0);
 $produced = (int) ($_POST['produced_quantity'] ?? 0);
@@ -176,6 +182,8 @@ $rejected = (int) ($_POST['rejected_quantity'] ?? 0);
 $good = $produced - $rejected;
 $laborCost = max(0, (float) ($_POST['labor_cost'] ?? 0));
 $overheadCost = max(0, (float) ($_POST['overhead_cost'] ?? 0));
+$curingDays = min(365, max(0, (int) ($_POST['curing_days'] ?? production_default_curing_days())));
+$readyDate = production_ready_date($date, $curingDays);
 $materialIds = $_POST['material_id'] ?? [];
 $materialQuantities = $_POST['material_quantity'] ?? [];
 
@@ -231,10 +239,12 @@ try {
     $productionCost = round($materialCost + $laborCost + $overheadCost, 2);
     $unitCost = round($productionCost / $good, 4);
     $productionNo = 'PRO-' . date('YmdHis') . '-' . random_int(10, 99);
-    $productionStmt = $pdo->prepare("INSERT INTO production(production_no,production_date,block_type_id,planned_quantity,produced_quantity,rejected_quantity,good_quantity,production_cost,labor_cost,overhead_cost,notes,created_by) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)");
+    $productionStmt = $pdo->prepare("INSERT INTO production(production_no,production_date,curing_days,ready_date,block_type_id,planned_quantity,produced_quantity,rejected_quantity,good_quantity,production_cost,labor_cost,overhead_cost,notes,created_by) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
     $productionStmt->execute([
         $productionNo,
         $date,
+        $curingDays,
+        $readyDate,
         $blockTypeId,
         max(0, (int) ($_POST['planned_quantity'] ?? 0)),
         $produced,
@@ -274,7 +284,7 @@ try {
     $newAverageCost = $newQuantity > 0 ? round(($oldValue + $productionCost) / $newQuantity, 4) : 0;
     $pdo->prepare("UPDATE finished_stock SET quantity=?, average_unit_cost=? WHERE block_type_id=?")
         ->execute([$newQuantity, $newAverageCost, $blockTypeId]);
-    log_finished_stock_transaction($blockTypeId, $good, 'production_receipt', $productionNo, 'Production receipt at weighted-average cost ' . number_format($unitCost, 4), $date);
+    log_finished_stock_transaction($blockTypeId, $good, 'production_receipt', $productionNo, 'Production receipt at weighted-average cost ' . number_format($unitCost, 4) . '; curing until ' . $readyDate, $date);
 
     $issueLines = [
         ['1140', $productionCost, 0, 'Production cost accumulated in WIP'],
@@ -296,8 +306,8 @@ try {
     }
 
     $pdo->commit();
-    log_activity('create', 'production', $productionId, "{$productionNo}; material cost {$materialCost}; labor {$laborCost}; overhead {$overheadCost}; total cost {$productionCost}; unit cost {$unitCost}");
-    set_flash('success', "Production {$productionNo} saved. Actual total cost: " . currency_symbol() . money($productionCost) . '; weighted unit cost: ' . currency_symbol() . number_format($unitCost, 4) . '.');
+    log_activity('create', 'production', $productionId, "{$productionNo}; material cost {$materialCost}; labor {$laborCost}; overhead {$overheadCost}; total cost {$productionCost}; unit cost {$unitCost}; curing {$curingDays} days; ready {$readyDate}");
+    set_flash('success', "Production {$productionNo} saved. Actual total cost: " . currency_symbol() . money($productionCost) . '; weighted unit cost: ' . currency_symbol() . number_format($unitCost, 4) . '. Blocks are curing and will be ready to sell on ' . format_date($readyDate) . ' (' . $curingDays . ' days).');
     header('Location: view.php?id=' . $productionId);
     exit;
 } catch (Throwable $error) {

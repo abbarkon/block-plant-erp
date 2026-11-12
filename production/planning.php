@@ -3,11 +3,17 @@ session_start();
 require_once "../config/database.php";
 require_once "../config/helpers.php";require_login();
 require_permission('production', 'view');
+ensure_production_curing_schema();
 $pageTitle = "Production Planning";
 require_once "../partials/header.php";
 
 // Get current stock levels
 $stock = $pdo->query("SELECT fs.*, bt.name, bt.size FROM finished_stock fs JOIN block_types bt ON fs.block_type_id=bt.id ORDER BY bt.name, bt.size")->fetchAll();
+foreach ($stock as &$item) {
+    $item['curing'] = finished_curing_quantity((int) $item['block_type_id']);
+    $item['ready'] = max(0, (int) $item['quantity'] - (int) $item['curing']);
+}
+unset($item);
 
 // Get recent sales to predict demand
 $sales_analysis = $pdo->query("SELECT bt.id, bt.name, bt.size, SUM(si.quantity) as total_sold, AVG(si.quantity) as avg_per_sale FROM sale_items si JOIN block_types bt ON si.block_type_id=bt.id JOIN sales s ON si.sale_id=s.id WHERE s.sale_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) GROUP BY bt.id ORDER BY total_sold DESC")->fetchAll();
@@ -34,7 +40,7 @@ $materials = $pdo->query("SELECT * FROM raw_materials WHERE status=1")->fetchAll
 <div class="stats-grid">
     <div class="stat-card">
         <div class="stat-icon" style="background:#4f4fc9;">📦</div>
-        <div><div class="stat-value"><?= number_format(array_sum(array_column($stock, 'quantity'))) ?></div><div class="stat-label">Finished stock</div></div>
+        <div><div class="stat-value"><?= number_format(array_sum(array_column($stock, 'ready'))) ?></div><div class="stat-label"><span>Ready to sell</span> · <span><?= number_format(array_sum(array_column($stock, 'curing'))) ?></span> <span>curing</span></div></div>
     </div>
     <div class="stat-card">
         <div class="stat-icon" style="background:#2f7d4f;">🧱</div>
@@ -53,10 +59,12 @@ $materials = $pdo->query("SELECT * FROM raw_materials WHERE status=1")->fetchAll
             <tr>
                 <th>Block Type</th>
                 <th>Size</th>
-                <th>Current Stock</th>
+                <th>Total Stock</th>
+                <th>Curing</th>
+                <th>Ready to Sell</th>
                 <th>30-Day Sales</th>
                 <th>Avg/Sale</th>
-                <th>Days of Stock</th>
+                <th>Days of Ready Stock</th>
                 <th>Status</th>
                 <th>Action</th>
             </tr>
@@ -68,7 +76,7 @@ $materials = $pdo->query("SELECT * FROM raw_materials WHERE status=1")->fetchAll
                 $total_sold = $sales_data['total_sold'] ?? 0;
                 $avg_sold = $sales_data['avg_per_sale'] ?? 0;
                 $daily_rate = $total_sold / 30;
-                $days_of_stock = $daily_rate > 0 ? $item['quantity'] / $daily_rate : 999;
+                $days_of_stock = $daily_rate > 0 ? $item['ready'] / $daily_rate : 999;
                 
                 $status_color = $days_of_stock < 7 ? '#f8d7da' : ($days_of_stock < 14 ? '#fff3cd' : '#d4edda');
                 $status_text = $days_of_stock < 7 ? 'Critical' : ($days_of_stock < 14 ? 'Low' : 'Good');
@@ -76,10 +84,12 @@ $materials = $pdo->query("SELECT * FROM raw_materials WHERE status=1")->fetchAll
             <tr style="background: <?= $status_color ?>;">
                 <td><?= htmlspecialchars($item['name']) ?></td>
                 <td><?= htmlspecialchars($item['size']) ?></td>
-                <td><strong><?= number_format($item['quantity']) ?></strong></td>
+                <td><?= number_format($item['quantity']) ?></td>
+                <td style="color:#b45309;font-weight:600;"><?= number_format($item['curing']) ?></td>
+                <td><strong style="color:#166534;"><?= number_format($item['ready']) ?></strong></td>
                 <td><?= number_format($total_sold) ?></td>
                 <td><?= number_format($avg_sold, 1) ?></td>
-                <td><?= number_format($days_of_stock, 1) ?> days</td>
+                <td><span><?= number_format($days_of_stock, 1) ?></span> <span>days</span></td>
                 <td><strong><?= $status_text ?></strong></td>
                 <td>
                     <a href="../production/create.php?block_type=<?= $item['block_type_id'] ?>" class="btn btn-sm">Produce</a>

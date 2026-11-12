@@ -6,6 +6,7 @@ require_permission('production', 'edit');
 
 ensure_manufacturing_costing_schema();
 ensure_finished_stock_transaction_schema();
+ensure_production_curing_schema();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: index.php');
@@ -21,6 +22,7 @@ $good = $produced - $rejected;
 $planned = max(0, (int) ($_POST['planned_quantity'] ?? 0));
 $laborCost = max(0, (float) ($_POST['labor_cost'] ?? 0));
 $overheadCost = max(0, (float) ($_POST['overhead_cost'] ?? 0));
+$curingDays = min(365, max(0, (int) ($_POST['curing_days'] ?? production_default_curing_days())));
 $notes = trim($_POST['notes'] ?? '');
 $materialIds = $_POST['material_id'] ?? [];
 $materialQuantities = $_POST['material_quantity'] ?? [];
@@ -70,6 +72,9 @@ try {
     $oldCost = (float) $run['production_cost'];
     $oldLabor = (float) $run['labor_cost'];
     $oldOverhead = (float) $run['overhead_cost'];
+    $oldReadyDate = $run['ready_date'] ?: $run['production_date'];
+    // A batch that is already ready must not be pushed back into curing by an edit.
+    $readyDate = $oldReadyDate > date('Y-m-d') ? production_ready_date($date, $curingDays) : $oldReadyDate;
 
     $oldMatStmt = $pdo->prepare("SELECT material_id, quantity, unit_cost, total_cost FROM production_materials WHERE production_id=?");
     $oldMatStmt->execute([$id]);
@@ -138,8 +143,8 @@ try {
     }
 
     // 4) Update the production record.
-    $pdo->prepare("UPDATE production SET production_date=?, planned_quantity=?, produced_quantity=?, rejected_quantity=?, good_quantity=?, production_cost=?, labor_cost=?, overhead_cost=?, notes=? WHERE id=?")
-        ->execute([$date, $planned, $produced, $rejected, $good, $newCost, $laborCost, $overheadCost, $notes, $id]);
+    $pdo->prepare("UPDATE production SET production_date=?, curing_days=?, ready_date=?, planned_quantity=?, produced_quantity=?, rejected_quantity=?, good_quantity=?, production_cost=?, labor_cost=?, overhead_cost=?, notes=? WHERE id=?")
+        ->execute([$date, $curingDays, $readyDate, $planned, $produced, $rejected, $good, $newCost, $laborCost, $overheadCost, $notes, $id]);
 
     // 5) Post adjustment journals for the cost differences.
     $dMat = round($materialCost - $oldMaterialCost, 2);
@@ -165,8 +170,8 @@ try {
     }
 
     $pdo->commit();
-    log_activity('update', 'production', $id, "{$productionNo} edited; good {$oldGood}->{$good}; cost {$oldCost}->{$newCost}; unit cost {$unitCostBlock}");
-    set_flash('success', "Production {$productionNo} updated. New total cost: " . currency_symbol() . money($newCost) . '; cost per good block: ' . currency_symbol() . number_format($unitCostBlock, 4) . '.');
+    log_activity('update', 'production', $id, "{$productionNo} edited; good {$oldGood}->{$good}; cost {$oldCost}->{$newCost}; unit cost {$unitCostBlock}; curing {$curingDays} days; ready {$readyDate}");
+    set_flash('success', "Production {$productionNo} updated. New total cost: " . currency_symbol() . money($newCost) . '; cost per good block: ' . currency_symbol() . number_format($unitCostBlock, 4) . '. Ready for sale: ' . format_date($readyDate) . '.');
     header('Location: view.php?id=' . $id);
     exit;
 } catch (Throwable $error) {

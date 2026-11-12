@@ -3,6 +3,7 @@ session_start();
 require_once "../config/database.php";
 require_once "../config/helpers.php";
 require_permission('production', 'view');
+ensure_production_curing_schema();
 
 $id = (int) ($_GET['id'] ?? 0);
 $stmt = $pdo->prepare("SELECT p.*, bt.name, bt.size, u.name AS created_by_name FROM production p JOIN block_types bt ON p.block_type_id=bt.id LEFT JOIN users u ON p.created_by=u.id WHERE p.id=?");
@@ -14,6 +15,10 @@ if (!$p) {
     require_once '../partials/footer.php';
     exit;
 }
+
+$readyDate = $p['ready_date'] ?: $p['production_date'];
+$isReady = $readyDate <= date('Y-m-d');
+$daysRemaining = $isReady ? 0 : max(0, (int) ((strtotime($readyDate) - strtotime(date('Y-m-d'))) / 86400));
 
 $materials = $pdo->prepare("SELECT pm.*, rm.name, rm.unit FROM production_materials pm JOIN raw_materials rm ON pm.material_id=rm.id WHERE pm.production_id=?");
 $materials->execute([$id]);
@@ -61,6 +66,13 @@ require_once "../partials/header.php";
     <div class="stat-card"><div class="stat-icon" style="background:#2f7d4f;">✓</div><div><div class="stat-value"><?= number_format($p['good_quantity']) ?></div><div class="stat-label">Good qty</div></div></div>
     <div class="stat-card"><div class="stat-icon" style="background:#e74c3c;">%</div><div><div class="stat-value"><?= number_format($qual, 1) ?>%</div><div class="stat-label">Quality</div></div></div>
     <div class="stat-card"><div class="stat-icon" style="background:#9b59b6;">💰</div><div><div class="stat-value"><?= currency_symbol() . money($p['production_cost']) ?></div><div class="stat-label">Total cost</div></div></div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background:<?= $isReady ? '#2f7d4f' : '#f39c12' ?>;"><?= $isReady ? '✅' : '⏳' ?></div>
+        <div>
+            <div class="stat-value"><?= format_date($readyDate) ?></div>
+            <div class="stat-label"><?php if ($isReady): ?><span>Ready to sell</span><?php else: ?><span>Curing</span> · <span><?= $daysRemaining ?></span> <span>days left</span><?php endif; ?></div>
+        </div>
+    </div>
 </div>
 
 <div class="grid-2">
@@ -69,6 +81,7 @@ require_once "../partials/header.php";
         <p><strong>Block:</strong> <?= e($p['name'] . ' ' . $p['size']) ?></p>
         <p><strong>Planned:</strong> <?= number_format($p['planned_quantity']) ?> · <strong>Produced:</strong> <?= number_format($p['produced_quantity']) ?></p>
         <p><strong>Rejected:</strong> <?= number_format($p['rejected_quantity']) ?> · <strong>Efficiency:</strong> <?= number_format($eff, 1) ?>%</p>
+        <p><strong>Curing:</strong> <span><?= (int) ($p['curing_days'] ?? production_default_curing_days()) ?></span> <span>days</span> · <strong>Ready for sale:</strong> <?= format_date($readyDate) ?> <?php if ($isReady): ?><span>(ready)</span><?php else: ?>(<span><?= $daysRemaining ?></span> <span>days remaining</span>)<?php endif; ?></p>
         <p><strong>Recorded by:</strong> <?= e($p['created_by_name'] ?? '—') ?></p>
         <?php if ($p['notes']): ?><p><strong>Notes:</strong> <?= e($p['notes']) ?></p><?php endif; ?>
     </div>

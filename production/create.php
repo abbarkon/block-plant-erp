@@ -5,8 +5,10 @@ require_once "../config/helpers.php";
 require_once "../config/labor_settings.php";
 require_permission('production', 'create');
 ensure_manufacturing_costing_schema();
+ensure_production_curing_schema();
 
 $pageTitle = 'New Production Run';
+$defaultCuringDays = production_default_curing_days();
 $blocks = $pdo->query("SELECT * FROM block_types WHERE status=1 ORDER BY name, size")->fetchAll();
 $laborByBlock = [];
 $overheadByBlock = [];
@@ -86,8 +88,12 @@ require_once "../partials/header.php";
 
 <div class="panel" style="max-width:900px;">
     <form method="post" action="save.php" id="prodForm">
-        <label>Date</label>
-        <input type="date" name="production_date" id="prodDate" value="<?= date('Y-m-d') ?>" required>
+        <div class="grid-2">
+            <div><label>Date</label><input type="date" name="production_date" id="prodDate" value="<?= date('Y-m-d') ?>" required></div>
+            <div><label>Curing days before sale</label><input type="number" name="curing_days" id="curingDays" value="<?= (int) $defaultCuringDays ?>" min="0" max="365" required></div>
+        </div>
+        <p id="readyHint" title="Ready for sale on {date} ({days} days curing)." style="color:#2f7d4f;font-size:.88rem;font-weight:600;margin:4px 0 0;"></p>
+        <p style="color:#646b8c;font-size:.82rem;margin:2px 0 0;">New blocks are added to stock immediately but cannot be sold until the ready date. The default is 8 days.</p>
 
         <label>Block type</label>
         <select name="block_type_id" id="blockType" required>
@@ -279,6 +285,23 @@ function calcFromCement() {
 document.getElementById('cementQty').addEventListener('input', calcFromCement);
 document.getElementById('blockType').addEventListener('change', () => { updateCementHint(); calcFromCement(); suggestOverhead(); });
 updateCementHint();
+
+function updateReadyHint() {
+    const dateInput = document.getElementById('prodDate');
+    const daysInput = document.getElementById('curingDays');
+    const hint = document.getElementById('readyHint');
+    if (!dateInput || !daysInput || !hint) return;
+    const d = dateInput.value;
+    const days = parseInt(daysInput.value, 10) || 0;
+    if (!d) { hint.textContent = ''; return; }
+    const dt = new Date(d + 'T00:00:00Z');
+    dt.setUTCDate(dt.getUTCDate() + days);
+    const template = hint.getAttribute('title') || 'Ready for sale on {date} ({days} days curing).';
+    hint.textContent = template.replace('{date}', dt.toISOString().slice(0, 10)).replace('{days}', days);
+}
+document.getElementById('prodDate').addEventListener('change', updateReadyHint);
+document.getElementById('curingDays').addEventListener('input', updateReadyHint);
+updateReadyHint();
 
 applyBom();
 updateGood();

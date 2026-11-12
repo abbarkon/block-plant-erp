@@ -4,6 +4,7 @@ require_once "../config/database.php";
 require_once "../config/helpers.php";
 require_login();
 require_permission('production', 'view');
+ensure_production_curing_schema();
 
 $pageTitle = 'Production Orders';
 
@@ -51,8 +52,9 @@ if (($_GET['export'] ?? '') === 'csv') {
     header('Content-Disposition: attachment; filename="production_runs_' . date('Ymd_His') . '.csv"');
     header('Pragma: no-cache');
     $out = fopen('php://output', 'w');
-    fputcsv($out, ['Production No', 'Date', 'Block', 'Planned', 'Produced', 'Good', 'Rejected', 'Total Cost']);
+    fputcsv($out, ['Production No', 'Date', 'Block', 'Planned', 'Produced', 'Good', 'Rejected', 'Curing Days', 'Ready Date', 'Status', 'Total Cost']);
     foreach ($rows as $r) {
+        $rowReadyDate = $r['ready_date'] ?: $r['production_date'];
         fputcsv($out, [
             $r['production_no'],
             $r['production_date'],
@@ -61,6 +63,9 @@ if (($_GET['export'] ?? '') === 'csv') {
             $r['produced_quantity'],
             $r['good_quantity'],
             $r['rejected_quantity'],
+            $r['curing_days'] ?? production_default_curing_days(),
+            $rowReadyDate,
+            $rowReadyDate > date('Y-m-d') ? 'Curing' : 'Ready',
             $r['production_cost'],
         ]);
     }
@@ -82,6 +87,9 @@ try {
 } catch (PDOException $e) {
     $pendingSched = 0;
 }
+$totalFinished = (int) $pdo->query("SELECT COALESCE(SUM(quantity),0) FROM finished_stock")->fetchColumn();
+$curingTotal = finished_curing_quantity();
+$readyTotal = max(0, $totalFinished - $curingTotal);
 
 $exportQuery = $_GET;
 $exportQuery['export'] = 'csv';
@@ -141,7 +149,15 @@ require_once "../partials/header.php";
         <div><div class="stat-value"><?= number_format($todayGood) ?></div><div class="stat-label">Good blocks today</div></div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon" style="background:#607d8b;">⏳</div>
+        <div class="stat-icon" style="background:#2f7d4f;">✅</div>
+        <div><div class="stat-value"><?= number_format($readyTotal) ?></div><div class="stat-label">Ready to sell</div></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background:#f39c12;">⏳</div>
+        <div><div class="stat-value"><?= number_format($curingTotal) ?></div><div class="stat-label">Curing (not ready)</div></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background:#607d8b;">📋</div>
         <div><div class="stat-value"><?= number_format($pendingSched) ?></div><div class="stat-label">Scheduled jobs</div></div>
     </div>
 </div>
@@ -180,15 +196,23 @@ require_once "../partials/header.php";
                 <th>Produced</th>
                 <th>Good</th>
                 <th>Rejected</th>
+                <th>Curing days</th>
+                <th>Ready date</th>
+                <th>Status</th>
                 <th>Cost</th>
                 <th class="no-print"></th>
             </tr>
         </thead>
         <tbody>
             <?php if (!$rows): ?>
-            <tr><td colspan="9" style="text-align:center;color:#64748b;padding:20px;">No production runs match the selected filters.</td></tr>
+            <tr><td colspan="12" style="text-align:center;color:#64748b;padding:20px;">No production runs match the selected filters.</td></tr>
             <?php endif; ?>
             <?php foreach ($rows as $r): ?>
+            <?php
+                $rowReadyDate = $r['ready_date'] ?: $r['production_date'];
+                $rowCuring = $rowReadyDate > date('Y-m-d');
+                $rowDays = $rowCuring ? max(0, (int) ((strtotime($rowReadyDate) - strtotime(date('Y-m-d'))) / 86400)) : 0;
+            ?>
             <tr>
                 <td><strong><?= e($r['production_no']) ?></strong></td>
                 <td><?= format_date($r['production_date']) ?></td>
@@ -197,6 +221,15 @@ require_once "../partials/header.php";
                 <td><?= number_format($r['produced_quantity']) ?></td>
                 <td style="color:#2f7d4f;font-weight:600;"><?= number_format($r['good_quantity']) ?></td>
                 <td style="color:#c0392b;"><?= number_format($r['rejected_quantity']) ?></td>
+                <td><span><?= (int) ($r['curing_days'] ?? production_default_curing_days()) ?></span> <span>days</span></td>
+                <td><?= format_date($rowReadyDate) ?></td>
+                <td>
+                    <?php if ($rowCuring): ?>
+                    <span class="badge badge-warning" style="background:#fef3c7;color:#92400e;padding:3px 8px;border-radius:999px;font-size:.75rem;font-weight:600;"><span>Curing</span> · <span><?= $rowDays ?></span> <span>days</span></span>
+                    <?php else: ?>
+                    <span class="badge badge-success" style="background:#dcfce7;color:#166534;padding:3px 8px;border-radius:999px;font-size:.75rem;font-weight:600;">Ready</span>
+                    <?php endif; ?>
+                </td>
                 <td><?= currency_symbol() . money($r['production_cost']) ?></td>
                 <td class="no-print"><a class="btn-sm" href="view.php?id=<?= (int) $r['id'] ?>">View</a>
                     <?php if (has_permission('production', 'edit')): ?><a class="btn-sm" href="edit.php?id=<?= (int) $r['id'] ?>">Edit</a><?php endif; ?></td>
