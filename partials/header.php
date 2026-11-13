@@ -17,6 +17,14 @@ $stmt->execute([$_SESSION["user_id"]]);
 $user = $stmt->fetch();
 $brand = brand_colors();
 $co = company_settings();
+
+// Sidebar menu customization: ensure tables exist, seed on first run,
+// and track usage of the current page.
+ensure_sidebar_menu_schema();
+$currentLinkKey = current_sidebar_link_key();
+if ($currentLinkKey) {
+    track_sidebar_usage($currentLinkKey);
+}
 $htmlLang = app_lang() === 'am' ? 'am' : 'en';
 
 // Determine if this user is an admin (used throughout the navbar)
@@ -410,258 +418,27 @@ try {
             <span>🧱 <?= htmlspecialchars(company_display_name()) ?></span>
         </div>
         <ul>
-            <?php if (has_permission('dashboard', 'view')): ?>
-            <li><a href="/block_plant/dashboard/index.php"><?= t('dashboard') ?></a></li>
-            <?php endif; ?>
-
-            <?php if (has_permission('gate', 'view')): ?>
-            <li><a href="/block_plant/gate/index.php"><?= t('gate') ?></a></li>
-            <?php endif; ?>
-
-            <?php if (has_permission('sales', 'view') || has_permission('crm', 'view') || has_permission('customers', 'view')): ?>
+            <?php
+            $sidebarItems = get_sidebar_items();
+            $targetBlank = ['open_shop']; // links that open in a new tab
+            foreach ($sidebarItems as $group):
+            ?>
+            <?php if (!empty($group['children'])): ?>
             <li class="dropdown">
-                <a href="#"><?= t('sales_crm') ?></a>
+                <a href="#"><?= e($group['label']) ?></a>
                 <div class="dropdown-menu">
-                    <?php if (has_permission('sales', 'view')): ?>
-                    <a href="/block_plant/quotations/index.php"><?= t('quotations') ?></a>
-                    <a href="/block_plant/sales/index.php"><?= t('sales_invoices') ?></a>
-                    <a href="/block_plant/sales/online_orders.php"><?= app_lang() === 'am' ? 'የመስመር ላይ ትዕዛዞች' : 'Online Orders' ?></a>
-                    <a href="/block_plant/shop/index.php" target="_blank" rel="noopener"><?= app_lang() === 'am' ? 'መሸጫውን ክፈት' : 'Open Shop' ?></a>
-                    <?php endif; ?>
-                    <?php if (has_permission('crm', 'view')): ?>
-                    <a href="/block_plant/crm/delivery.php"><?= t('delivery_notes') ?></a>
-                    <a href="/block_plant/crm/commissions.php"><?= t('commissions') ?></a>
-                    <a href="/block_plant/crm/feedback.php"><?= t('feedback') ?></a>
-                    <a href="/block_plant/crm/pipeline.php"><?= t('sales_pipeline') ?></a>
-                    <a href="/block_plant/crm/targets.php"><?= t('sales_targets') ?></a>
-                    <?php endif; ?>
-                    <?php if (has_permission('customers', 'view')): ?>
-                    <a href="/block_plant/customers/index.php"><?= t('customers') ?></a>
-                    <a href="/block_plant/customers/analytics.php"><?= t('customer_analytics') ?></a>
-                    <a href="/block_plant/customers/reminders.php"><?= t('customer_reminders') ?></a>
-                    <?php endif; ?>
-                    <?php if (has_permission('sales', 'view')): ?>
-                    <a href="/block_plant/payments/customer.php"><?= t('customer_payments') ?></a>
-                    <?php endif; ?>
+                    <?php foreach ($group['children'] as $child): ?>
+                    <?php
+                    $tb = in_array($child['link_key'], $targetBlank, true) ? ' target="_blank" rel="noopener"' : '';
+                    ?>
+                    <a href="<?= htmlspecialchars($child['url']) ?>"<?= $tb ?>><?= e($child['icon'] ? $child['icon'] . ' ' : '') ?><?= e($child['label']) ?></a>
+                    <?php endforeach; ?>
                 </div>
             </li>
+            <?php else: ?>
+            <li><a href="<?= htmlspecialchars($group['url']) ?>"><?= e($group['icon'] ? $group['icon'] . ' ' : '') ?><?= e($group['label']) ?></a></li>
             <?php endif; ?>
-
-            <?php if (has_permission('purchases', 'view') || has_permission('suppliers', 'view')): ?>
-            <li class="dropdown">
-                <a href="#"><?= t('purchasing') ?></a>
-                <div class="dropdown-menu">
-                    <?php if (has_permission('purchases', 'view')): ?>
-                    <a href="/block_plant/purchases/index.php"><?= t('purchase_orders') ?></a>
-                    <a href="/block_plant/purchases/planning.php"><?= t('purchase_planning') ?></a>
-                    <a href="/block_plant/purchases/approvals.php"><?= t('purchase_approvals') ?></a>
-                    <a href="/block_plant/purchases/analytics.php"><?= t('purchase_analytics') ?></a>
-                    <a href="/block_plant/purchases/schedule.php"><?= t('purchase_schedule') ?></a>
-                    <a href="/block_plant/purchases/supplier_prices.php"><?= t('supplier_prices') ?></a>
-                    <a href="/block_plant/inventory/reorder_list.php">Reorder Suggestions</a>
-                    <?php endif; ?>
-                    <?php if (has_permission('suppliers', 'view')): ?>
-                    <a href="/block_plant/suppliers/index.php"><?= t('suppliers') ?></a>
-                    <a href="/block_plant/suppliers/scorecards.php"><?= t('supplier_scorecards') ?></a>
-                    <a href="/block_plant/suppliers/deliveries.php"><?= t('supplier_deliveries') ?></a>
-                    <?php endif; ?>
-                    <?php if (has_permission('purchases', 'view')): ?>
-                    <a href="/block_plant/payments/supplier.php"><?= t('supplier_payments') ?></a>
-                    <?php endif; ?>
-                </div>
-            </li>
-            <?php endif; ?>
-
-            <?php if (has_permission('production', 'view')): ?>
-            <li class="dropdown">
-                <a href="#"><?= t('production') ?></a>
-                <div class="dropdown-menu">
-                    <a href="/block_plant/production/index.php"><?= t('production_orders') ?></a>
-                    <?php if (has_permission('production', 'create')): ?>
-                    <a href="/block_plant/production/create.php"><?= t('new_production_run') ?></a>
-                    <?php endif; ?>
-                    <a href="/block_plant/production/planning.php"><?= t('production_planning') ?></a>
-                    <a href="/block_plant/production/schedule.php"><?= t('production_schedule') ?></a>
-                    <a href="/block_plant/production/targets.php"><?= t('production_targets') ?></a>
-                    <a href="/block_plant/production/quality.php"><?= t('quality_checks') ?></a>
-                    <a href="/block_plant/production/bom.php"><?= t('bill_of_materials') ?></a>
-                    <a href="/block_plant/production/analytics.php"><?= t('production_analytics') ?></a>
-                    <a href="/block_plant/production/efficiency.php">Production Efficiency</a>
-                    <a href="/block_plant/production/weekly_labor.php">Weekly Labor Payment</a>
-                    <?php if (has_permission('inventory', 'view')): ?>
-                    <a href="/block_plant/inventory/materials.php"><?= t('raw_materials') ?></a>
-                    <a href="/block_plant/inventory/index.php"><?= t('finished_goods') ?></a>
-                    <?php endif; ?>
-                </div>
-            </li>
-            <?php endif; ?>
-
-            <?php if (has_permission('inventory', 'view')): ?>
-            <li class="dropdown">
-                <a href="#"><?= t('inventory') ?></a>
-                <div class="dropdown-menu">
-                    <a href="/block_plant/inventory/overview.php"><?= t('inventory_overview') ?></a>
-                    <a href="/block_plant/inventory/analytics.php"><?= t('inventory_analytics') ?></a>
-                    <a href="/block_plant/inventory/materials.php"><?= t('materials_stock') ?></a>
-                    <a href="/block_plant/inventory/index.php"><?= t('finished_stock') ?></a>
-                    <a href="/block_plant/inventory/movement.php"><?= t('stock_movement') ?></a>
-                    <a href="/block_plant/inventory/dispatch.php"><?= t('dispatch_tracking') ?></a>
-                    <?php if (has_permission('inventory', 'edit')): ?>
-                    <a href="/block_plant/inventory/adjustments.php"><?= t('stock_adjustments') ?></a>
-                    <a href="/block_plant/inventory/stock_count.php">Stock Count</a>
-                    <a href="/block_plant/inventory/reorder_list.php">Reorder Suggestions</a>
-                    <a href="/block_plant/inventory/reorder.php"><?= t('reorder_levels') ?></a>
-                    <?php endif; ?>
-                    <a href="/block_plant/inventory/low_stock_alert.php"><?= t('low_stock_alerts') ?></a>
-                </div>
-            </li>
-            <?php endif; ?>
-
-            <?php if (has_permission('hr', 'view')): ?>
-            <li class="dropdown">
-                <a href="/block_plant/hr/index.php"><?= t('hr_payroll') ?></a>
-                <div class="dropdown-menu">
-                    <a href="/block_plant/hr/index.php"><?= t('hr_overview') ?></a>
-                    <a href="/block_plant/hr/search.php"><?= t('hr_global_search') ?></a>
-                    <a href="/block_plant/hr/exit_clearance.php"><?= t('employee_exit_clearance') ?></a>
-                    <a href="/block_plant/hr/employees.php"><?= t('employees') ?></a>
-                    <a href="/block_plant/hr/departments.php"><?= t('department_management') ?></a>
-                    <?php if (can_manage_hr_permissions()): ?>
-                    <a href="/block_plant/hr/permissions.php">🔑 <?= t('hr_permissions') ?></a>
-                    <?php endif; ?>
-                    <a href="/block_plant/hr/attendance.php"><?= t('attendance') ?></a>
-                    <a href="/block_plant/hr/attendance_report.php"><?= t('attendance_report') ?></a>
-                    <a href="/block_plant/hr/attendance_sheet.php">🧾 <?= t('attendance_sheet') ?></a>
-                    <a href="/block_plant/hr/attendance_warnings.php">⚠ <?= e(attendance_warning_text('menu')) ?></a>
-                    <a href="/block_plant/hr/attendance_submit.php"><?= t('submit_attendance_finance') ?></a>
-                    <a href="/block_plant/hr/leaves.php"><?= t('leave_management') ?></a>
-                    <a href="/block_plant/hr/performance.php"><?= t('performance_reviews') ?></a>
-                    <a href="/block_plant/hr/training.php"><?= t('training_development') ?></a>
-                    <a href="/block_plant/hr/shifts.php"><?= t('shift_management') ?></a>
-                    <a href="/block_plant/hr/overtime.php"><?= t('overtime_tracking') ?></a>
-                    <a href="/block_plant/hr/documents.php"><?= t('employee_documents') ?></a>
-                    <a href="/block_plant/hr/loans.php"><?= t('loans_advances') ?></a>
-                    <a href="/block_plant/hr/loan_repayments.php"><?= t('loan_repayment_history') ?></a>
-                    <a href="/block_plant/hr/asset_issuance.php">Asset Issuance</a>
-                    <a href="/block_plant/hr/asset_clearance.php">Asset Clearance</a>
-                    <a href="/block_plant/finance/payslip.php"><?= t('payslip_run') ?></a>
-                    <a href="/block_plant/hr/reports.php"><?= t('hr_reports') ?></a>
-                    <a href="/block_plant/hr/department_report.php"><?= t('department_report') ?></a>
-                </div>
-            </li>
-            <?php endif; ?>
-
-            <?php if (has_permission('assets', 'view')): ?>
-            <li class="dropdown">
-                <a href="#"><?= t('assets') ?></a>
-                <div class="dropdown-menu">
-                    <a href="/block_plant/assets/index.php"><?= t('fixed_assets') ?></a>
-                    <a href="/block_plant/assets/categories.php"><?= t('asset_categories') ?></a>
-                    <a href="/block_plant/assets/maintenance.php"><?= t('maintenance') ?></a>
-                    <a href="/block_plant/assets/alerts.php"><?= t('asset_alerts') ?></a>
-                    <a href="/block_plant/assets/depreciation.php"><?= t('depreciation') ?></a>
-                    <?php if (has_permission('assets', 'create')): ?>
-                    <a href="/block_plant/assets/journal.php">📒 <?= t('asset_journal_entry') ?></a>
-                    <?php endif; ?>
-                </div>
-            </li>
-            <?php endif; ?>
-
-            <?php if (has_permission('finance', 'view') || has_permission('expenses', 'view')): ?>
-            <li class="dropdown">
-                <a href="#"><?= t('finance') ?></a>
-                <div class="dropdown-menu">
-                    <?php if (has_permission('expenses', 'view')): ?>
-                    <a href="/block_plant/expenses/index.php"><?= t('expenses') ?></a>
-                    <?php endif; ?>
-                    <?php if (has_permission('finance', 'view')): ?>
-                    <a href="/block_plant/finance/cashbook.php"><?= t('cash_book') ?></a>
-                    <a href="/block_plant/finance/accounts.php"><?= t('chart_of_accounts') ?></a>
-                    <a href="/block_plant/finance/general_ledger.php"><?= t('general_ledger') ?></a>
-                    <a href="/block_plant/finance/trial_balance.php"><?= t('trial_balance') ?></a>
-                    <a href="/block_plant/finance/journal.php"><?= t('journal_entries') ?></a>
-                    <a href="/block_plant/finance/attendance_review.php"><?= t('attendance_review') ?></a>
-                    <?php if (has_permission('hr', 'view')): ?>
-                    <a href="/block_plant/finance/payroll.php"><?= t('payroll_generation') ?></a>
-                    <?php endif; ?>
-                    <a href="/block_plant/finance/payroll_bank.php"><?= t('bank_transfer_schedule') ?></a>
-                    <a href="/block_plant/finance/payroll_journal.php"><?= t('payroll_journal') ?></a>
-                    <a href="/block_plant/finance/payroll_approval.php"><?= t('payroll_approval') ?></a>
-                    <a href="/block_plant/finance/loan_approval.php"><?= t('loan_approval') ?></a>
-                    <a href="/block_plant/hr/loan_repayments.php"><?= t('loan_repayment_history') ?></a>
-                    <?php if (has_permission('hr', 'view')): ?>
-                    <a href="/block_plant/finance/unpaid_payroll.php">Unpaid Payroll</a>
-                    <?php endif; ?>
-                    <?php if (has_permission('finance', 'create')): ?>
-                    <a href="/block_plant/finance/journal_form.php"><?= t('new_journal_entry') ?></a>
-                    <?php endif; ?>
-                    <?php endif; ?>
-                </div>
-            </li>
-            <?php endif; ?>
-
-            <?php if (has_permission('reports', 'view')): ?>
-            <li class="dropdown">
-                <a href="#"><?= t('reports') ?></a>
-                <div class="dropdown-menu">
-                    <a href="/block_plant/reports/sales.php"><?= t('sales_reports') ?></a>
-                    <a href="/block_plant/reports/purchases.php"><?= t('purchase_reports') ?></a>
-                    <a href="/block_plant/reports/production.php"><?= t('production_reports') ?></a>
-                    <a href="/block_plant/reports/daily_closing.php">Daily Closing Report</a>
-                    <a href="/block_plant/reports/block_profitability.php">Block Profitability</a>
-                    <a href="/block_plant/reports/inventory.php"><?= t('inventory_reports') ?></a>
-                    <a href="/block_plant/reports/financial.php"><?= t('financial_reports') ?></a>
-                    <a href="/block_plant/reports/payroll.php"><?= t('payroll_reports') ?></a>
-                    <a href="/block_plant/reports/profit_loss.php"><?= t('profit_loss') ?></a>
-                    <a href="/block_plant/reports/balance_sheet.php"><?= t('balance_sheet') ?></a>
-                    <a href="/block_plant/reports/aging.php"><?= t('aging_reports') ?></a>
-                    <a href="/block_plant/reports/customer_statement.php"><?= t('customer_statement') ?></a>
-                    <?php if (has_permission('gate', 'view')): ?>
-                    <a href="/block_plant/reports/gate.php"><?= t('gate_exit_report') ?></a>
-                    <?php endif; ?>
-                </div>
-            </li>
-            <?php endif; ?>
-
-            <!-- Settings always shown – content differs by role -->
-            <li class="dropdown">
-                <a href="#">⚙️ <?= t('settings') ?></a>
-                <div class="dropdown-menu">
-                    <a href="/block_plant/settings/profile.php"><?= t('my_profile') ?></a>
-                    <?php if ($_navIsAdmin || has_permission('settings', 'edit')): ?>
-                    <a href="/block_plant/settings/company.php"><?= t('company_settings') ?></a>
-                    <a href="/block_plant/settings/users.php"><?= t('user_management') ?></a>
-                    <a href="/block_plant/settings/permissions.php"><?= t('role_permissions') ?></a>
-                    <a href="/block_plant/settings/blocks.php"><?= t('block_types') ?></a>
-                    <a href="/block_plant/settings/backup.php"><?= t('backup_restore') ?></a>
-                    <a href="/block_plant/settings/telegram.php"><?= t('telegram_alerts') ?></a>
-                    <?php endif; ?>
-                    <?php if ($_navIsAdmin || has_permission('settings', 'view')): ?>
-                    <a href="/block_plant/settings/activity_log.php"><?= t('activity_log') ?></a>
-                    <a href="/block_plant/settings/timeline.php"><?= t('activity_timeline') ?></a>
-                    <a href="/block_plant/settings/documents.php"><?= t('document_library') ?></a>
-                    <?php endif; ?>
-                </div>
-            </li>
-
-            <?php if ($_navIsAdmin): ?>
-            <li class="dropdown">
-                <a href="#"><?= t('advanced') ?></a>
-                <div class="dropdown-menu">
-                    <a href="/block_plant/dashboard/widgets.php"><?= t('advanced_widgets') ?></a>
-                    <a href="/block_plant/dashboard/insights.php"><?= t('operational_insights') ?></a>
-                    <a href="/block_plant/dashboard/operations.php"><?= t('operations_overview') ?></a>
-                    <a href="/block_plant/dashboard/admin.php"><?= t('admin_overview') ?></a>
-                    <a href="/block_plant/dashboard/forecast.php"><?= t('budget_forecast') ?></a>
-                    <a href="/block_plant/dashboard/tasks.php"><?= t('tasks_reminders') ?></a>
-                    <a href="/block_plant/dashboard/fleet.php"><?= t('fleet_management') ?></a>
-                    <a href="/block_plant/expenses/recurring.php"><?= t('recurring_costs') ?></a>
-                    <a href="/block_plant/assets/maintenance.php"><?= t('asset_maintenance') ?></a>
-                    <a href="/block_plant/crm/interactions.php"><?= t('followups_interactions') ?></a>
-                    <a href="/block_plant/inventory/low_stock_alert.php"><?= t('low_stock_alerts') ?></a>
-                </div>
-            </li>
-            <?php endif; ?>
+            <?php endforeach; ?>
         </ul>
     </nav>
     <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
