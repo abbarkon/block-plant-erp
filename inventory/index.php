@@ -86,6 +86,7 @@ require_once "../partials/header.php";
         <?php endif; ?>
         <?php if ($canAdjust): ?>
         <a href="opening_stock.php" class="btn" style="background: #6f42c1;">Opening Stock</a>
+        <a href="curing_start.php" class="btn" style="background: #e67e22;">Start Curing</a>
         <?php endif; ?>
         <a href="movement.php" class="btn" style="background: #17a2b8;">Stock Movement</a>
         <button type="button" class="btn btn-secondary" onclick="window.print()">Print</button>
@@ -228,7 +229,13 @@ require_once "../partials/header.php";
             <?php endif; ?>
             <?php foreach ($curingBatches as $batch): ?>
             <tr>
-                <td><a href="../production/view.php?id=<?= (int) $batch['id'] ?>"><strong><?= e($batch['production_no']) ?></strong></a></td>
+                <td>
+                    <?php if (($batch['source'] ?? 'production') === 'hold'): ?>
+                        <strong><?= e($batch['production_no']) ?></strong>
+                    <?php else: ?>
+                        <a href="../production/view.php?id=<?= (int) $batch['id'] ?>"><strong><?= e($batch['production_no']) ?></strong></a>
+                    <?php endif; ?>
+                </td>
                 <td><?= e($batch['block_name'] . ' ' . $batch['size']) ?></td>
                 <td><?= format_date($batch['production_date']) ?></td>
                 <td><?= number_format((int) $batch['good_quantity']) ?></td>
