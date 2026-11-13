@@ -1847,9 +1847,12 @@ function production_default_curing_days() {
 }
 
 /**
- * Add the curing fields to the production table on first use. Existing runs were
- * already added to finished stock before this feature existed, so they are marked
- * ready instead of suddenly moving back into curing.
+ * Add the curing fields to the production table on first use.
+ *
+ * Existing production runs were already added to finished stock before this
+ * feature existed. They are not automatically marked ready any more: the
+ * one-time hold migration below puts the current production-derived stock into
+ * curing for the default drying period. Opening stock stays ready.
  */
 function ensure_production_curing_schema() {
     static $checked = false;
@@ -1869,10 +1872,154 @@ function ensure_production_curing_schema() {
         }
         if (!in_array('ready_date', $columns, true)) {
             $pdo->exec("ALTER TABLE production ADD COLUMN ready_date DATE NULL AFTER curing_days");
+            // Keep the historical date here. The one-time hold migration below
+            // decides how much current stock should start curing now.
             $pdo->exec("UPDATE production SET ready_date = production_date WHERE ready_date IS NULL");
         }
     } catch (PDOException $e) {
         // Older databases may not have the production table yet.
+        return;
+    }
+
+    ensure_curing_hold_schema();
+    ensure_previous_production_curing_hold();
+}
+
+/**
+ * Add the curing-hold table on first use. A hold is a quantity of finished
+ * stock that is drying and cannot be sold until its ready date. It is separate
+ * from production batches so old production records are never double-counted.
+ */
+function ensure_curing_hold_schema() {
+    static $checked = false;
+    if ($checked) {
+        return;
+    }
+    $checked = true;
+    global $pdo;
+
+    try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS curing_holds (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            block_type_id INT NOT NULL,
+            quantity INT NOT NULL DEFAULT 0,
+            curing_days INT NOT NULL DEFAULT 8,
+            start_date DATE NOT NULL,
+            ready_date DATE NOT NULL,
+            notes VARCHAR(255) NULL,
+            created_by INT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            KEY idx_curing_hold_block (block_type_id),
+            KEY idx_curing_hold_ready (ready_date)
+        )");
+    } catch (PDOException $e) {
+        // The table will be retried on the next request.
+    }
+}
+
+/**
+ * One-time migration: put the current production-derived finished stock into
+ * curing for the default period, starting today. Opening stock stays ready.
+ *
+ * We deliberately do NOT change every old production row: historical production
+ * totals can be much larger than the stock still on hand. A curing hold is
+ * created only for the current stock that is not opening stock and is not
+ * already covered by a curing production batch or an existing hold.
+ *
+ * If opening stock has already been entered, the automatic migration is skipped
+ * so the user can review the quantities on the Start Curing page.
+ */
+function ensure_previous_production_curing_hold() {
+    static $checked = false;
+    if ($checked) {
+        return;
+    }
+    $checked = true;
+    global $pdo;
+
+    ensure_curing_hold_schema();
+    if (function_exists('ensure_finished_stock_transaction_schema')) {
+        ensure_finished_stock_transaction_schema();
+    }
+
+    $ownTransaction = false;
+    try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS curing_migrations (
+            migration_key VARCHAR(100) PRIMARY KEY,
+            applied_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )");
+
+        $key = 'previous_production_curing_hold_v1';
+        $check = $pdo->prepare("SELECT COUNT(*) FROM curing_migrations WHERE migration_key = ?");
+        $check->execute([$key]);
+        if ((int) $check->fetchColumn() > 0) {
+            return;
+        }
+
+        $openingTotal = 0;
+        try {
+            $openingTotal = (int) $pdo->query("SELECT COALESCE(SUM(quantity),0) FROM finished_stock_transactions WHERE transaction_type = 'opening'")->fetchColumn();
+        } catch (PDOException $e) {
+            $openingTotal = 0;
+        }
+
+        $ownTransaction = !$pdo->inTransaction();
+        if ($ownTransaction) {
+            $pdo->beginTransaction();
+        }
+
+        if ($openingTotal <= 0) {
+            $days = production_default_curing_days();
+            $startDate = date('Y-m-d');
+            $readyDate = production_ready_date($startDate, $days);
+            $createdBy = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null;
+
+            $rows = $pdo->query("SELECT fs.block_type_id, fs.quantity
+                FROM finished_stock fs
+                JOIN block_types bt ON bt.id = fs.block_type_id
+                WHERE bt.status = 1 AND fs.quantity > 0")->fetchAll();
+
+            $openingStmt = $pdo->prepare("SELECT COALESCE(SUM(quantity),0) FROM finished_stock_transactions WHERE block_type_id = ? AND transaction_type = 'opening'");
+            $productionCuringStmt = $pdo->prepare("SELECT COALESCE(SUM(good_quantity),0) FROM production WHERE block_type_id = ? AND COALESCE(ready_date, production_date) > CURDATE()");
+            $holdStmt = $pdo->prepare("SELECT COALESCE(SUM(quantity),0) FROM curing_holds WHERE block_type_id = ? AND ready_date > CURDATE()");
+            $insert = $pdo->prepare("INSERT INTO curing_holds(block_type_id, quantity, curing_days, start_date, ready_date, notes, created_by)
+                VALUES(?,?,?,?,?,?,?)");
+
+            foreach ($rows as $row) {
+                $blockId = (int) $row['block_type_id'];
+                $stock = (int) $row['quantity'];
+
+                $openingStmt->execute([$blockId]);
+                $opening = (int) $openingStmt->fetchColumn();
+                $productionCuringStmt->execute([$blockId]);
+                $productionCuring = (int) $productionCuringStmt->fetchColumn();
+                $holdStmt->execute([$blockId]);
+                $activeHolds = (int) $holdStmt->fetchColumn();
+
+                $quantity = max(0, $stock - $opening - $productionCuring - $activeHolds);
+                if ($quantity > 0) {
+                    $insert->execute([
+                        $blockId,
+                        $quantity,
+                        $days,
+                        $startDate,
+                        $readyDate,
+                        'Previous production curing from go-live',
+                        $createdBy,
+                    ]);
+                }
+            }
+        }
+
+        $pdo->prepare("INSERT INTO curing_migrations(migration_key) VALUES(?)")->execute([$key]);
+        if ($ownTransaction) {
+            $pdo->commit();
+        }
+    } catch (Throwable $e) {
+        if ($ownTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        // Never break the app because the one-time hold could not be applied.
     }
 }
 
@@ -1897,14 +2044,28 @@ function finished_curing_quantity($blockTypeId = null) {
     ensure_production_curing_schema();
 
     try {
-        $sql = "SELECT COALESCE(SUM(good_quantity),0) FROM production
+        $productionSql = "SELECT COALESCE(SUM(good_quantity),0) FROM production
                 WHERE COALESCE(ready_date, production_date) > CURDATE()";
+        $holdSql = "SELECT COALESCE(SUM(quantity),0) FROM curing_holds
+                WHERE ready_date > CURDATE()";
+
         if ($blockTypeId !== null) {
-            $stmt = $pdo->prepare($sql . " AND block_type_id = ?");
-            $stmt->execute([(int) $blockTypeId]);
-            return (int) $stmt->fetchColumn();
+            $blockTypeId = (int) $blockTypeId;
+
+            $stmt = $pdo->prepare($productionSql . " AND block_type_id = ?");
+            $stmt->execute([$blockTypeId]);
+            $productionCuring = (int) $stmt->fetchColumn();
+
+            $stmt = $pdo->prepare($holdSql . " AND block_type_id = ?");
+            $stmt->execute([$blockTypeId]);
+            $holdCuring = (int) $stmt->fetchColumn();
+
+            return $productionCuring + $holdCuring;
         }
-        return (int) $pdo->query($sql)->fetchColumn();
+
+        $productionCuring = (int) $pdo->query($productionSql)->fetchColumn();
+        $holdCuring = (int) $pdo->query($holdSql)->fetchColumn();
+        return $productionCuring + $holdCuring;
     } catch (PDOException $e) {
         return 0;
     }
@@ -1946,12 +2107,62 @@ function finished_curing_batches($blockTypeId = null) {
                 FROM production p
                 JOIN block_types bt ON bt.id = p.block_type_id
                 WHERE COALESCE(p.ready_date, p.production_date) > CURDATE()";
+
+        $params = [];
         if ($blockTypeId !== null) {
-            $stmt = $pdo->prepare($sql . " AND p.block_type_id = ? ORDER BY COALESCE(p.ready_date, p.production_date), p.id");
-            $stmt->execute([(int) $blockTypeId]);
-            return $stmt->fetchAll();
+            $sql .= " AND p.block_type_id = ?";
+            $params[] = (int) $blockTypeId;
         }
-        return $pdo->query($sql . " ORDER BY COALESCE(p.ready_date, p.production_date), p.id")->fetchAll();
+        $sql .= " ORDER BY COALESCE(p.ready_date, p.production_date), p.id";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        $batches = $stmt->fetchAll();
+        foreach ($batches as &$batch) {
+            $batch['source'] = 'production';
+        }
+        unset($batch);
+
+        $holdSql = "SELECT h.id, h.start_date, h.curing_days, h.ready_date, h.quantity,
+                           bt.name AS block_name, bt.size,
+                           GREATEST(0, DATEDIFF(h.ready_date, CURDATE())) AS days_remaining
+                    FROM curing_holds h
+                    JOIN block_types bt ON bt.id = h.block_type_id
+                    WHERE h.ready_date > CURDATE()";
+        $holdParams = [];
+        if ($blockTypeId !== null) {
+            $holdSql .= " AND h.block_type_id = ?";
+            $holdParams[] = (int) $blockTypeId;
+        }
+        $holdSql .= " ORDER BY h.ready_date, h.id";
+
+        $holdStmt = $pdo->prepare($holdSql);
+        $holdStmt->execute($holdParams);
+        foreach ($holdStmt->fetchAll() as $hold) {
+            $batches[] = [
+                'id' => 0,
+                'production_no' => 'HOLD-' . (int) $hold['id'],
+                'production_date' => $hold['start_date'],
+                'curing_days' => $hold['curing_days'],
+                'ready_date' => $hold['ready_date'],
+                'good_quantity' => $hold['quantity'],
+                'block_name' => $hold['block_name'],
+                'size' => $hold['size'],
+                'days_remaining' => $hold['days_remaining'],
+                'source' => 'hold',
+            ];
+        }
+
+        usort($batches, function ($a, $b) {
+            $dateA = (string) ($a['ready_date'] ?: $a['production_date']);
+            $dateB = (string) ($b['ready_date'] ?: $b['production_date']);
+            if ($dateA === $dateB) {
+                return strcmp((string) $a['production_no'], (string) $b['production_no']);
+            }
+            return strcmp($dateA, $dateB);
+        });
+
+        return $batches;
     } catch (PDOException $e) {
         return [];
     }
@@ -4607,5 +4818,480 @@ function user_extra_department_map() {
         $map[(int) $r['user_id']][] = $r;
     }
     return $map;
+}
+
+/**
+ * Sidebar menu customization.
+ *
+ * sidebar_menu_items    - master catalog of every link that can appear in the
+ *                         sidebar (module, label, url, icon, permission, default visibility)
+ * user_sidebar_visibility - per-user overrides (hide/show a link, custom sort order)
+ * sidebar_link_usage    - simple visit counter per link key so admins can see
+ *                         which links are used most
+ *
+ * When the tables do not exist yet, every helper degrades gracefully so the
+ * existing hard-coded sidebar keeps working.
+ */
+
+/**
+ * Create the sidebar menu tables on first use.
+ */
+function ensure_sidebar_menu_schema() {
+    global $pdo;
+    static $checked = false;
+    if ($checked) {
+        return;
+    }
+    $checked = true;
+
+    try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS sidebar_menu_items (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            link_key VARCHAR(100) NOT NULL UNIQUE,
+            module VARCHAR(50) NOT NULL,
+            label_en VARCHAR(150) NOT NULL,
+            label_am VARCHAR(150) NULL,
+            url VARCHAR(255) NOT NULL,
+            icon VARCHAR(50) NULL,
+            parent_key VARCHAR(100) NULL,
+            permission_required VARCHAR(100) NULL,
+            is_visible_by_default TINYINT(1) NOT NULL DEFAULT 1,
+            sort_order INT NOT NULL DEFAULT 0,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            KEY idx_sidebar_menu_module (module),
+            KEY idx_sidebar_menu_parent (parent_key)
+        )");
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS user_sidebar_visibility (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            link_key VARCHAR(100) NOT NULL,
+            is_visible TINYINT(1) NOT NULL DEFAULT 1,
+            sort_order INT NOT NULL DEFAULT 0,
+            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY unique_user_link (user_id, link_key),
+            KEY idx_user_sidebar_user (user_id)
+        )");
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS sidebar_link_usage (
+            link_key VARCHAR(100) PRIMARY KEY,
+            click_count INT NOT NULL DEFAULT 0,
+            last_used DATETIME NULL,
+            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )");
+    } catch (Throwable $e) {
+        // Degrade gracefully: sidebar falls back to hard-coded items.
+    }
+
+    // Seed the master catalog if it is empty.
+    try {
+        $count = (int) $pdo->query("SELECT COUNT(*) FROM sidebar_menu_items")->fetchColumn();
+        if ($count === 0) {
+            seed_sidebar_menu_items();
+        }
+    } catch (Throwable $e) {
+        // Table may not exist; ignore.
+    }
+}
+
+/**
+ * Seed sidebar_menu_items with the current hard-coded sidebar structure so
+ * administrators can toggle visibility from the settings page.
+ */
+function seed_sidebar_menu_items() {
+    global $pdo;
+
+    $items = [
+        // [link_key, module, label_en, label_am, url, icon, parent_key, permission, default_visible, sort_order]
+        ['dashboard', 'dashboard', 'Dashboard', 'ዲሽቦርድ', '/block_plant/dashboard/index.php', '📊', null, 'dashboard.view', 1, 10],
+
+        ['gate', 'gate', 'Gate', 'ዋና ግድያ', '/block_plant/gate/index.php', '🚪', null, 'gate.view', 1, 20],
+
+        ['sales_crm', 'sales', 'Sales & CRM', 'ስልጠና እና CRM', '#', '💰', null, 'sales.view', 1, 30],
+        ['quotations', 'sales', 'Quotations', 'ዋጋ ገጠቦች', '/block_plant/quotations/index.php', '📄', 'sales_crm', 'sales.view', 1, 1],
+        ['sales_invoices', 'sales', 'Sales Invoices', 'የስልጠና ቦሎት', '/block_plant/sales/index.php', '🧾', 'sales_crm', 'sales.view', 1, 2],
+        ['online_orders', 'sales', 'Online Orders', 'የመስመር ላይ ትዕዛዝ', '/block_plant/sales/online_orders.php', '🛒', 'sales_crm', 'sales.view', 1, 3],
+        ['open_shop', 'shop', 'Open Shop', 'መሸጫውን ክፈት', '/block_plant/shop/index.php', '🏪', 'sales_crm', 'sales.view', 1, 4],
+        ['delivery_notes', 'crm', 'Delivery Notes', 'የተሰበሰቡ ምስሎች', '/block_plant/crm/delivery.php', '🚚', 'sales_crm', 'crm.view', 1, 5],
+        ['commissions', 'crm', 'Commissions', 'ኮሚሽኖች', '/block_plant/crm/commissions.php', '💸', 'sales_crm', 'crm.view', 1, 6],
+        ['feedback', 'crm', 'Feedback', 'መረጃ', '/block_plant/crm/feedback.php', '💬', 'sales_crm', 'crm.view', 1, 7],
+        ['sales_pipeline', 'crm', 'Sales Pipeline', 'የስልጠና ዞር', '/block_plant/crm/pipeline.php', '📈', 'sales_crm', 'crm.view', 1, 8],
+        ['sales_targets', 'crm', 'Sales Targets', 'የስልጠና ድጋፊዎች', '/block_plant/crm/targets.php', '🎯', 'sales_crm', 'crm.view', 1, 9],
+        ['customers', 'customers', 'Customers', 'ደንበኛዎች', '/block_plant/customers/index.php', '👥', 'sales_crm', 'customers.view', 1, 10],
+        ['customer_analytics', 'customers', 'Customer Analytics', 'የደንበኛ አንሊቲክስ', '/block_plant/customers/analytics.php', '📊', 'sales_crm', 'customers.view', 1, 11],
+        ['customer_reminders', 'customers', 'Customer Reminders', 'የደንበኛ ዋናዎች', '/block_plant/customers/reminders.php', '⏰', 'sales_crm', 'customers.view', 1, 12],
+        ['customer_payments', 'sales', 'Customer Payments', 'የደንበኛ ክፈያሎች', '/block_plant/payments/customer.php', '💳', 'sales_crm', 'sales.view', 1, 13],
+
+        ['purchasing', 'purchases', 'Purchasing', 'ምርመራ', '#', '📦', null, 'purchases.view', 1, 40],
+        ['purchase_orders', 'purchases', 'Purchase Orders', 'የግዝብ ቦሎት', '/block_plant/purchases/index.php', '📋', 'purchasing', 'purchases.view', 1, 1],
+        ['purchase_planning', 'purchases', 'Purchase Planning', 'የምርመራ ዝርዝር', '/block_plant/purchases/planning.php', '🗓️', 'purchasing', 'purchases.view', 1, 2],
+        ['purchase_approvals', 'purchases', 'Purchase Approvals', 'የምርመራ መተግበሪያዎች', '/block_plant/purchases/approvals.php', '✅', 'purchasing', 'purchases.view', 1, 3],
+        ['purchase_analytics', 'purchases', 'Purchase Analytics', 'የምርመራ አንሊቲክስ', '/block_plant/purchases/analytics.php', '📊', 'purchasing', 'purchases.view', 1, 4],
+        ['purchase_schedule', 'purchases', 'Purchase Schedule', 'የምርመራ ቅጽት', '/block_plant/purchases/schedule.php', '⏰', 'purchasing', 'purchases.view', 1, 5],
+        ['supplier_prices', 'purchases', 'Supplier Prices', 'ዋጋውን የገንዘብ', '/block_plant/purchases/supplier_prices.php', '💵', 'purchasing', 'purchases.view', 1, 6],
+        ['suppliers', 'suppliers', 'Suppliers', 'የስልጠናዎች ደንበኛዎች', '/block_plant/suppliers/index.php', '🏭', 'purchasing', 'suppliers.view', 1, 7],
+        ['supplier_scorecards', 'suppliers', 'Supplier Scorecards', 'የገንዘብ ደንበኛ ስኮር', '/block_plant/suppliers/scorecards.php', '📊', 'purchasing', 'suppliers.view', 1, 8],
+        ['supplier_deliveries', 'suppliers', 'Supplier Deliveries', 'የገንዘብ ስልጠናዎች', '/block_plant/suppliers/deliveries.php', '🚚', 'purchasing', 'suppliers.view', 1, 9],
+        ['reorder_suggestions', 'inventory', 'Reorder Suggestions', 'የመጀመሪያ ዝርዝሮች', '/block_plant/inventory/reorder_list.php', '🔄', 'purchasing', 'purchases.view', 1, 10],
+        ['supplier_payments', 'purchases', 'Supplier Payments', 'የገንዘብ ክፈያሎች', '/block_plant/payments/supplier.php', '💳', 'purchasing', 'purchases.view', 1, 11],
+
+        ['production', 'production', 'Production', 'ምርመራ', '#', '🏭', null, 'production.view', 1, 50],
+        ['production_orders', 'production', 'Production Orders', 'የምርመራ ቦሎት', '/block_plant/production/index.php', '📋', 'production', 'production.view', 1, 1],
+        ['new_production_run', 'production', 'New Production Run', 'አዲስ ምርመራ እረፍት', '/block_plant/production/create.php', '➕', 'production', 'production.create', 1, 2],
+        ['production_planning', 'production', 'Production Planning', 'የምርመራ ዝርዝር', '/block_plant/production/planning.php', '🗓️', 'production', 'production.view', 1, 3],
+        ['production_schedule', 'production', 'Production Schedule', 'የምርመራ ቅጽት', '/block_plant/production/schedule.php', '⏰', 'production', 'production.view', 1, 4],
+        ['production_targets', 'production', 'Production Targets', 'የምርመራ ድጋፊዎች', '/block_plant/production/targets.php', '🎯', 'production', 'production.view', 1, 5],
+        ['quality_checks', 'production', 'Quality Checks', 'የትክክል ምርመራ', '/block_plant/production/quality.php', '✅', 'production', 'production.view', 1, 6],
+        ['bill_of_materials', 'production', 'Bill of Materials', 'የእርስዎ መፍጠሪያዎች', '/block_plant/production/bom.php', '🧱', 'production', 'production.view', 1, 7],
+        ['production_analytics', 'production', 'Production Analytics', 'የምርመራ አንሊቲክስ', '/block_plant/production/analytics.php', '📊', 'production', 'production.view', 1, 8],
+        ['production_efficiency', 'production', 'Production Efficiency', 'የምርመራ ኃላፊነት', '/block_plant/production/efficiency.php', '⚡', 'production', 'production.view', 1, 9],
+        ['weekly_labor_payment', 'production', 'Weekly Labor Payment', 'የሰዓት የሥራ ግንኙነት', '/block_plant/production/weekly_labor.php', '💵', 'production', 'production.view', 1, 10],
+        ['raw_materials', 'inventory', 'Raw Materials', 'መተግበሪያ ሂደቶች', '/block_plant/inventory/materials.php', '🧱', 'production', 'inventory.view', 1, 11],
+        ['finished_goods_prod', 'production', 'Finished Goods', 'የተጠናቀቀ ክምችት', '/block_plant/inventory/index.php', '📦', 'production', 'inventory.view', 1, 12],
+
+        ['inventory', 'inventory', 'Inventory', 'ክምችት', '#', '📦', null, 'inventory.view', 1, 60],
+        ['inventory_overview', 'inventory', 'Inventory Overview', 'የክምችት መደብኛ', '/block_plant/inventory/overview.php', '📊', 'inventory', 'inventory.view', 1, 1],
+        ['inventory_analytics', 'inventory', 'Inventory Analytics', 'የክምችት አንሊቲክስ', '/block_plant/inventory/analytics.php', '📈', 'inventory', 'inventory.view', 1, 2],
+        ['materials_stock', 'inventory', 'Materials Stock', 'የመተግበሪያ ሂደት', '/block_plant/inventory/materials.php', '🧱', 'inventory', 'inventory.view', 1, 3],
+        ['finished_stock', 'inventory', 'Finished Stock', 'የተጠናቀቀ ክምችት', '/block_plant/inventory/index.php', '📦', 'inventory', 'inventory.view', 1, 4],
+        ['stock_movement', 'inventory', 'Stock Movement', 'የክምችት ንዑስ', '/block_plant/inventory/movement.php', '🔄', 'inventory', 'inventory.view', 1, 5],
+        ['dispatch_tracking', 'inventory', 'Dispatch Tracking', 'የልዑል ትክክል', '/block_plant/inventory/dispatch.php', '🚚', 'inventory', 'inventory.view', 1, 6],
+        ['stock_adjustments', 'inventory', 'Stock Adjustments', 'የክምችት መልሲያዎች', '/block_plant/inventory/adjustments.php', '⚖️', 'inventory', 'inventory.edit', 1, 7],
+        ['stock_count', 'inventory', 'Stock Count', 'የክምችት ስምምነት', '/block_plant/inventory/stock_count.php', '🔢', 'inventory', 'inventory.edit', 1, 8],
+        ['reorder_levels', 'inventory', 'Reorder Levels', 'የስህተቶች መቀናት', '/block_plant/inventory/reorder.php', '📉', 'inventory', 'inventory.edit', 1, 9],
+        ['low_stock_alerts', 'inventory', 'Low Stock Alerts', 'የዝቅ ክምችት ዋናዎች', '/block_plant/inventory/low_stock_alert.php', '⚠️', 'inventory', 'inventory.view', 1, 10],
+
+        ['hr_payroll', 'hr', 'HR & Payroll', 'ሰው መሪዎች እና ክፍያ', '#', '👥', null, 'hr.view', 1, 70],
+        ['hr_overview', 'hr', 'HR Overview', 'የሰው መሪዎች መደብኛ', '/block_plant/hr/index.php', '📊', 'hr_payroll', 'hr.view', 1, 1],
+        ['hr_global_search', 'hr', 'HR Global Search', 'ውጤት መፈለጊያ', '/block_plant/hr/search.php', '🔍', 'hr_payroll', 'hr.view', 1, 2],
+        ['employee_exit_clearance', 'hr', 'Employee Exit Clearance', 'የተዋላ ተሞክሮ', '/block_plant/hr/exit_clearance.php', '🚪', 'hr_payroll', 'hr.view', 1, 3],
+        ['employees', 'hr', 'Employees', 'ሰዎች', '/block_plant/hr/employees.php', '👤', 'hr_payroll', 'hr.view', 1, 4],
+        ['department_management', 'hr', 'Department Management', 'የድርሻ አካባቢያት', '/block_plant/hr/departments.php', '🏢', 'hr_payroll', 'hr.view', 1, 5],
+        ['hr_permissions', 'hr', 'HR Permissions', 'የሰው መሪዎች መተገበሪያዎች', '/block_plant/hr/permissions.php', '🔑', 'hr_payroll', 'can_manage_hr_permissions', 1, 6],
+        ['attendance', 'hr', 'Attendance', 'የሚያገኙት', '/block_plant/hr/attendance.php', '🕒', 'hr_payroll', 'hr.view', 1, 7],
+        ['attendance_report', 'hr', 'Attendance Report', 'የሚያገኙ ሪፖርት', '/block_plant/hr/attendance_report.php', '📋', 'hr_payroll', 'hr.view', 1, 8],
+        ['attendance_sheet', 'hr', 'Attendance Sheet', 'የሚያገኙ ሰይር', '/block_plant/hr/attendance_sheet.php', '🧾', 'hr_payroll', 'hr.view', 1, 9],
+        ['attendance_warnings', 'hr', 'Attendance Warnings', 'የሚያገኙ ዋናዎች', '/block_plant/hr/attendance_warnings.php', '⚠️', 'hr_payroll', 'hr.view', 1, 10],
+        ['submit_attendance_finance', 'hr', 'Submit Attendance Finance', 'የሚያገኙ ወደ ፋዋንስ', '/block_plant/hr/attendance_submit.php', '📤', 'hr_payroll', 'hr.view', 1, 11],
+        ['leave_management', 'hr', 'Leave Management', 'የልፋት አስተዳደር', '/block_plant/hr/leaves.php', '🏖️', 'hr_payroll', 'hr.view', 1, 12],
+        ['performance_reviews', 'hr', 'Performance Reviews', 'የሥራ ስህተት መግለጫዎች', '/block_plant/hr/performance.php', '⭐', 'hr_payroll', 'hr.view', 1, 13],
+        ['training_development', 'hr', 'Training & Development', 'ትምህርት እና ልማት', '/block_plant/hr/training.php', '🎓', 'hr_payroll', 'hr.view', 1, 14],
+        ['shift_management', 'hr', 'Shift Management', 'የወደፊት አስተዳደር', '/block_plant/hr/shifts.php', '🔄', 'hr_payroll', 'hr.view', 1, 15],
+        ['overtime_tracking', 'hr', 'Overtime Tracking', 'የተጨማሪ ድረስ ትክክል', '/block_plant/hr/overtime.php', '⏰', 'hr_payroll', 'hr.view', 1, 16],
+        ['employee_documents', 'hr', 'Employee Documents', 'የሰው መሪዎች መረጃ ሂደቶች', '/block_plant/hr/documents.php', '📄', 'hr_payroll', 'hr.view', 1, 17],
+        ['loans_advances', 'hr', 'Loans & Advances', 'ድጋፍ እና ማረፊያ', '/block_plant/hr/loans.php', '💰', 'hr_payroll', 'hr.view', 1, 18],
+        ['loan_repayment_history', 'hr', 'Loan Repayment History', 'የድጋፍ መለያ ቁልፍ', '/block_plant/hr/loan_repayments.php', '📜', 'hr_payroll', 'hr.view', 1, 19],
+        ['asset_issuance', 'hr', 'Asset Issuance', 'የሥራ መለያ ምርመራ', '/block_plant/hr/asset_issuance.php', '📦', 'hr_payroll', 'hr.view', 1, 20],
+        ['asset_clearance', 'hr', 'Asset Clearance', 'የሥራ መለያ አረገብ', '/block_plant/hr/asset_clearance.php', '✅', 'hr_payroll', 'hr.view', 1, 21],
+        ['payslip_run', 'finance', 'Payslip Run', 'የክፍያ የትክክል እረፍት', '/block_plant/finance/payslip.php', '🧾', 'hr_payroll', 'finance.view', 1, 22],
+        ['hr_reports', 'hr', 'HR Reports', 'የሰው መሪዎች ሪፖርቶች', '/block_plant/hr/reports.php', '📊', 'hr_payroll', 'hr.view', 1, 23],
+        ['department_report', 'hr', 'Department Report', 'የድርሻ ሪፖርት', '/block_plant/hr/department_report.php', '📋', 'hr_payroll', 'hr.view', 1, 24],
+
+        ['assets', 'assets', 'Assets', 'ሥራ መለያዎች', '#', '🏢', null, 'assets.view', 1, 80],
+        ['fixed_assets', 'assets', 'Fixed Assets', 'የኋላ የሥራ መለያዎች', '/block_plant/assets/index.php', '🏢', 'assets', 'assets.view', 1, 1],
+        ['asset_categories', 'assets', 'Asset Categories', 'የሥራ መለያ ትምህርቶች', '/block_plant/assets/categories.php', '📂', 'assets', 'assets.view', 1, 2],
+        ['maintenance', 'assets', 'Maintenance', 'ተግባራዊ እርምጃ', '/block_plant/assets/maintenance.php', '🔧', 'assets', 'assets.view', 1, 3],
+        ['asset_alerts', 'assets', 'Asset Alerts', 'የሥራ መለያ ዋናዎች', '/block_plant/assets/alerts.php', '⚠️', 'assets', 'assets.view', 1, 4],
+        ['depreciation', 'assets', 'Depreciation', 'የዝናእስቲያ', '/block_plant/assets/depreciation.php', '📉', 'assets', 'assets.view', 1, 5],
+        ['asset_journal_entry', 'assets', 'Asset Journal Entry', 'የሥራ መለያ ግርማ', '/block_plant/assets/journal.php', '📒', 'assets', 'assets.create', 1, 6],
+
+        ['finance', 'finance', 'Finance', 'ፋዋንስ', '#', '💰', null, 'finance.view', 1, 90],
+        ['expenses', 'expenses', 'Expenses', 'ዋጋዎች', '/block_plant/expenses/index.php', '💸', 'finance', 'expenses.view', 1, 1],
+        ['cash_book', 'finance', 'Cash Book', 'የፊት መገናኛ', '/block_plant/finance/cashbook.php', '💵', 'finance', 'finance.view', 1, 2],
+        ['chart_of_accounts', 'finance', 'Chart of Accounts', 'የመለያ መሪዎች', '/block_plant/finance/accounts.php', '📊', 'finance', 'finance.view', 1, 3],
+        ['general_ledger', 'finance', 'General Ledger', 'የበለጠ መዝገብ', '/block_plant/finance/general_ledger.php', '📒', 'finance', 'finance.view', 1, 4],
+        ['trial_balance', 'finance', 'Trial Balance', 'የምልክት ቁልፍ', '/block_plant/finance/trial_balance.php', '⚖️', 'finance', 'finance.view', 1, 5],
+        ['journal_entries', 'finance', 'Journal Entries', 'የግርማ ምላሽዎች', '/block_plant/finance/journal.php', '📝', 'finance', 'finance.view', 1, 6],
+        ['attendance_review', 'finance', 'Attendance Review', 'የሚያገኙ ዝርዝር', '/block_plant/finance/attendance_review.php', '🔍', 'finance', 'finance.view', 1, 7],
+        ['payroll_generation', 'finance', 'Payroll Generation', 'የክፍያ እረፍት', '/block_plant/finance/payroll.php', '🧾', 'finance', 'finance.view', 1, 8],
+        ['bank_transfer_schedule', 'finance', 'Bank Transfer Schedule', 'የባንክ መረጃ ቅጽት', '/block_plant/finance/payroll_bank.php', '🏦', 'finance', 'finance.view', 1, 9],
+        ['payroll_journal', 'finance', 'Payroll Journal', 'የክፍያ ግርማ', '/block_plant/finance/payroll_journal.php', '📒', 'finance', 'finance.view', 1, 10],
+        ['payroll_approval', 'finance', 'Payroll Approval', 'የክፍያ መተግበሪያ', '/block_plant/finance/payroll_approval.php', '✅', 'finance', 'finance.view', 1, 11],
+        ['loan_approval', 'finance', 'Loan Approval', 'የድጋፍ መተግበሪያ', '/block_plant/finance/loan_approval.php', '✅', 'finance', 'finance.view', 1, 12],
+        ['unpaid_payroll', 'finance', 'Unpaid Payroll', 'የተቀመጥኸው ክፍያ', '/block_plant/finance/unpaid_payroll.php', '📋', 'finance', 'hr.view', 1, 13],
+        ['new_journal_entry', 'finance', 'New Journal Entry', 'አዲስ ግርማ', '/block_plant/finance/journal_form.php', '➕', 'finance', 'finance.create', 1, 14],
+
+        ['reports', 'reports', 'Reports', 'ሪፖርቶች', '#', '📊', null, 'reports.view', 1, 100],
+        ['sales_reports', 'reports', 'Sales Reports', 'የስልጠና ሪፖርት', '/block_plant/reports/sales.php', '📊', 'reports', 'reports.view', 1, 1],
+        ['purchase_reports', 'reports', 'Purchase Reports', 'የምርመራ ሪፖርት', '/block_plant/reports/purchases.php', '📦', 'reports', 'reports.view', 1, 2],
+        ['production_reports', 'reports', 'Production Reports', 'የምርመራ ሪፖርት', '/block_plant/reports/production.php', '🏭', 'reports', 'reports.view', 1, 3],
+        ['daily_closing', 'reports', 'Daily Closing Report', 'የቀኑ የመጨረሻ ሪፖርት', '/block_plant/reports/daily_closing.php', '🏁', 'reports', 'reports.view', 1, 4],
+        ['block_profitability', 'reports', 'Block Profitability', 'የብሎክ አረጋግበት', '/block_plant/reports/block_profitability.php', '🧱', 'reports', 'reports.view', 1, 5],
+        ['inventory_reports', 'reports', 'Inventory Reports', 'የክምችት ሪፖርት', '/block_plant/reports/inventory.php', '📦', 'reports', 'reports.view', 1, 6],
+        ['financial_reports', 'reports', 'Financial Reports', 'የፋዋንስ ሪፖርት', '/block_plant/reports/financial.php', '💰', 'reports', 'reports.view', 1, 7],
+        ['payroll_reports', 'reports', 'Payroll Reports', 'የክፍያ ሪፖርት', '/block_plant/reports/payroll.php', '🧾', 'reports', 'reports.view', 1, 8],
+        ['profit_loss', 'reports', 'Profit & Loss', 'ጉዞ እና አላቸው', '/block_plant/reports/profit_loss.php', '📈', 'reports', 'reports.view', 1, 9],
+        ['balance_sheet', 'reports', 'Balance Sheet', 'የቡድን ደረጃ', '/block_plant/reports/balance_sheet.php', '📄', 'reports', 'reports.view', 1, 10],
+        ['aging_reports', 'reports', 'Aging Reports', 'የወደፊት ሪፖርቶች', '/block_plant/reports/aging.php', '⏳', 'reports', 'reports.view', 1, 11],
+        ['customer_statement', 'reports', 'Customer Statement', 'የደንበኛ መሪያርት', '/block_plant/reports/customer_statement.php', '🧾', 'reports', 'reports.view', 1, 12],
+        ['gate_exit_report', 'reports', 'Gate Exit Report', 'የዋና ግድያ ውጣ ሪፖርት', '/block_plant/reports/gate.php', '🚪', 'reports', 'gate.view', 1, 13],
+
+        ['settings', 'settings', 'Settings', 'መÿ-ቦች', '#', '⚙️', null, 'settings.view', 1, 110],
+        ['my_profile', 'settings', 'My Profile', 'ሰላሰኤዬ', '/block_plant/settings/profile.php', '👤', 'settings', null, 1, 1],
+        ['company_settings', 'settings', 'Company Settings', 'የድርጅት ቅንብሮች', '/block_plant/settings/company.php', '🏢', 'settings', 'settings.edit', 1, 2],
+        ['user_management', 'settings', 'User Management', 'የተጠቃሚ አስተዳደር', '/block_plant/settings/users.php', '👥', 'settings', 'settings.edit', 1, 3],
+        ['role_permissions', 'settings', 'Role Permissions', 'የአገልግሎቶች መተገበሪያዎች', '/block_plant/settings/permissions.php', '🔑', 'settings', 'settings.edit', 1, 4],
+        ['block_types', 'settings', 'Block Types', 'የብሎክ ዓይነቶች', '/block_plant/settings/blocks.php', '🧱', 'settings', 'settings.edit', 1, 5],
+        ['backup_restore', 'settings', 'Backup & Restore', 'የዝቅታ እና መልሲያ', '/block_plant/settings/backup.php', '💾', 'settings', 'settings.edit', 1, 6],
+        ['telegram_alerts', 'settings', 'Telegram Alerts', 'የቴሌግራም ዋናዎች', '/block_plant/settings/telegram.php', '📱', 'settings', 'settings.edit', 1, 7],
+        ['activity_log', 'settings', 'Activity Log', 'የሥራ መጻት', '/block_plant/settings/activity_log.php', '📜', 'settings', 'settings.view', 1, 8],
+        ['activity_timeline', 'settings', 'Activity Timeline', 'የሥራ ቁልፍ', '/block_plant/settings/timeline.php', '⏱️', 'settings', 'settings.view', 1, 9],
+        ['document_library', 'settings', 'Document Library', 'መረጃ መዝገብ ቤት', '/block_plant/settings/documents.php', '📚', 'settings', 'settings.view', 1, 10],
+        ['sidebar_config', 'settings', 'Sidebar Menu', 'የሳድበር መኒው', '/block_plant/settings/sidebar.php', '🧭', 'settings', 'settings.edit', 1, 11],
+
+        ['advanced', 'advanced', 'Advanced', 'ጥንቃቄ', '#', '🔧', null, 'advanced.view', 1, 120],
+        ['advanced_widgets', 'advanced', 'Advanced Widgets', 'የአዲስ ዊጂቶች', '/block_plant/dashboard/widgets.php', '🧩', 'advanced', null, 1, 1],
+        ['operational_insights', 'advanced', 'Operational Insights', 'የስራ ምርመራ', '/block_plant/dashboard/insights.php', '🔍', 'advanced', null, 1, 2],
+        ['operations_overview', 'advanced', 'Operations Overview', 'የስራ መደብኛ', '/block_plant/dashboard/operations.php', '📊', 'advanced', null, 1, 3],
+        ['admin_overview', 'advanced', 'Admin Overview', 'የአስተዳዳሪ መደብኛ', '/block_plant/dashboard/admin.php', '🛠️', 'advanced', null, 1, 4],
+        ['budget_forecast', 'advanced', 'Budget Forecast', 'የበደለ አገልግሎቶች', '/block_plant/dashboard/forecast.php', '📉', 'advanced', null, 1, 5],
+        ['tasks_reminders', 'advanced', 'Tasks & Reminders', 'የሥራዎች እና ዋናዎች', '/block_plant/dashboard/tasks.php', '✅', 'advanced', null, 1, 6],
+        ['fleet_management', 'advanced', 'Fleet Management', 'የመኪና አስተዳደር', '/block_plant/dashboard/fleet.php', '🚛', 'advanced', null, 1, 7],
+        ['recurring_costs', 'advanced', 'Recurring Costs', 'የቀድሞው ዋጋ', '/block_plant/expenses/recurring.php', '🔁', 'advanced', null, 1, 8],
+        ['asset_maintenance', 'advanced', 'Asset Maintenance', 'የሥራ መለያ ተግባራዊ', '/block_plant/assets/maintenance.php', '🔧', 'advanced', null, 1, 9],
+        ['followups_interactions', 'advanced', 'Followups & Interactions', 'የዋናዎች እና መዋቋዎች', '/block_plant/crm/interactions.php', '🤝', 'advanced', null, 1, 10],
+    ];
+
+    $stmt = $pdo->prepare("INSERT INTO sidebar_menu_items(link_key, module, label_en, label_am, url, icon, parent_key, permission_required, is_visible_by_default, sort_order)
+        VALUES(?,?,?,?,?,?,?,?,?,?)");
+    foreach ($items as $item) {
+        $stmt->execute($item);
+    }
+}
+
+/**
+ * Return the sidebar items visible to the current user, grouped by parent.
+ *
+ * Each item: link_key, module, label (translated), url, icon, parent_key,
+ *   permission_required, sort_order, click_count, days_used
+ * Only top-level items (parent_key IS NULL) are returned as groups with
+ * their children nested under 'children'.
+ */
+function get_sidebar_items() {
+    global $pdo;
+    $userId = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : 0;
+    $lang = app_lang();
+
+    ensure_sidebar_menu_schema();
+
+    try {
+        // Build visibility map: user override first, then default.
+        $visibility = [];
+        try {
+            $rows = $pdo->query("SELECT link_key, is_visible, sort_order FROM user_sidebar_visibility WHERE user_id = $userId")->fetchAll();
+            foreach ($rows as $r) {
+                $visibility[(string) $r['link_key']] = ['is_visible' => (int) $r['is_visible'], 'sort_order' => (int) $r['sort_order']];
+            }
+        } catch (Throwable $e) {
+            // Table may not exist yet.
+        }
+
+        // Usage counts.
+        $usage = [];
+        try {
+            $rows = $pdo->query("SELECT link_key, click_count FROM sidebar_link_usage")->fetchAll();
+            foreach ($rows as $r) {
+                $usage[(string) $r['link_key']] = (int) $r['click_count'];
+            }
+        } catch (Throwable $e) {
+        }
+
+        // Fetch all items.
+        $stmt = $pdo->query("SELECT link_key, module, label_en, label_am, url, icon, parent_key, permission_required, is_visible_by_default, sort_order FROM sidebar_menu_items ORDER BY parent_key IS NULL DESC, sort_order, link_key");
+        $all = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $groups = [];
+        $children = [];
+
+        foreach ($all as $row) {
+            $key = $row['link_key'];
+            $parent = $row['parent_key'] ?? null;
+
+            // Permission check.
+            $perm = $row['permission_required'] ?? null;
+            if ($perm !== null && $perm !== '' && !has_permission($perm)) {
+                continue;
+            }
+
+            // Visibility check: user override wins; otherwise default.
+            $visible = (int) $row['is_visible_by_default'] === 1;
+            if (isset($visibility[$key])) {
+                $visible = (int) $visibility[$key]['is_visible'] === 1;
+            }
+            if (!$visible) {
+                continue;
+            }
+
+            // Sort order: user override wins; otherwise item default.
+            $sort = (int) $row['sort_order'];
+            if (isset($visibility[$key])) {
+                $sort = (int) $visibility[$key]['sort_order'];
+            }
+
+            $label = ($lang === 'am' && !empty($row['label_am'])) ? $row['label_am'] : $row['label_en'];
+
+            $item = [
+                'link_key' => $key,
+                'module' => $row['module'],
+                'label' => $label,
+                'url' => $row['url'],
+                'icon' => $row['icon'],
+                'parent_key' => $parent,
+                'permission_required' => $perm,
+                'sort_order' => $sort,
+                'click_count' => $usage[$key] ?? 0,
+            ];
+
+            if ($parent === null) {
+                $groups[$key] = $item;
+                $groups[$key]['children'] = [];
+            } else {
+                $children[$parent][] = $item;
+            }
+        }
+
+        // Nest children under parents and sort.
+        $result = [];
+        uasort($groups, function ($a, $b) {
+            return $a['sort_order'] <=> $b['sort_order'];
+        });
+        foreach ($groups as $gKey => &$group) {
+            if (isset($children[$gKey])) {
+                usort($children[$gKey], function ($a, $b) {
+                    return $a['sort_order'] <=> $b['sort_order'];
+                });
+                $group['children'] = $children[$gKey];
+            }
+            $result[] = $group;
+        }
+        unset($group);
+
+        return $result;
+    } catch (Throwable $e) {
+        return [];
+    }
+}
+
+/**
+ * Check whether a sidebar link is hidden for the current user.
+ */
+function is_sidebar_link_hidden(string $linkKey): bool {
+    global $pdo;
+    $userId = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : 0;
+    if ($userId <= 0) {
+        return false;
+    }
+    ensure_sidebar_menu_schema();
+    try {
+        $stmt = $pdo->prepare("SELECT is_visible FROM user_sidebar_visibility WHERE user_id = ? AND link_key = ?");
+        $stmt->execute([$userId, $linkKey]);
+        $row = $stmt->fetch();
+        if ($row === false) {
+            // No override: use default.
+            $stmt2 = $pdo->prepare("SELECT is_visible_by_default FROM sidebar_menu_items WHERE link_key = ?");
+            $stmt2->execute([$linkKey]);
+            $def = $stmt2->fetch();
+            return $def === false || (int) $def['is_visible_by_default'] === 0;
+        }
+        return (int) $row['is_visible'] === 0;
+    } catch (Throwable $e) {
+        return false;
+    }
+}
+
+/**
+ * Record a visit/use of a sidebar link (call on each staff page load).
+ */
+function track_sidebar_usage(string $linkKey) {
+    global $pdo;
+    ensure_sidebar_menu_schema();
+    try {
+        $pdo->beginTransaction();
+        $stmt = $pdo->prepare("INSERT INTO sidebar_link_usage(link_key, click_count, last_used) VALUES(?,1,NOW())
+            ON DUPLICATE KEY UPDATE click_count = click_count + 1, last_used = NOW()");
+        $stmt->execute([$linkKey]);
+        $pdo->commit();
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+    }
+}
+
+/**
+ * Resolve the current page URL to a sidebar link_key for usage tracking.
+ * Returns null when the page is not a sidebar link.
+ */
+function current_sidebar_link_key(): ?string {
+    global $pdo;
+    ensure_sidebar_menu_schema();
+    $here = trim(parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH), '/');
+    // Normalize the base path.
+    $base = trim((string) ($_SERVER['SCRIPT_NAME'] ?? ''), '/');
+    // Try exact match first.
+    try {
+        $stmt = $pdo->prepare("SELECT link_key FROM sidebar_menu_items WHERE url = ? LIMIT 1");
+        $stmt->execute(["/$here"]);
+        $row = $stmt->fetch();
+        if ($row) {
+            return (string) $row['link_key'];
+        }
+    } catch (Throwable $e) {
+    }
+    return null;
+}
+
+/**
+ * Save sidebar visibility preferences for a user.
+ *
+ * $links is the posted data (only checked checkboxes are present).
+ * $allKeys is every link key that was rendered on the form; keys missing
+ * from $links are treated as hidden (is_visible = 0).
+ */
+function save_sidebar_visibility(int $userId, array $links, array $allKeys): bool {
+    global $pdo;
+    ensure_sidebar_menu_schema();
+    try {
+        $pdo->beginTransaction();
+        $pdo->prepare("DELETE FROM user_sidebar_visibility WHERE user_id = ?")->execute([$userId]);
+        $insert = $pdo->prepare("INSERT INTO user_sidebar_visibility(user_id, link_key, is_visible, sort_order) VALUES(?,?,?,?)");
+        foreach ($allKeys as $linkKey) {
+            $posted = $links[$linkKey] ?? [];
+            $isVisible = isset($posted['is_visible']) ? 1 : 0;
+            $sortOrder = (int) ($posted['sort_order'] ?? 0);
+            $insert->execute([
+                $userId,
+                $linkKey,
+                $isVisible,
+                $sortOrder,
+            ]);
+        }
+        $pdo->commit();
+        return true;
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        return false;
+    }
+}
+
+/**
+ * Usage statistics for sidebar links (most used first).
+ */
+function sidebar_usage_stats(int $limit = 20): array {
+    global $pdo;
+    ensure_sidebar_menu_schema();
+    try {
+        $stmt = $pdo->prepare("SELECT u.link_key, u.click_count, u.last_used, i.label_en, i.label_am, i.module, i.url
+            FROM sidebar_link_usage u
+            JOIN sidebar_menu_items i ON i.link_key = u.link_key
+            ORDER BY u.click_count DESC
+            LIMIT ?");
+        $stmt->execute([$limit]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Throwable $e) {
+        return [];
+    }
 }
 
