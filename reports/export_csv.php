@@ -207,7 +207,11 @@ switch ($type) {
         csv_row($fp, []);
 
         $fin = $pdo->query("SELECT fs.block_type_id, bt.name, bt.size, fs.quantity, COALESCE(fs.average_unit_cost, 0) AS avg_cost, bt.selling_price FROM finished_stock fs JOIN block_types bt ON bt.id = fs.block_type_id ORDER BY bt.name LIMIT " . (int) $limit)->fetchAll();
-        $curingRows = $pdo->query("SELECT block_type_id, COALESCE(SUM(good_quantity), 0) AS curing FROM production WHERE COALESCE(ready_date, production_date) > CURDATE() GROUP BY block_type_id")->fetchAll();
+        $curingRows = $pdo->query("SELECT block_type_id, SUM(curing) AS curing FROM (
+            SELECT block_type_id, COALESCE(SUM(good_quantity), 0) AS curing FROM production WHERE COALESCE(ready_date, production_date) > CURDATE() GROUP BY block_type_id
+            UNION ALL
+            SELECT block_type_id, COALESCE(SUM(quantity), 0) AS curing FROM curing_holds WHERE ready_date > CURDATE() GROUP BY block_type_id
+        ) curing_parts GROUP BY block_type_id")->fetchAll();
         $curingByBlock = [];
         foreach ($curingRows as $curingRow) {
             $curingByBlock[(int) $curingRow['block_type_id']] = (int) $curingRow['curing'];

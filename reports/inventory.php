@@ -134,7 +134,13 @@ require_once "../partials/header.php";
             <?php if (!$curingBatches): ?><tr><td colspan="8">No blocks are curing right now.</td></tr><?php endif; ?>
             <?php foreach ($curingBatches as $batch): ?>
             <tr>
-                <td><a href="../production/view.php?id=<?= (int) $batch['id'] ?>"><?= e($batch['production_no']) ?></a></td>
+                <td>
+                    <?php if (($batch['source'] ?? 'production') === 'hold'): ?>
+                        <?= e($batch['production_no']) ?>
+                    <?php else: ?>
+                        <a href="../production/view.php?id=<?= (int) $batch['id'] ?>"><?= e($batch['production_no']) ?></a>
+                    <?php endif; ?>
+                </td>
                 <td><?= e($batch['block_name']) ?></td>
                 <td><?= e($batch['size']) ?></td>
                 <td><?= format_date($batch['production_date']) ?></td>
