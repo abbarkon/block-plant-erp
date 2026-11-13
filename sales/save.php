@@ -88,7 +88,10 @@ try {
     $stockStmt = $pdo->prepare("SELECT fs.quantity, fs.average_unit_cost,
             COALESCE((SELECT SUM(p.good_quantity) FROM production p
                 WHERE p.block_type_id = fs.block_type_id
-                  AND COALESCE(p.ready_date, p.production_date) > CURDATE()), 0) AS curing
+                  AND COALESCE(p.ready_date, p.production_date) > CURDATE()), 0)
+            + COALESCE((SELECT SUM(h.quantity) FROM curing_holds h
+                WHERE h.block_type_id = fs.block_type_id
+                  AND h.ready_date > CURDATE()), 0) AS curing
         FROM finished_stock fs
         WHERE fs.block_type_id = ? FOR UPDATE");
 
