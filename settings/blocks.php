@@ -4,6 +4,8 @@ require_once "../config/database.php";
 require_once "../config/helpers.php";
 require_permission('settings', 'edit');
 
+block_yield_ensure_schema();
+
 $pageTitle = "Block Types";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -14,6 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $name = trim($_POST['name'] ?? '');
         $size = trim($_POST['size'] ?? '');
         $priceRaw = trim($_POST['selling_price'] ?? '');
+        $yieldRaw = trim($_POST['blocks_per_cement_bag'] ?? '');
 
         if ($name === '' || mb_strlen($name) > 100) {
             set_flash('danger', 'Block name is required (maximum 100 characters).');
@@ -32,6 +35,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $price = round((float) $priceRaw, 2);
 
+        $yield = null;
+        if ($yieldRaw !== '') {
+            if (!is_numeric($yieldRaw) || (float) $yieldRaw <= 0 || (float) $yieldRaw > 99999) {
+                set_flash('danger', 'Blocks per cement bag must be a positive number.');
+                header('Location: blocks.php');
+                exit;
+            }
+            $yield = round((float) $yieldRaw, 2);
+        }
+
         try {
             if ($id > 0) {
                 $exists = $pdo->prepare("SELECT id FROM block_types WHERE id = ?");
@@ -41,19 +54,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     header('Location: blocks.php');
                     exit;
                 }
-                $pdo->prepare("UPDATE block_types SET name = ?, size = ?, selling_price = ? WHERE id = ?")
-                    ->execute([$name, $size, $price, $id]);
+                $pdo->prepare("UPDATE block_types SET name = ?, size = ?, selling_price = ?, yield_per_bag = ? WHERE id = ?")
+                    ->execute([$name, $size, $price, $yield, $id]);
                 log_activity('update', 'settings', $id, "Block type updated: {$name} ({$size}) at {$price}");
+                if ($yield !== null) {
+                    block_yield_sync_to_bom($id, $yield);
+                }
                 set_flash('success', 'Block type updated.');
             } else {
                 $pdo->beginTransaction();
-                $pdo->prepare("INSERT INTO block_types(name, size, selling_price, status) VALUES(?,?,?,1)")
-                    ->execute([$name, $size, $price]);
+                $pdo->prepare("INSERT INTO block_types(name, size, selling_price, yield_per_bag, status) VALUES(?,?,?,?,1)")
+                    ->execute([$name, $size, $price, $yield]);
                 $newId = (int) $pdo->lastInsertId();
                 $pdo->prepare("INSERT INTO finished_stock(block_type_id, quantity) VALUES(?, 0)")
                     ->execute([$newId]);
                 $pdo->commit();
                 log_activity('create', 'settings', $newId, "Block type created: {$name} ({$size}) at {$price}");
+                if ($yield !== null) {
+                    block_yield_sync_to_bom($newId, $yield);
+                }
                 set_flash('success', 'Block type added and added to finished stock.');
             }
         } catch (PDOException $e) {
@@ -212,6 +231,10 @@ require_once "../partials/header.php";
             <input type="number" step="0.01" min="0" max="99999999" name="selling_price" required value="<?= e($editBlock['selling_price'] ?? '') ?>">
             <p class="hint">Price must be zero or greater. Prices are per block.</p>
 
+            <label style="margin-top:12px;">Blocks per cement bag</label>
+            <input type="number" step="0.01" min="0" max="99999" name="blocks_per_cement_bag" value="<?= e($editBlock['yield_per_bag'] ?? '') ?>">
+            <p class="hint">How many blocks one cement bag makes for this block type. Leave blank to use the BOM recipe instead.</p>
+
             <div class="actions-inline" style="margin-top:18px;">
                 <button type="submit" class="btn btn-accent"><?= $editBlock ? 'Save changes' : 'Add block type' ?></button>
                 <?php if ($editBlock): ?>
@@ -230,6 +253,7 @@ require_once "../partials/header.php";
                         <th>Block name</th>
                         <th>Size</th>
                         <th style="text-align:right;">Selling price</th>
+                        <th style="text-align:right;">Blocks / bag</th>
                         <th style="text-align:right;">On hand</th>
                         <th style="text-align:right;">Unit cost</th>
                         <th>Status</th>
@@ -245,6 +269,7 @@ require_once "../partials/header.php";
                         <td><strong><?= e($block['name']) ?></strong></td>
                         <td><?= e($block['size']) ?></td>
                         <td style="text-align:right;"><?= e(currency_symbol()) ?><?= money($block['selling_price']) ?></td>
+                        <td style="text-align:right;"><?= $block['yield_per_bag'] !== null ? number_format((float) $block['yield_per_bag'], 2) : '-' ?></td>
                         <td style="text-align:right;"><?= number_format((float) $block['stock_qty'], 2) ?></td>
                         <td style="text-align:right;"><?= e(currency_symbol()) ?><?= money($block['unit_cost']) ?></td>
                         <td>
