@@ -6,17 +6,20 @@ require_once "../config/labor_settings.php";
 require_permission('production', 'create');
 ensure_manufacturing_costing_schema();
 ensure_production_curing_schema();
+block_yield_ensure_schema();
 
 $pageTitle = 'New Production Run';
 $defaultCuringDays = production_default_curing_days();
 $blocks = $pdo->query("SELECT * FROM block_types WHERE status=1 ORDER BY name, size")->fetchAll();
 $laborByBlock = [];
 $overheadByBlock = [];
+$yieldByBlock = [];
 $laborRatePerBag = labor_rate_per_bag();
 $kgPerBag = labor_kg_per_bag();
 foreach ($blocks as $b) {
     $laborByBlock[(int) $b['id']] = (float) ($b['labor_cost_per_block'] ?? 0);
     $overheadByBlock[(int) $b['id']] = (float) ($b['overhead_cost_per_block'] ?? 0);
+    $yieldByBlock[(int) $b['id']] = (float) ($b['yield_per_bag'] ?? 0);
 }
 $materials = $pdo->query("SELECT * FROM raw_materials WHERE status=1 ORDER BY name")->fetchAll();
 
@@ -98,7 +101,7 @@ require_once "../partials/header.php";
         <label>Block type</label>
         <select name="block_type_id" id="blockType" required>
             <?php foreach ($blocks as $x): ?>
-            <option value="<?= (int) $x['id'] ?>" <?= $selBlock === (int) $x['id'] ? 'selected' : '' ?>>
+            <option value="<?= (int) $x['id'] ?>" data-yield="<?= (float) ($x['yield_per_bag'] ?? 0) ?>" <?= $selBlock === (int) $x['id'] ? 'selected' : '' ?>>
                 <?= e($x['name'] . ' - ' . $x['size']) ?>
             </option>
             <?php endforeach; ?>
@@ -142,6 +145,7 @@ require_once "../partials/header.php";
 const bom = <?= json_encode($bomByBlock) ?>;
 const materials = <?= json_encode($matJson) ?>;
 const laborPerBlock = <?= json_encode($laborByBlock) ?>;
+const yieldPerBlock = <?= json_encode($yieldByBlock) ?>;
 let laborTouched = false;
 const laborInput = document.getElementById('laborCost');
 laborInput.addEventListener('input', () => { laborTouched = true; });
@@ -259,28 +263,58 @@ document.getElementById('prodDate').addEventListener('change', suggestOverhead);
 document.getElementById('addRow').addEventListener('click', () => addRow());
 document.getElementById('materialRows').addEventListener('input', suggestLabor);
 
-// --- Cement calculator: cement amount -> number of blocks (uses the block's BOM) ---
+// --- Cement calculator: cement amount -> number of blocks (uses the block's BOM or yield per bag) ---
 const cementMat = materials.find(m => /cement/i.test(m.name));
 function cementPerBlock() {
     if (!cementMat) return 0;
     const line = (bom[document.getElementById('blockType').value] || []).find(l => l.material_id == cementMat.id);
     return line ? parseFloat(line.qty_per_block) : 0;
 }
+function cementBagsFromQty(qty) {
+    // Convert cement quantity (in material's own unit) to bags
+    if (/kg|kilo/i.test((cementMat.unit || '').toLowerCase())) {
+        return qty / kgPerBag;
+    }
+    return qty;
+}
+// Read yield per bag from the selected block type option's data attribute
+function getYieldPerBag() {
+    const sel = document.getElementById('blockType');
+    const opt = sel.options[sel.selectedIndex];
+    return parseFloat(opt.getAttribute('data-yield') || 0);
+}
+function blocksFromCement(cementQty) {
+    if (cementQty <= 0 || !cementMat) return 0;
+    const yieldVal = getYieldPerBag();
+    if (yieldVal > 0) {
+        const bags = cementBagsFromQty(cementQty);
+        return bags * yieldVal;
+    }
+    const per = cementPerBlock();
+    if (!per) return 0;
+    return Math.floor(cementQty / per);
+}
 function updateCementHint() {
     const hint = document.getElementById('cementHint');
     document.getElementById('cementUnit').textContent = cementMat && cementMat.unit ? '(' + cementMat.unit + ')' : '';
     if (!cementMat) { hint.textContent = 'No raw material with "cement" in its name was found.'; return; }
+    const yieldVal = getYieldPerBag();
+    if (yieldVal > 0) {
+        hint.textContent = '1 bag of cement makes about ' + yieldVal.toFixed(1) + ' blocks (from block yield setting).';
+        return;
+    }
     const per = cementPerBlock();
-    if (!per) { hint.textContent = 'This block type has no cement in its BOM yet (Production > BOM). Add it to use the calculator.'; return; }
+    if (!per) { hint.textContent = 'This block type has no cement in its BOM yet (Production > BOM) and no yield set (Settings > Block Types). Add one to use the calculator.'; return; }
     const perCement = 1 / per;
     hint.textContent = '1 ' + (cementMat.unit || 'unit') + ' of cement makes about ' + perCement.toFixed(1) + ' blocks (from the BOM).';
 }
 function calcFromCement() {
-    const per = cementPerBlock();
     const cement = parseFloat(document.getElementById('cementQty').value) || 0;
-    if (!per || cement <= 0) return;
-    document.getElementById('producedQty').value = Math.floor(cement / per);
-    document.getElementById('producedQty').dispatchEvent(new Event('input'));
+    const blocks = blocksFromCement(cement);
+    if (blocks > 0) {
+        document.getElementById('producedQty').value = Math.floor(blocks);
+        document.getElementById('producedQty').dispatchEvent(new Event('input'));
+    }
 }
 document.getElementById('cementQty').addEventListener('input', calcFromCement);
 document.getElementById('blockType').addEventListener('change', () => { updateCementHint(); calcFromCement(); suggestOverhead(); });
