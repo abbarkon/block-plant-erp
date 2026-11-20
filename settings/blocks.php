@@ -2,6 +2,7 @@
 session_start();
 require_once "../config/database.php";
 require_once "../config/helpers.php";
+require_once "../config/block_yild.php";
 require_permission('settings', 'edit');
 
 $pageTitle = "Block Types";
