@@ -2,6 +2,8 @@
 // Yield: how many blocks one cement bag makes, per block type (Settings > Block Types).
 // When a yield is set it is used by the cement calculators and the efficiency report; otherwise the BOM recipe is used.
 
+require_once __DIR__ . '/labor_settings.php';
+
 function block_yield_ensure_schema() {
     static $done = false;
     if ($done) return;
@@ -48,4 +50,65 @@ function block_yield_cement_per_block($blockTypeId, $cementUnit, $kgPerBag = 50)
     if ($y <= 0) return 0;
     $perBag = preg_match('/\bkg\b|kilo/i', (string) $cementUnit) ? (float) $kgPerBag : 1.0;
     return $perBag / $y;
+}
+
+/**
+ * When a yield is saved on a block type, auto-update the block_bom cement line
+ * so quantity_per_block = cement per block derived from the yield.
+ *
+ * yield_per_bag = blocks per one cement bag.
+ * If cement unit is kg:   quantity_per_block = kg_per_bag / yield_per_bag
+ * If cement unit is bags: quantity_per_block = 1 / yield_per_bag
+ */
+function block_yield_sync_to_bom($blockTypeId, $yieldPerBag) {
+    global $pdo;
+    $yieldPerBag = (float) $yieldPerBag;
+    if ($yieldPerBag <= 0) {
+        return false;
+    }
+
+    $cement = labor_cement_material();
+    if (!$cement) {
+        return false;
+    }
+
+    $kgPerBag = labor_kg_per_bag();
+    $cementUnit = (string) ($cement['unit'] ?? '');
+
+    if (preg_match('/\bkg\b|kilo/i', $cementUnit)) {
+        $quantityPerBlock = $kgPerBag / $yieldPerBag;
+    } else {
+        $quantityPerBlock = 1.0 / $yieldPerBag;
+    }
+    $quantityPerBlock = round($quantityPerBlock, 4);
+
+    try {
+        $pdo->beginTransaction();
+        $existing = $pdo->prepare("SELECT id FROM block_bom WHERE block_type_id=? AND material_id=?");
+        $existing->execute([(int) $blockTypeId, (int) $cement['id']]);
+        if ($existing->fetchColumn()) {
+            $pdo->prepare("UPDATE block_bom SET quantity_per_block=?, notes=? WHERE block_type_id=? AND material_id=?")
+                ->execute([
+                    $quantityPerBlock,
+                    'Auto-synced from block yield: ' . $yieldPerBag . ' blocks per bag',
+                    (int) $blockTypeId,
+                    (int) $cement['id'],
+                ]);
+        } else {
+            $pdo->prepare("INSERT INTO block_bom(block_type_id, material_id, quantity_per_block, notes) VALUES(?,?,?,?)")
+                ->execute([
+                    (int) $blockTypeId,
+                    (int) $cement['id'],
+                    $quantityPerBlock,
+                    'Auto-synced from block yield: ' . $yieldPerBag . ' blocks per bag',
+                ]);
+        }
+        $pdo->commit();
+        return true;
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        return false;
+    }
 }

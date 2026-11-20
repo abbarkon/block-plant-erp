@@ -5295,3 +5295,6 @@ function sidebar_usage_stats(int $limit = 20): array {
     }
 }
 
+require_once __DIR__ . '/block_yield.php';
+block_yield_ensure_schema();
+
