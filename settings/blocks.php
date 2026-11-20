@@ -2,8 +2,6 @@
 session_start();
 require_once "../config/database.php";
 require_once "../config/helpers.php";
-require_once "../config/block_yield.php";
-block_yield_ensure_schema();
 require_permission('settings', 'edit');
 
 $pageTitle = "Block Types";
@@ -33,13 +31,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
         $price = round((float) $priceRaw, 2);
-        $yieldRaw = trim($_POST['yield_per_bag'] ?? '');
-        if ($yieldRaw !== '' && (!is_numeric($yieldRaw) || (float) $yieldRaw <= 0 || (float) $yieldRaw > 100000)) {
-            set_flash('danger', 'Yield must be a number greater than zero (blocks per cement bag), or empty.');
-            header('Location: blocks.php' . ($id > 0 ? '?edit=' . $id : ''));
-            exit;
-        }
-        $yield = $yieldRaw === '' ? null : round((float) $yieldRaw, 2);
 
         try {
             if ($id > 0) {
@@ -52,7 +43,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 $pdo->prepare("UPDATE block_types SET name = ?, size = ?, selling_price = ? WHERE id = ?")
                     ->execute([$name, $size, $price, $id]);
-                $pdo->prepare("UPDATE block_types SET yield_per_bag = ? WHERE id = ?")->execute([$yield, $id]);
                 log_activity('update', 'settings', $id, "Block type updated: {$name} ({$size}) at {$price}");
                 set_flash('success', 'Block type updated.');
             } else {
@@ -60,7 +50,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $pdo->prepare("INSERT INTO block_types(name, size, selling_price, status) VALUES(?,?,?,1)")
                     ->execute([$name, $size, $price]);
                 $newId = (int) $pdo->lastInsertId();
-                $pdo->prepare("UPDATE block_types SET yield_per_bag = ? WHERE id = ?")->execute([$yield, $newId]);
                 $pdo->prepare("INSERT INTO finished_stock(block_type_id, quantity) VALUES(?, 0)")
                     ->execute([$newId]);
                 $pdo->commit();
@@ -223,10 +212,6 @@ require_once "../partials/header.php";
             <input type="number" step="0.01" min="0" max="99999999" name="selling_price" required value="<?= e($editBlock['selling_price'] ?? '') ?>">
             <p class="hint">Price must be zero or greater. Prices are per block.</p>
 
-            <label style="margin-top:12px;">Yield: blocks per cement bag</label>
-            <input type="number" step="0.01" min="0" max="100000" name="yield_per_bag" value="<?= e($editBlock['yield_per_bag'] ?? '') ?>" placeholder="e.g., 30">
-            <p class="hint">How many blocks one cement bag makes. Used to work out targets and to check production efficiency. Leave empty to use the recipe (BOM) instead.</p>
-
             <div class="actions-inline" style="margin-top:18px;">
                 <button type="submit" class="btn btn-accent"><?= $editBlock ? 'Save changes' : 'Add block type' ?></button>
                 <?php if ($editBlock): ?>
@@ -245,7 +230,6 @@ require_once "../partials/header.php";
                         <th>Block name</th>
                         <th>Size</th>
                         <th style="text-align:right;">Selling price</th>
-                        <th style="text-align:right;">Yield / bag</th>
                         <th style="text-align:right;">On hand</th>
                         <th style="text-align:right;">Unit cost</th>
                         <th>Status</th>
@@ -254,14 +238,13 @@ require_once "../partials/header.php";
                 </thead>
                 <tbody>
                     <?php if (!$blocks): ?>
-                    <tr><td colspan="8">No block types configured yet. Add the first product on the left.</td></tr>
+                    <tr><td colspan="7">No block types configured yet. Add the first product on the left.</td></tr>
                     <?php endif; ?>
                     <?php foreach ($blocks as $block): ?>
                     <tr>
                         <td><strong><?= e($block['name']) ?></strong></td>
                         <td><?= e($block['size']) ?></td>
                         <td style="text-align:right;"><?= e(currency_symbol()) ?><?= money($block['selling_price']) ?></td>
-                        <td style="text-align:right;"><?= !empty($block['yield_per_bag']) ? number_format((float) $block['yield_per_bag'], 1) . ' blocks' : '—' ?></td>
                         <td style="text-align:right;"><?= number_format((float) $block['stock_qty'], 2) ?></td>
                         <td style="text-align:right;"><?= e(currency_symbol()) ?><?= money($block['unit_cost']) ?></td>
                         <td>
