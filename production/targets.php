@@ -2,8 +2,6 @@
 session_start();
 require_once "../config/database.php";
 require_once "../config/helpers.php";
-require_once "../config/block_yield.php";
-require_once "../config/labor_settings.php";
 require_login();
 require_permission('production', 'view');
 
@@ -85,10 +83,6 @@ try {
 } catch (PDOException $e) {
 }
 $unitIsKg = (bool) preg_match('/\bkg\b|kilo/i', $cementUnit);
-// A yield set on the block type (blocks per bag) takes priority over the recipe.
-foreach (block_yield_map() as $yb => $yv) {
-    $cementPerBlock[$yb] = block_yield_cement_per_block($yb, $cementUnit, labor_kg_per_bag());
-}
 $calcBlocks = [];
 foreach ($blocks as $b) {
     $calcBlocks[] = ['id' => (int) $b['id'], 'name' => $b['name'] . ' ' . $b['size'], 'per_unit' => $cementPerBlock[(int) $b['id']] ?? 0];
@@ -105,18 +99,6 @@ try {
         ];
     }
 } catch (PDOException $e) {
-}
-if (isset($cm) && !empty($cm['id'])) {
-    foreach (block_yield_map() as $yb => $yv) {
-        $perUnit = block_yield_cement_per_block($yb, $cementUnit, labor_kg_per_bag());
-        $found = false;
-        foreach (($bomMaterials[$yb] ?? []) as $k => $row) {
-            if ($row['id'] === (int) $cm['id']) { $bomMaterials[$yb][$k]['per_block'] = $perUnit; $found = true; }
-        }
-        if (!$found) {
-            $bomMaterials[$yb][] = ['id' => (int) $cm['id'], 'name' => $cementName, 'unit' => $cementUnit, 'per_block' => $perUnit, 'stock' => 0.0];
-        }
-    }
 }
 $flash = get_flash();
 require_once "../partials/header.php";

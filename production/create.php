@@ -3,7 +3,6 @@ session_start();
 require_once "../config/database.php";
 require_once "../config/helpers.php";
 require_once "../config/labor_settings.php";
-require_once "../config/block_yield.php";
 require_permission('production', 'create');
 ensure_manufacturing_costing_schema();
 ensure_production_curing_schema();
@@ -147,7 +146,6 @@ let laborTouched = false;
 const laborInput = document.getElementById('laborCost');
 laborInput.addEventListener('input', () => { laborTouched = true; });
 
-const blockYield = <?= json_encode(block_yield_map()) ?>;
 const laborRatePerBag = <?= json_encode($laborRatePerBag) ?>;
 const kgPerBag = <?= json_encode($kgPerBag) ?>;
 function cementBagsInForm() {
@@ -265,8 +263,6 @@ document.getElementById('materialRows').addEventListener('input', suggestLabor);
 const cementMat = materials.find(m => /cement/i.test(m.name));
 function cementPerBlock() {
     if (!cementMat) return 0;
-    const y = parseFloat(blockYield[document.getElementById('blockType').value] || 0);
-    if (y > 0) return (/kg|kilo/i.test(cementMat.unit || '') ? kgPerBag : 1) / y;   // yield: blocks per bag
     const line = (bom[document.getElementById('blockType').value] || []).find(l => l.material_id == cementMat.id);
     return line ? parseFloat(line.qty_per_block) : 0;
 }
