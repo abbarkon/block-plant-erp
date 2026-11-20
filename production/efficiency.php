@@ -2,6 +2,8 @@
 session_start();
 require_once "../config/database.php";
 require_once "../config/helpers.php";
+require_once "../config/block_yield.php";
+require_once "../config/labor_settings.php";
 require_login();
 require_permission('production', 'view');
 
@@ -24,6 +26,9 @@ try {
     }
 } catch (PDOException $e) {}
 
+foreach (block_yield_map() as $yb => $yv) {
+    $bomPerBlock[$yb] = block_yield_cement_per_block($yb, $cementUnit, labor_kg_per_bag());
+}
 $runs = [];
 try {
     $st = $pdo->prepare("SELECT p.id, p.production_no, p.production_date, p.block_type_id, p.produced_quantity, p.rejected_quantity, p.good_quantity,
