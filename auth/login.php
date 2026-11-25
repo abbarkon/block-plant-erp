@@ -113,7 +113,8 @@ $lang = app_lang();
             width: 280px; height: 280px; border-radius: 50%;
             background: rgba(255, 255, 255, .07);
         }
-        .logo { max-height: 54px; max-width: 160px; border-radius: 10px; margin-bottom: 16px; background: rgba(255,255,255,.12); padding: 4px; }
+        .logo { max-height: 110px; max-width: 280px; margin-bottom: 18px; filter: brightness(0) invert(1); }
+        .logo + h1 { display: none; }
         .brand h1 { margin: 0 0 8px; font-size: 1.9rem; line-height: 1.15; letter-spacing: .01em; }
         .brand .tag { margin: 0; opacity: .9; line-height: 1.55; max-width: 34ch; }
         .wall { display: flex; flex-direction: column; gap: 5px; margin: 26px 0; position: relative; z-index: 1; }
@@ -203,16 +204,19 @@ $lang = app_lang();
             box-shadow: 0 6px 18px rgba(28, 34, 80, .18);
         }
         body.dark-theme .theme-btn { background: #262d5c; border-color: #3a4272; }
-        .pk-or { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: .8rem; margin: 18px 0 12px; }
+        .pk-or { display: flex; align-items: center; gap: 14px; margin: 20px 0 6px; }
         .pk-or::before, .pk-or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
-        .pk-btn {
-            width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
-            padding: 13px; border-radius: 12px; cursor: pointer; font-size: 1rem; font-weight: 700;
-            border: 1.5px solid var(--p); color: var(--p); background: transparent;
-            transition: background .18s;
+        .pk-icon {
+            flex: none; width: 58px; height: 58px; border-radius: 50%; cursor: pointer;
+            display: grid; place-items: center; color: var(--p);
+            border: 1.5px solid var(--line); background: var(--card, #fff);
+            box-shadow: 0 6px 16px rgba(28, 34, 80, .12);
+            transition: transform .18s, border-color .18s, background .18s;
         }
-        .pk-btn:hover { background: color-mix(in srgb, var(--p) 10%, transparent); }
-        .pk-btn:disabled { opacity: .6; cursor: progress; }
+        .pk-icon:hover { transform: translateY(-2px); border-color: var(--p); background: color-mix(in srgb, var(--p) 8%, transparent); }
+        .pk-icon:active { transform: scale(.96); }
+        .pk-icon:disabled { opacity: .6; cursor: progress; transform: none; }
+        body.dark-theme .pk-icon { background: #1f2547; border-color: #3a4272; color: #aab0ff; }
     </style>
 </head>
 <body>
@@ -273,11 +277,16 @@ $lang = app_lang();
                 <button type="submit" class="go" id="go"><?= t('sign_in') ?></button>
             </form>
             <div id="pkBox" style="display:none;">
-                <div class="pk-or"><span><?= $lang === 'am' ? 'ወይም' : 'or' ?></span></div>
-                <button type="button" class="pk-btn" id="pkBtn">
-                    <span style="font-size:1.25rem;">🔐</span>
-                    <span><?= $lang === 'am' ? 'በጣት አሻራ ወይም በፊት ግባ' : 'Sign in with fingerprint / face' ?></span>
-                </button>
+                <div class="pk-or">
+                    <button type="button" class="pk-icon" id="pkBtn" aria-label="<?= $lang === 'am' ? 'በጣት አሻራ ወይም በፊት ግባ' : 'Sign in with fingerprint or face' ?>" title="<?= $lang === 'am' ? 'በጣት አሻራ ግባ' : 'Fingerprint login' ?>">
+                        <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M2.8 10.5A9.2 9.2 0 0 1 21.2 10.5M2.8 10.5v3M21.2 10.5v3.4"/>
+                            <path d="M5.3 10.5A6.7 6.7 0 0 1 18.7 10.5M5.3 10.5v5.4M18.7 10.5v4.6"/>
+                            <path d="M7.7 10.5A4.3 4.3 0 0 1 16.3 10.5M7.7 10.5v7.2M16.3 10.5v8"/>
+                            <path d="M10.1 10.5A1.9 1.9 0 0 1 13.9 10.5M10.1 10.5v4M13.9 10.5v10"/>
+                        </svg>
+                    </button>
+                </div>
                 <div class="err" id="pkErr" style="display:none;margin-top:10px;"></div>
             </div>
             <div class="foot">© <?= date('Y') ?> <?= htmlspecialchars(company_display_name()) ?></div>
